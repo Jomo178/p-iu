@@ -1,5 +1,6 @@
-import type { Config } from "tailwindcss";
 import fluid, { extract } from "fluid-tailwind";
+import type { Config } from "tailwindcss";
+
 const { fontFamily } = require("tailwindcss/defaultTheme");
 
 const config: Config = {
