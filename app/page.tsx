@@ -1,7 +1,9 @@
+import { Typography } from "@/components/ui/typography";
+
 export default function Home() {
   return (
     <div>
-      <h1>Hello, world!</h1>
+      <Typography variant="code">Hello World!</Typography>
     </div>
   );
 }

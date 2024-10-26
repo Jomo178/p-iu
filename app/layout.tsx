@@ -5,6 +5,8 @@ import localFont from "next/font/local";
 import "../styles/globals.css";
 
 import { cn } from "@/lib/utils";
+import { TailwindIndicator } from "@/components/ui/tailwind-indicator";
+import { Toaster } from "@/components/ui/toaster";
 
 const fontSans = FontSans({
   subsets: ["latin"],
@@ -37,6 +39,8 @@ export default function RootLayout({
       >
         <div className="flex min-h-screen flex-col">
           <main className="flex-1">{children}</main>
+          <Toaster />
+          <TailwindIndicator />
         </div>
       </body>
     </html>
