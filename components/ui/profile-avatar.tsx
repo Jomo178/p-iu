@@ -14,6 +14,7 @@ interface ProfileAvatarProps extends VariantProps<typeof avatarVariants> {
   alt: string;
   name: string;
   reverse?: boolean;
+  className?: string;
 }
 
 const avatarVariants = cva("flex items-center gap-2", {
@@ -40,11 +41,12 @@ export default function ProfileAvatar({
   name,
   size,
   reverse,
+  className,
 }: ProfileAvatarProps) {
   const [isLoaded, setIsLoaded] = useState(false);
 
   return (
-    <div className={cn(avatarVariants({ size, reverse }))}>
+    <div className={cn(avatarVariants({ size, reverse }), className)}>
       <div className="relative">
         <Avatar
           className={cn(isLoaded ? "" : "hidden", avatarVariants({ size }))}

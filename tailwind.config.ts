@@ -1,4 +1,4 @@
-import fluid, { extract } from "fluid-tailwind";
+import fluid, { extract, screens } from "fluid-tailwind";
 import type { Config } from "tailwindcss";
 
 const { fontFamily } = require("tailwindcss/defaultTheme");
@@ -25,6 +25,7 @@ const config: Config = {
         "2xl": "clamp(3rem, 4vw + 0.5rem, 3.5rem)",
       },
     },
+    screens,
     extend: {
       colors: {
         background: "hsl(var(--background))",

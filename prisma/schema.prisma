@@ -73,3 +73,26 @@ model VerificationToken {
   @@unique([identifier, token])
   @@map("verificationtokens_web")
 }
+
+model Staff {
+  id          String       @id @default(auto()) @map("_id") @db.ObjectId
+  discordId   String       @unique
+  role        Role
+  permissions Permission[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@map("staff")
+}
+
+enum Role {
+  developer
+  headCardCreator
+  cardCreator
+  supporter
+  designer
+}
+
+enum Permission {
+  manageStaff
+}
