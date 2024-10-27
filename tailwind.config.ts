@@ -14,6 +14,17 @@ const config: Config = {
     extract,
   },
   theme: {
+    container: {
+      center: true,
+      padding: {
+        DEFAULT: "clamp(0.5rem, 1vw + 0.5rem, 1rem)",
+        sm: "clamp(1rem, 1.5vw + 0.5rem, 1.5rem)",
+        md: "clamp(1.5rem, 2vw + 0.5rem, 2rem)",
+        lg: "clamp(2rem, 2.5vw + 0.5rem, 2.5rem)",
+        xl: "clamp(2.5rem, 3vw + 0.5rem, 3rem)",
+        "2xl": "clamp(3rem, 4vw + 0.5rem, 3.5rem)",
+      },
+    },
     extend: {
       colors: {
         background: "hsl(var(--background))",

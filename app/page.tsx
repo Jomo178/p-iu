@@ -1,9 +1,10 @@
 import { Typography } from "@/components/ui/typography";
+import Navbar from "@/components/navbar";
 
 export default function Home() {
   return (
     <div>
-      <Typography variant="code">Hello World!</Typography>
+      <Navbar />
     </div>
   );
 }
