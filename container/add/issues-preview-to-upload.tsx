@@ -1,0 +1,429 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import Image from "next/image";
+import { IssuesFormPropsValue, issuesSchema } from "@/model/issues-schema";
+import { checkDuplicateIssuesCode, UploadIssues } from "@/server/upload-issues";
+
+import { cn, scrollToCarousel } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
+import { Button, buttonVariants, LoadingButton } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CarouselApi } from "@/components/ui/carousel";
+import {
+  Credenza,
+  CredenzaBody,
+  CredenzaContent,
+  CredenzaDescription,
+  CredenzaFooter,
+  CredenzaHeader,
+  CredenzaTitle,
+} from "@/components/ui/credenza";
+import { Icons } from "@/components/ui/Icons";
+import { Progress } from "@/components/ui/progress";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { ToastAction } from "@/components/ui/toast";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Typography } from "@/components/ui/typography";
+
+interface IssuesPreviewToUploadProps {
+  carouselApi: CarouselApi;
+  issuesFormPropsValue: IssuesFormPropsValue[];
+  setIssuesFormPropsValueAction: React.Dispatch<
+    React.SetStateAction<IssuesFormPropsValue[]>
+  >;
+  defaultValues: IssuesFormPropsValue;
+}
+
+export default function IssuesPreviewToUpload({
+  carouselApi,
+  issuesFormPropsValue,
+  setIssuesFormPropsValueAction,
+  defaultValues,
+}: IssuesPreviewToUploadProps) {
+  const { toast } = useToast();
+  const [openSheet, setOpenSheet] = useState(false);
+  const [openUpload, setOpenUpload] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadingProgress, setUploadingProgress] = useState(0);
+  const [uploadingResponse, setUploadingResponse] = useState<
+    {
+      variant: "success" | "error";
+      message?: string;
+    }[]
+  >([]);
+
+  const openPreview = async () => {
+    const formErrors = issuesFormPropsValue.map((issue, index) => {
+      const checkEmptyProps = issuesSchema.safeParse(issue);
+      return (
+        checkEmptyProps.error?.issues.map((error) => ({
+          index,
+          path: error.path[0].toString(),
+          message: error.message,
+        })) || []
+      );
+    });
+
+    if (formErrors.length > 0) {
+      setIssuesFormPropsValueAction((prev) => {
+        return prev.map((issue, index) => {
+          const errors = formErrors[index];
+          return {
+            ...issue,
+            errors: errors.length > 0 ? errors : [],
+          };
+        });
+      });
+
+      for (let i = 0; i < formErrors.length; i++) {
+        if (!formErrors[i].length) continue;
+        toast({
+          title: "Issue Form Error",
+          description:
+            "Please fill out the required fields in the issue form before uploading.",
+          variant: "destructive",
+          duration: 3000,
+          action: (
+            <ToastAction
+              onClick={() =>
+                scrollToCarousel(carouselApi, formErrors[i][0].index)
+              }
+              className={cn(
+                buttonVariants({
+                  variant: "ghost",
+                })
+              )}
+              altText="Brings you to the Issue Form."
+            >
+              Jump to Form
+            </ToastAction>
+          ),
+        });
+        break;
+      }
+    }
+
+    if (formErrors.some((errors) => errors.length > 0)) return;
+
+    const checkCodes = await checkDuplicateIssuesCode(
+      issuesFormPropsValue.map((issue) => issue.code)
+    );
+
+    setIssuesFormPropsValueAction((prev) => {
+      return prev.map((issue, index) => {
+        if (!checkCodes.includes(issue.code)) return issue;
+        return {
+          ...issue,
+          codeDuplicate: true,
+          errors: checkCodes.includes(issue.code)
+            ? [
+                ...(issue.errors || []),
+                { message: "Duplicate Issue Code", path: "code" },
+              ]
+            : issue.errors,
+        };
+      });
+    });
+
+    if (checkCodes.length != 0) {
+      for (let i = 0; i < checkCodes.length; i++) {
+        toast({
+          title: "Duplicate Issue Code",
+          description:
+            "Please change the issue code to a unique one before uploading.",
+          variant: "destructive",
+          duration: 3000,
+          action: (
+            <ToastAction
+              onClick={() =>
+                scrollToCarousel(
+                  carouselApi,
+                  issuesFormPropsValue.findIndex(
+                    (issue) => issue.code === checkCodes[i]
+                  )
+                )
+              }
+              className={cn(
+                buttonVariants({
+                  variant: "ghost",
+                })
+              )}
+              altText="Brings you to the Issue Form."
+            >
+              Jump to Form
+            </ToastAction>
+          ),
+        });
+        break;
+      }
+      return;
+    }
+
+    setOpenSheet(true);
+  };
+
+  const onSubmit = async () => {
+    setOpenUpload(true);
+    setIsUploading(true);
+
+    const uploadPromises = issuesFormPropsValue.map((issue, index) =>
+      UploadIssues(issue)
+        .then(
+          ({
+            message,
+            variant,
+          }): { variant: "success" | "error"; message: string } => {
+            setUploadingProgress(
+              ((index + 1) / issuesFormPropsValue.length) * 100
+            );
+            return {
+              variant,
+              message,
+            };
+          }
+        )
+        .catch((error): { variant: "error"; message: string } => {
+          return {
+            variant: "error",
+            message: error.message,
+          };
+        })
+    );
+
+    const responses = await Promise.all(uploadPromises);
+    setUploadingResponse(responses);
+
+    const failedIssues = issuesFormPropsValue.filter(
+      (_, index) => responses[index].variant === "error"
+    );
+    setIssuesFormPropsValueAction(() =>
+      failedIssues.length > 0
+        ? failedIssues
+        : [{ ...defaultValues, id: Math.random().toString() }]
+    );
+
+    setIsUploading(false);
+    setOpenSheet(false);
+  };
+
+  return (
+    <>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="outline" onClick={openPreview}>
+              <Icons.previewButton size={24} />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Upload Preview</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+      <UploadPreview
+        issuesFormPropsValue={issuesFormPropsValue}
+        openSheet={openSheet}
+        setOpenSheet={setOpenSheet}
+        onSubmit={onSubmit}
+      />
+
+      <Credenza open={openUpload} onOpenChange={setOpenUpload}>
+        <CredenzaContent className="sm:max-w-[600px]" disableOutsideClick>
+          <CredenzaHeader>
+            <CredenzaTitle>Uploading Cards</CredenzaTitle>
+            <CredenzaDescription>
+              {isUploading
+                ? "Uploading the issues. Please wait until the process is complete."
+                : "All issues have been uploaded successfully."}
+            </CredenzaDescription>
+          </CredenzaHeader>
+          <CredenzaBody className="my-4 flex flex-col items-center space-y-4">
+            {isUploading && (
+              <div className="flex flex-row items-center gap-4">
+                <Icons.spinner size={32} />
+                <p>Uploading</p>
+              </div>
+            )}
+            <div className="flex w-full items-center gap-4">
+              <Progress value={uploadingProgress} className="h-4 w-full" />
+              <p>{uploadingProgress.toPrecision(3)}%</p>
+            </div>
+            <ScrollArea className="h-48 w-full text-center">
+              {uploadingResponse.map((item, index) => (
+                <Typography
+                  key={index}
+                  variant="p"
+                  className={cn(
+                    "!mt-0 mb-1",
+                    item.variant === "error" && "text-red-500",
+                    item.variant === "success" && "text-green-500"
+                  )}
+                >
+                  {item.variant === "success"
+                    ? `Issue ${index + 1} ${item.message}`
+                    : `Issue ${index + 1} ${item.message}`}
+                </Typography>
+              ))}
+            </ScrollArea>
+          </CredenzaBody>
+          <CredenzaFooter className="flex flex-row justify-center">
+            <LoadingButton
+              loading={isUploading}
+              onClick={() => {
+                setOpenUpload(false);
+                setOpenSheet(false);
+                setUploadingProgress(0);
+                setUploadingResponse([]);
+              }}
+            >
+              Close
+            </LoadingButton>
+          </CredenzaFooter>
+        </CredenzaContent>
+      </Credenza>
+    </>
+  );
+}
+
+interface UploadPreviewProps {
+  issuesFormPropsValue: IssuesFormPropsValue[];
+  openSheet: boolean;
+  setOpenSheet: React.Dispatch<React.SetStateAction<boolean>>;
+  onSubmit: () => void;
+}
+
+function UploadPreview({
+  issuesFormPropsValue,
+  openSheet,
+  setOpenSheet,
+  onSubmit,
+}: UploadPreviewProps) {
+  return (
+    <Sheet open={openSheet} onOpenChange={setOpenSheet}>
+      <SheetContent className="!w-full p-4 sm:max-w-none">
+        <SheetHeader className="border-b-2 pb-4">
+          <SheetTitle>All Issues Preview</SheetTitle>
+          <SheetDescription>
+            Scroll through all the issues to review their details.
+          </SheetDescription>
+        </SheetHeader>
+
+        <div className="grid h-[80vh] grid-cols-1 gap-4 overflow-y-auto sm:grid-cols-2 lg:grid-cols-4">
+          {issuesFormPropsValue.map((issue, index) => (
+            <CardPreview issue={issue} index={index} key={issue.id} />
+          ))}
+          <div className="flex flex-row sm:col-span-2 md:col-span-4 md:justify-end">
+            <Button
+              variant="expandIcon"
+              className="mb-4 w-full md:mr-8 md:w-auto"
+              onClick={() => onSubmit()}
+              Icon={Icons.upload}
+              iconPlacement="right"
+            >
+              Upload Issues
+            </Button>
+          </div>
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+interface CardPreviewProps {
+  issue: IssuesFormPropsValue;
+  index: number;
+}
+
+function CardPreview({ issue }: CardPreviewProps) {
+  const imageUrl = useMemo(() => {
+    if (issue.image && Object.keys(issue.image).length > 0) {
+      return URL.createObjectURL(issue.image);
+    }
+    return "";
+  }, [issue.image]);
+
+  return (
+    <Card
+      className="mx-auto mb-10 flex w-full max-w-xs items-center border-0 sm:flex-col"
+      key={issue.id}
+    >
+      <CardContent className="flex aspect-auto items-center justify-center p-0">
+        {Object.keys(issue.image).length > 0 && (
+          <Image
+            src={imageUrl}
+            alt={issue.name}
+            className="max-w-48 rounded-md"
+            width={192}
+            height={162}
+          />
+        )}
+      </CardContent>
+      <Separator className="mx-auto my-4 hidden max-w-[50%] sm:block" />
+      <CardHeader className="w-full p-0 text-center">
+        <div className="mx-[25%] flex min-h-full max-w-[50%] flex-row">
+          <Separator
+            orientation="vertical"
+            className="hidden w-[2px] sm:block"
+          />
+          <div className="sm:flex-1">
+            <TextInformation title="Name" description={issue.name} />
+            <TextInformation title="Group" description={issue.group} />
+            <TextInformation title="Act" description={issue.act} />
+            <TextInformation title="Code" description={issue.code} />
+            <div className="flex items-center justify-between">
+              <Separator className="hidden h-[2px] w-4 sm:block" />
+              <Typography variant="small" className="text-left">
+                Rarity:
+              </Typography>
+              <Typography
+                variant="small"
+                className="!mt-0 w-1/2 text-left text-white"
+              >
+                {Array.from({ length: issue.rarity }).map((_, starIndex) => (
+                  <Icons.star key={starIndex} size={16} />
+                ))}
+              </Typography>
+            </div>
+          </div>
+        </div>
+      </CardHeader>
+    </Card>
+  );
+}
+
+function TextInformation({
+  title,
+  description,
+}: {
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="flex items-center justify-between">
+      <Separator className="hidden h-[2px] w-4 sm:block" />
+      <Typography variant="small" className="text-left text-muted-foreground">
+        {title}:
+      </Typography>
+      <Typography
+        variant="small"
+        className="!mt-0 w-1/2 text-left text-base text-white"
+      >
+        {description}
+      </Typography>
+    </div>
+  );
+}

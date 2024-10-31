@@ -111,7 +111,7 @@ model PendingIssues {
   image        String
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
-  eventId      String?   @db.ObjectId
+  eventId      String    @db.ObjectId
   createdById  String    @db.ObjectId
   approvedById String?   @db.ObjectId
   approvedAt   DateTime?
@@ -129,7 +129,7 @@ model Events {
   id            String          @id @default(auto()) @map("_id") @db.ObjectId
   name          String
   start         DateTime
-  end           DateTime
+  end           DateTime?
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
   pendingIssues PendingIssues[] @relation("PendingIssuesEvent")

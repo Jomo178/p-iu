@@ -1,4 +1,4 @@
-import fluid, { extract, screens } from "fluid-tailwind";
+import fluid, { extract, fontSize, screens } from "fluid-tailwind";
 import type { Config } from "tailwindcss";
 
 const { fontFamily } = require("tailwindcss/defaultTheme");
@@ -7,25 +7,24 @@ const config: Config = {
   darkMode: ["class"],
   content: {
     files: [
-      "./pages/**/*.{js,ts,jsx,tsx,mdx}",
-      "./components/**/*.{js,ts,jsx,tsx,mdx}",
-      "./app/**/*.{js,ts,jsx,tsx,mdx}",
+      "./pages/**/*.{ts,tsx}",
+      "./components/**/*.{ts,tsx}",
+      "./app/**/*.{ts,tsx}",
+      "./src/**/*.{ts,tsx}",
+      "./container/**/*.{ts,tsx}",
     ],
     extract,
   },
   theme: {
     container: {
       center: true,
-      padding: {
-        DEFAULT: "clamp(0.5rem, 1vw + 0.5rem, 1rem)",
-        sm: "clamp(1rem, 1.5vw + 0.5rem, 1.5rem)",
-        md: "clamp(1.5rem, 2vw + 0.5rem, 2rem)",
-        lg: "clamp(2rem, 2.5vw + 0.5rem, 2.5rem)",
-        xl: "clamp(2.5rem, 3vw + 0.5rem, 3rem)",
-        "2xl": "clamp(3rem, 4vw + 0.5rem, 3.5rem)",
+      padding: "2rem",
+      screens: {
+        "2xl": "1400px",
       },
     },
     screens,
+    fontSize,
     extend: {
       colors: {
         background: "hsl(var(--background))",
@@ -77,6 +76,15 @@ const config: Config = {
       fontFamily: {
         sans: ["var(--font-sans)", ...fontFamily.sans],
         heading: ["var(--font-heading)", ...fontFamily.sans],
+      },
+      keyframes: {
+        shine: {
+          from: { backgroundPosition: "200% 0" },
+          to: { backgroundPosition: "-200% 0" },
+        },
+      },
+      animation: {
+        shine: "shine 8s ease-in-out infinite",
       },
     },
   },
