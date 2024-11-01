@@ -7,3 +7,11 @@ export type NavigationItem = {
   icon?: FC<{ className: string }>;
   action?: () => void;
 };
+
+export interface DashboradActionsType {
+  href: string;
+  Icon: FC<{ className: string }>;
+  title: string;
+  description: string;
+  disabled?: boolean;
+}

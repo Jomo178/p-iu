@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useDefaultFormValues } from "@/model/client";
+import { useDefaultIssueFormValues } from "@/model/client";
 import { IssuesFormPropsValue } from "@/model/issues-schema";
 
 import { scrollToCarousel } from "@/lib/utils";
@@ -50,7 +50,7 @@ export default function IssuesButtonControl({
 }: IssuesButtonControlProps) {
   const { toast } = useToast();
   const [openDialog, setOpenDialog] = useState(false);
-  const [getNewCustomProps, setNewCustomProps] = useDefaultFormValues();
+  const [getNewCustomProps, setNewCustomProps] = useDefaultIssueFormValues();
 
   return (
     <>

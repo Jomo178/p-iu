@@ -2,7 +2,6 @@
 
 import { useEffect } from "react";
 import {
-  generateHiddenIssuesSchema,
   IssuesFormPropsValue,
   IssuesFormPropsValueKeys,
   issuesSchema,
@@ -60,7 +59,6 @@ export default function IssuesForm({
   });
 
   useEffect(() => {
-    console.log(defaultValues);
     if (defaultValues.code) {
       form.setValue(
         "code",
@@ -162,7 +160,7 @@ export default function IssuesForm({
                       </div>
                       <TooltipProvider>
                         <Tooltip>
-                          <TooltipTrigger>
+                          <TooltipTrigger disabled className="cursor-pointer">
                             <Icons.info size={16} />
                           </TooltipTrigger>
                           <TooltipContent>
@@ -216,11 +214,11 @@ export default function IssuesForm({
                           value={field.value.toString()}
                         >
                           <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select the Card Rarity" />
+                            <SelectValue placeholder="Select the Issue Rarity" />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectGroup>
-                              <SelectLabel>Card Rarity</SelectLabel>
+                              <SelectLabel>Issue Rarity</SelectLabel>
                               {Array.from({ length: 5 }).map((_, index) => (
                                 <SelectItem
                                   key={index}

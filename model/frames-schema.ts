@@ -2,15 +2,13 @@ import { z } from "zod";
 
 import { checkFileType } from "@/lib/utils";
 
-export const issuesSchema = z
+export const framesSchema = z
   .object({
     id: z.string(),
     name: z.string().min(1, "Issue Name is required!"),
-    group: z.string().min(1, "Issue Group is required!"),
-    act: z.string().min(1, "Issue Act is required!"),
     code: z.string(),
     codeDuplicate: z.boolean().optional().default(false),
-    rarity: z.number().min(1, "Rarity is required").max(5, "Max is 5"),
+    rarity: z.enum(["Common", "Rare", "Special"]),
     releaseDate: z
       .string()
       .or(z.date())
@@ -43,5 +41,5 @@ export const issuesSchema = z
     errors: true,
   });
 
-export type IssuesFormPropsValue = z.infer<typeof issuesSchema>;
-export type IssuesFormPropsValueKeys = keyof IssuesFormPropsValue;
+export type FramesFormPropsValue = z.infer<typeof framesSchema>;
+export type FramesFormPropsValueKeys = keyof FramesFormPropsValue;

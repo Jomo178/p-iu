@@ -85,6 +85,8 @@ model Staff {
   approvedPendingIssues PendingIssues[] @relation("PendingIssuesApprovedBy")
   rejections            Rejections[]    @relation("RejectionsRejectedBy")
   rejectedResubmissions Rejections[]    @relation("RejectionsResubmittedBy")
+  createdPendingFrames  PendingFrames[] @relation("PendingFramesCreatedBy")
+  approvedPendingFrames PendingFrames[] @relation("PendingFramesApprovedBy")
 
   @@map("staff")
 }
@@ -118,23 +120,58 @@ model PendingIssues {
   dropAble     Boolean   @default(true)
 
   rejections Rejections[] @relation("RejectionsPendingIssue")
-  event      Events?      @relation(fields: [eventId], references: [id], name: "PendingIssuesEvent")
+  event      Events       @relation(fields: [eventId], references: [id], name: "PendingIssuesEvent")
   createdBy  Staff        @relation(fields: [createdById], references: [id], name: "PendingIssuesCreatedBy")
   approvedBy Staff?       @relation(fields: [approvedById], references: [id], name: "PendingIssuesApprovedBy")
 
   @@map("pendingissues")
 }
 
+model PendingFrames {
+  id           String      @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  rarity       FrameRarity
+  code         String      @unique
+  image        String
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  eventId      String      @db.ObjectId
+  createdById  String      @db.ObjectId
+  approvedById String?     @db.ObjectId
+  approvedAt   DateTime?
+  dropAble     Boolean     @default(true)
+
+  rejections Rejections[] @relation("RejectionsPendingFrame")
+  event      Events       @relation(fields: [eventId], references: [id], name: "PendingFramesEvent")
+  createdBy  Staff        @relation(fields: [createdById], references: [id], name: "PendingFramesCreatedBy")
+  approvedBy Staff?       @relation(fields: [approvedById], references: [id], name: "PendingFramesApprovedBy")
+
+  @@map("pendingframes")
+}
+
+enum FrameRarity {
+  Common
+  Rare
+  Special
+}
+
 model Events {
   id            String          @id @default(auto()) @map("_id") @db.ObjectId
+  type          EventType
   name          String
   start         DateTime
   end           DateTime?
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
   pendingIssues PendingIssues[] @relation("PendingIssuesEvent")
+  pendingFrames PendingFrames[] @relation("PendingFramesEvent")
 
   @@map("events")
+}
+
+enum EventType {
+  issues
+  frames
 }
 
 model Rejections {
@@ -147,10 +184,12 @@ model Rejections {
   resubmittedAt   DateTime?
   resubmittedById String?   @db.ObjectId
   pendingIssuesId String?   @db.ObjectId
+  pendingFramesId String?   @db.ObjectId
 
   rejectedBy    Staff          @relation(fields: [rejectedById], references: [id], name: "RejectionsRejectedBy")
   resubmittedBy Staff?         @relation(fields: [resubmittedById], references: [id], name: "RejectionsResubmittedBy")
-  PendingIssues PendingIssues? @relation(fields: [pendingIssuesId], references: [id], name: "RejectionsPendingIssue")
+  pendingIssues PendingIssues? @relation(fields: [pendingIssuesId], references: [id], name: "RejectionsPendingIssue")
+  pendingFrames PendingFrames? @relation(fields: [pendingFramesId], references: [id], name: "RejectionsPendingFrame")
 
   @@map("rejections")
 }

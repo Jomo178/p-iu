@@ -1,10 +1,10 @@
 "use client";
 
-import { use, useEffect, useId, useState } from "react";
-import { useDefaultFormValues } from "@/model/client";
-import { IssuesFormPropsValue } from "@/model/issues-schema";
+import { useEffect, useState } from "react";
+import { useDefaultFrameFormValues } from "@/model/client";
+import { FramesFormPropsValue } from "@/model/frames-schema";
 
-import { generateIssueCode } from "@/lib/utils";
+import { generateFrameCode, generateIssueCode } from "@/lib/utils";
 import {
   Carousel,
   CarouselApi,
@@ -14,25 +14,23 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 
-import IssuesButtonControl from "./issues-button-control";
-import IssuesForm from "./issues-form";
+import FramesButtonControl from "./frames-button-control";
+import FramesForm from "./frames-form";
 
-interface IssuesCarouselProps {
+interface FramesCarouselProps {
   eventReleaseDate: Date;
-  eventName: string;
 }
 
-export default function IssuesCarousel({
+export default function FramesCarousel({
   eventReleaseDate,
-  eventName,
-}: IssuesCarouselProps) {
+}: FramesCarouselProps) {
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
   const [count, setCount] = useState(0);
-  const [defaultFormValues, setDefaultFormValues] = useDefaultFormValues();
+  const [defaultFormValues, setDefaultFormValues] = useDefaultFrameFormValues();
 
-  const [issuesFormPropsValue, setIssuesFormPropsValue] = useState<
-    IssuesFormPropsValue[]
+  const [framesFormPropsValue, setFramesFormPropsValue] = useState<
+    FramesFormPropsValue[]
   >([{ ...defaultFormValues, errors: [], releaseDate: eventReleaseDate }]);
 
   useEffect(() => {
@@ -48,10 +46,10 @@ export default function IssuesCarousel({
 
   return (
     <>
-      <IssuesButtonControl
+      <FramesButtonControl
         eventReleaseDate={eventReleaseDate}
-        issuesFormPropsValue={issuesFormPropsValue}
-        setIssuesFormPropsValueAction={setIssuesFormPropsValue}
+        framesFormPropsValue={framesFormPropsValue}
+        setFramesFormPropsValueAction={setFramesFormPropsValue}
         carouselApi={api}
         carouselCount={count}
         setCarouselCountAction={setCount}
@@ -59,21 +57,16 @@ export default function IssuesCarousel({
       />
       <Carousel setApi={setApi} className="w-full !max-w-sm">
         <CarouselContent>
-          {issuesFormPropsValue?.map((issuesForm, index) => (
-            <CarouselItem key={issuesForm.id}>
-              <IssuesForm
+          {framesFormPropsValue?.map((framesForm, index) => (
+            <CarouselItem key={framesForm.id}>
+              <FramesForm
                 index={index}
-                defaultValues={issuesForm}
-                onFormChangeAction={(index, value: IssuesFormPropsValue) =>
-                  setIssuesFormPropsValue((prev) => {
+                defaultValues={framesForm}
+                onFormChangeAction={(index, value: FramesFormPropsValue) =>
+                  setFramesFormPropsValue((prev) => {
                     const newData = [...prev];
                     if (!value.codeDuplicate) {
-                      value.code = generateIssueCode(
-                        value.name,
-                        value.act,
-                        value.group,
-                        value.rarity
-                      );
+                      value.code = generateFrameCode(value.name, value.rarity);
                     }
                     newData[index] = value;
                     return newData;
@@ -87,7 +80,7 @@ export default function IssuesCarousel({
         <CarouselNext />
       </Carousel>
       <div className="py-2 text-center text-sm text-muted-foreground">
-        Issue {current} of {count}
+        Frame {current} of {count}
       </div>
     </>
   );

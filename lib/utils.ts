@@ -51,6 +51,13 @@ export function generateIssueCode(
   return code;
 }
 
+export function generateFrameCode(
+  name: string,
+  rarity: "Common" | "Rare" | "Special"
+) {
+  return name + rarity;
+}
+
 export function scrollToCarousel(api: CarouselApi, index: number) {
   setTimeout(() => {
     if (api) {
@@ -68,3 +75,18 @@ export const formatTimestamp = (date: Date) => {
     minute: "2-digit",
   });
 };
+
+export function checkFileType(file: File) {
+  if (file?.name) {
+    const fileType = file.name.split(".").pop();
+    if (fileType === "png" || fileType === "jpg") return true;
+  }
+  return false;
+}
+
+export function toUpperCase(text: string) {
+  return text
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/([A-Z])([A-Z][a-z])/g, "$1 $2")
+    .replace(/^./, text[0].toUpperCase());
+}

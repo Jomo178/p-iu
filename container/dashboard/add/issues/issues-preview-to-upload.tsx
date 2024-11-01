@@ -244,7 +244,7 @@ export default function IssuesPreviewToUpload({
       <Credenza open={openUpload} onOpenChange={setOpenUpload}>
         <CredenzaContent className="sm:max-w-[600px]" disableOutsideClick>
           <CredenzaHeader>
-            <CredenzaTitle>Uploading Cards</CredenzaTitle>
+            <CredenzaTitle>Uploading Issues</CredenzaTitle>
             <CredenzaDescription>
               {isUploading
                 ? "Uploading the issues. Please wait until the process is complete."

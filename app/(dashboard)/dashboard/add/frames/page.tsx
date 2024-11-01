@@ -19,7 +19,7 @@ export default async function Page() {
   return (
     <>
       <Tabs
-        defaultValue="issues"
+        defaultValue="frames"
         className="ml-auto mr-auto max-h-fit min-w-[400px] max-w-fit p-11"
       >
         <TabsList className="grid w-full grid-cols-2">

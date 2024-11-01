@@ -58,7 +58,7 @@ export default function Navbar({ user, navigationItems }: NavbarProps) {
         ) : null}
       </div>
 
-      {user ? (
+      {user?.global_name ? (
         <DropdownMenu>
           <DropdownMenuTrigger
             className="flex cursor-pointer items-center"
@@ -81,7 +81,7 @@ export default function Navbar({ user, navigationItems }: NavbarProps) {
                 <span>Profile</span>
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => signOut()}>
-                <Icons.logout className="mr-2 h-4 w-4" />
+                <Icons.signOut className="mr-2 h-4 w-4" />
                 <span>Logout</span>
               </DropdownMenuItem>
             </DropdownMenuGroup>
