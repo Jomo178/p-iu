@@ -4,10 +4,11 @@ import { useMemo, useState } from "react";
 import Image from "next/image";
 import { IssuesFormPropsValue, issuesSchema } from "@/model/issues-schema";
 import { checkDuplicateIssuesCode, UploadIssues } from "@/server/upload-issues";
+import { toast as promiseToast } from "sonner";
 
 import { cn, scrollToCarousel } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import { Button, buttonVariants, LoadingButton } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CarouselApi } from "@/components/ui/carousel";
 import {
@@ -119,9 +120,17 @@ export default function IssuesPreviewToUpload({
 
     if (formErrors.some((errors) => errors.length > 0)) return;
 
-    const checkCodes = await checkDuplicateIssuesCode(
+    const checkCodesPromise = checkDuplicateIssuesCode(
       issuesFormPropsValue.map((issue) => issue.code)
     );
+
+    promiseToast.promise(checkCodesPromise, {
+      loading: "Checking for duplicate issue codes...",
+      success: "Duplicate issue codes have been checked successfully.",
+      error: "Error checking duplicate issue codes.",
+    });
+
+    const checkCodes = await checkCodesPromise;
 
     setIssuesFormPropsValueAction((prev) => {
       return prev.map((issue, index) => {
@@ -242,7 +251,7 @@ export default function IssuesPreviewToUpload({
       />
 
       <Credenza open={openUpload} onOpenChange={setOpenUpload}>
-        <CredenzaContent className="sm:max-w-[600px]" disableOutsideClick>
+        <CredenzaContent className="sm:max-w-[600px]" disableoutsideclick>
           <CredenzaHeader>
             <CredenzaTitle>Uploading Issues</CredenzaTitle>
             <CredenzaDescription>
@@ -281,7 +290,7 @@ export default function IssuesPreviewToUpload({
             </ScrollArea>
           </CredenzaBody>
           <CredenzaFooter className="flex flex-row justify-center">
-            <LoadingButton
+            <Button
               loading={isUploading}
               onClick={() => {
                 setOpenUpload(false);
@@ -291,7 +300,7 @@ export default function IssuesPreviewToUpload({
               }}
             >
               Close
-            </LoadingButton>
+            </Button>
           </CredenzaFooter>
         </CredenzaContent>
       </Credenza>

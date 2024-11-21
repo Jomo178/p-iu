@@ -32,6 +32,7 @@ export const authOptions: NextAuthOptions = {
           name: profile.username,
           email: profile.email,
           image: profile.image_url,
+          discordId: profile.id,
         };
       },
     }),

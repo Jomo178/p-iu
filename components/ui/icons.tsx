@@ -1,22 +1,34 @@
 import { MixerHorizontalIcon } from "@radix-ui/react-icons";
 import {
   BookOpenCheck,
+  CalendarPlus,
   ChartColumn,
+  ChartLine,
+  ChartNoAxesGantt,
+  Check,
   ChevronUp,
-  CreditCard,
+  CircleAlert,
+  Ellipsis,
+  FilePenLine,
   Frame,
+  GitPullRequestClosed,
   Info,
+  ListFilter,
   ListTodo,
   Loader2,
   LogOut,
   LucideProps,
+  Menu,
   Plus,
   ScanEye,
+  Signature,
+  SquareMousePointer,
   Star,
   Trash2,
   Upload,
   User,
   Users,
+  X,
 } from "lucide-react";
 
 export const Icons = {
@@ -34,6 +46,20 @@ export const Icons = {
   staff: Users,
   blog: BookOpenCheck,
   stats: ChartColumn,
+  frames: Frame,
+  manage: ChartNoAxesGantt,
+  growth: ChartLine,
+  rejected: GitPullRequestClosed,
+  menu: Menu,
+  approve: Signature,
+  reject: CircleAlert,
+  edit: FilePenLine,
+  selected: Check,
+  select: SquareMousePointer,
+  filter: ListFilter,
+  cancel: X,
+  pending: Ellipsis,
+  soon: CalendarPlus,
   editPen: ({ ...props }: LucideProps) => (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -46,7 +72,6 @@ export const Icons = {
       <path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z" />
     </svg>
   ),
-  frames: Frame,
   addIssue: ({ ...props }: LucideProps) => (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -85,6 +110,39 @@ export const Icons = {
           vectorEffect="non-scaling-stroke"
         />
       </g>
+    </svg>
+  ),
+  deselect: (props: LucideProps) => (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={props.size}
+      height={props.size}
+      viewBox={`0 0 ${props.size} ${props.size}`}
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...props}
+      className="icon icon-tabler icons-tabler-outline icon-tabler-deselect"
+    >
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 8h3a1 1 0 0 1 1 1v3" />
+      <path d="M16 16h-7a1 1 0 0 1 -1 -1v-7" />
+      <path d="M12 20v.01" />
+      <path d="M16 20v.01" />
+      <path d="M8 20v.01" />
+      <path d="M4 20v.01" />
+      <path d="M4 16v.01" />
+      <path d="M4 12v.01" />
+      <path d="M4 8v.01" />
+      <path d="M8 4v.01" />
+      <path d="M12 4v.01" />
+      <path d="M16 4v.01" />
+      <path d="M20 4v.01" />
+      <path d="M20 8v.01" />
+      <path d="M20 12v.01" />
+      <path d="M20 16v.01" />
+      <path d="M3 3l18 18" />
     </svg>
   ),
 };

@@ -21,3 +21,10 @@ declare module "next-auth" {
     locale?: string;
   }
 }
+
+export type UserProfile = {
+  id: string;
+  username: string;
+  discriminator: string;
+  avatar: string | null;
+};

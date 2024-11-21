@@ -188,7 +188,6 @@ export function FileUploader(props: FileUploaderProps) {
     // onValueChange?.(newFiles);
   }
 
-  // Revoke preview url when component unmounts
   React.useEffect(() => {
     return () => {
       if (!files) return;
@@ -198,7 +197,6 @@ export function FileUploader(props: FileUploaderProps) {
         }
       });
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const isDisabled = disabled || (files?.length ?? 0) >= maxFileCount;
@@ -303,14 +301,17 @@ function FileCard({
       className="relative flex items-center gap-2.5"
       onClick={() => onClick()}
     >
-      <div className="flex flex-col gap-2.5 w-full">
+      <div className="flex w-full flex-col gap-2.5">
         <div className="flex w-full flex-col gap-2">
           <div className="flex flex-col gap-px">
             <Typography variant="code" className="truncate">
               {file.name}
             </Typography>
-            <Typography variant="code" className="text-xs text-muted-foreground">
-              {formatBytes(file.size, {sizeType: "accurate", decimals: 2})}
+            <Typography
+              variant="code"
+              className="text-xs text-muted-foreground"
+            >
+              {formatBytes(file.size, { sizeType: "accurate", decimals: 2 })}
             </Typography>
           </div>
           {progress ? <Progress value={progress} /> : null}

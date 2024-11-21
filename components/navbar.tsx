@@ -1,5 +1,6 @@
 "use client";
 
+import { ReactNode } from "react";
 import Link from "next/link";
 import { useSelectedLayoutSegment } from "next/navigation";
 import { NavigationItem } from "@/types";
@@ -21,14 +22,20 @@ import ProfileAvatar from "./ui/profile-avatar";
 interface NavbarProps {
   user?: { global_name?: string; image?: string | null };
   navigationItems?: NavigationItem[];
+  sidebarToggle?: ReactNode;
 }
 
-export default function Navbar({ user, navigationItems }: NavbarProps) {
+export default function Navbar({
+  user,
+  navigationItems,
+  sidebarToggle,
+}: NavbarProps) {
   const segment = useSelectedLayoutSegment();
 
   return (
-    <nav className="container flex flex-row justify-between @container">
+    <nav className="container mt-2 flex flex-row justify-between">
       <div className="flex">
+        {sidebarToggle}
         <ProfileAvatar
           src="https://api.dicebear.com/9.x/adventurer/svg?seed=Jade"
           alt="IU"

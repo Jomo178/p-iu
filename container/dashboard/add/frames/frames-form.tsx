@@ -169,6 +169,7 @@ export default function FramesForm({
                 />
               </>
             )}
+            {/* TODO: Change the code detail */}
             {!isFieldHidden("code") && (
               <FormField
                 control={form.control}
@@ -232,6 +233,12 @@ export default function FramesForm({
                       <FormLabel>Frame Image</FormLabel>
                       <FormControl>
                         <FileUploader
+                          value={
+                            form.getValues().image?.name &&
+                            form.getValues().image.name !== "filename"
+                              ? [form.getValues().image]
+                              : []
+                          }
                           previewHeight={150}
                           previewWidth={150}
                           onValueChange={(value) => {

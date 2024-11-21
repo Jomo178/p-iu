@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Slot, Slottable } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
-import { Loader2 } from "lucide-react";
+import { Loader2, LucideIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -50,36 +50,27 @@ const buttonVariants = cva(
   }
 );
 
-interface IconProps {
-  Icon: React.ElementType;
-  iconPlacement: "left" | "right";
-}
-
-interface IconRefProps {
-  Icon?: never;
-  iconPlacement?: undefined;
-}
-
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
+  loading?: boolean;
+  Icon?: React.ElementType;
+  iconPlacement?: "left" | "right";
 }
 
-export type ButtonIconProps = IconProps | IconRefProps;
-
-const Button = React.forwardRef<
-  HTMLButtonElement,
-  ButtonProps & ButtonIconProps
->(
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   (
     {
       className,
+      loading = false,
+      children,
+      disabled,
       variant,
       size,
-      asChild = false,
       Icon,
       iconPlacement,
+      asChild = false,
       ...props
     },
     ref
@@ -89,17 +80,18 @@ const Button = React.forwardRef<
       <Comp
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
+        disabled={loading || disabled}
         {...props}
       >
         {Icon && iconPlacement === "left" && (
           <div className="group-hover:translate-x-100 w-0 translate-x-[0%] pr-0 opacity-0 transition-all duration-200 group-hover:w-5 group-hover:pr-2 group-hover:opacity-100">
-            <Icon />
+            <Icon className={loading || disabled ? "opacity-50" : ""} />
           </div>
         )}
-        <Slottable>{props.children}</Slottable>
+        <Slottable>{loading ? "Loading..." : children}</Slottable>
         {Icon && iconPlacement === "right" && (
-          <div className="w-0 translate-x-[100%] pl-0 opacity-0 transition-all duration-200 group-hover:w-7 group-hover:translate-x-0 group-hover:pl-2 group-hover:opacity-100">
-            <Icon />
+          <div className="w-0 translate-x-[100%] pl-0 opacity-0 transition-all duration-200 group-hover:w-5 group-hover:translate-x-0 group-hover:pl-2 group-hover:opacity-100">
+            <Icon className={loading || disabled ? "opacity-50" : ""} />
           </div>
         )}
       </Comp>
@@ -108,63 +100,4 @@ const Button = React.forwardRef<
 );
 Button.displayName = "Button";
 
-const LoadingButton = React.forwardRef<
-  HTMLButtonElement,
-  ButtonProps & { loading: boolean }
->(
-  (
-    { className, variant, size, asChild = false, loading, children, ...props },
-    ref
-  ) => {
-    if (asChild) {
-      return (
-        <Slot ref={ref} {...props}>
-          <>
-            {React.Children.map(
-              children as React.ReactElement,
-              (child: React.ReactElement) => {
-                return React.cloneElement(child, {
-                  className: cn(buttonVariants({ variant, size }), className),
-                  children: (
-                    <>
-                      {loading && (
-                        <Loader2
-                          className={cn(
-                            "h-4 w-4 animate-spin",
-                            children && "mr-2"
-                          )}
-                        />
-                      )}
-                      {child.props.children}
-                    </>
-                  ),
-                });
-              }
-            )}
-          </>
-        </Slot>
-      );
-    }
-
-    return (
-      <button
-        className={cn(buttonVariants({ variant, size, className }))}
-        disabled={loading}
-        ref={ref}
-        {...props}
-      >
-        <>
-          {loading && (
-            <Loader2
-              className={cn("h-4 w-4 animate-spin", children && "mr-2")}
-            />
-          )}
-          {children}
-        </>
-      </button>
-    );
-  }
-);
-LoadingButton.displayName = "LoadingButton";
-
-export { Button, LoadingButton, buttonVariants };
+export { Button, buttonVariants };

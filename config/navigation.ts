@@ -16,7 +16,7 @@ export const userNavigation: NavigationItem[] = [
     href: "/logout",
     title: "Logout",
     disabled: false,
-    icon: Icons.logout,
+    icon: Icons.signOut,
     action: () => signOut(),
   },
 ];

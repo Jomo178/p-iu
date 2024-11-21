@@ -38,7 +38,7 @@ interface RootCredenzaProps extends BaseProps {
 interface CredenzaProps extends BaseProps {
   className?: string;
   asChild?: true;
-  disableOutsideClick?: boolean;
+  disableoutsideclick?: boolean;
 }
 
 const desktop = "(min-width: 768px)";

@@ -8,15 +8,6 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import {
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -52,22 +43,20 @@ export function DatetimePicker({
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild disabled={disabled}>
-        <FormControl>
-          <Button
-            variant={"outline"}
-            className={cn(
-              "w-full font-normal",
-              !value && "text-muted-foreground"
-            )}
-          >
-            {value ? (
-              `${format(value, "PPP")}, ${time}`
-            ) : (
-              <span>Pick a date</span>
-            )}
-            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-          </Button>
-        </FormControl>
+        <Button
+          variant={"outline"}
+          className={cn(
+            "w-full font-normal",
+            !value && "text-muted-foreground"
+          )}
+        >
+          {value ? (
+            `${format(value, "PPP")}, ${time}`
+          ) : (
+            <span>Pick a date</span>
+          )}
+          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+        </Button>
       </PopoverTrigger>
       <PopoverContent className="flex w-auto items-start p-0" align="start">
         <Calendar

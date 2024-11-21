@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
+import DashboardSidebar from "@/container/dashboard/sidebar-dashboard";
 
 import { getCurrentUser } from "@/lib/session";
-import Navbar from "@/components/navbar";
-import SidebarPage from "@/components/sidebar";
+import SidebarProviderPage from "@/components/sidebar-provider";
 
 interface DashboardLayoutProps {
   children?: React.ReactNode;
@@ -16,7 +16,13 @@ export default async function DashboardLayout({
 
   return (
     <>
-      <SidebarPage user={user}>{children}</SidebarPage>
+      <SidebarProviderPage
+        user={user}
+        sidebarMenu={<DashboardSidebar />}
+        name="add"
+      >
+        {children}
+      </SidebarProviderPage>
     </>
   );
 }

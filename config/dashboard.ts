@@ -20,11 +20,27 @@ export const dashboardActions: DashboradActionsType[] = [
     disabled: false,
   },
   {
-    href: "/dashboard/cards",
+    href: "/dashboard/view/issues",
     Icon: Icons.editPen,
     title: "Manage Issues",
     description:
       "Modify issues details, update information, or remove issues from the database.",
+    disabled: false,
+  },
+  {
+    href: "/dashboard/view/frames",
+    Icon: Icons.frames,
+    title: "Manage Frames",
+    description:
+      "Modify frames details, update information, or remove frames from the database.",
+    disabled: false,
+  },
+  {
+    href: "/dashboard/events",
+    Icon: Icons.soon,
+    title: "Manage Events",
+    description:
+      "Create, edit, and manage events to keep your team members informed.",
     disabled: false,
   },
   {
@@ -43,20 +59,20 @@ export const dashboardActions: DashboradActionsType[] = [
       "View and manage staff members, roles, and permissions effectively.",
     disabled: false,
   },
-  {
-    href: "/blog",
-    Icon: Icons.blog,
-    title: "Write a Blog",
-    description:
-      "Draft, edit, and publish blog posts to share your ideas and updates.",
-    disabled: true,
-  },
-  {
-    href: "/stats",
-    Icon: Icons.stats,
-    title: "View Statistics",
-    description:
-      "Analyze performance metrics and user engagement with detailed statistics.",
-    disabled: true,
-  },
+  // {
+  //   href: "/blog",
+  //   Icon: Icons.blog,
+  //   title: "Write a Blog",
+  //   description:
+  //     "Draft, edit, and publish blog posts to share your ideas and updates.",
+  //   disabled: true,
+  // },
+  // {
+  //   href: "/stats",
+  //   Icon: Icons.stats,
+  //   title: "View Statistics",
+  //   description:
+  //     "Analyze performance metrics and user engagement with detailed statistics.",
+  //   disabled: true,
+  // },
 ];

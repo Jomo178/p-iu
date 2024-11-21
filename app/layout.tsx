@@ -4,6 +4,8 @@ import localFont from "next/font/local";
 
 import "../styles/globals.css";
 
+import { Toaster as Toaster2 } from "sonner";
+
 import { cn } from "@/lib/utils";
 import { TailwindIndicator } from "@/components/ui/tailwind-indicator";
 import { Toaster } from "@/components/ui/toaster";
@@ -40,6 +42,16 @@ export default function RootLayout({
         <div className="flex min-h-screen flex-col">
           <main className="flex-1">{children}</main>
           <Toaster />
+          <Toaster2
+            toastOptions={{
+              style: {
+                background: "hsl(var(--background))",
+                color: "hsl(var(--foreground))",
+                border: "1px solid hsl(var(--border))",
+              },
+            }}
+            position="top-right"
+          />
           <TailwindIndicator />
         </div>
       </body>

@@ -273,6 +273,12 @@ export default function IssuesForm({
                       <FormLabel>Issue Image</FormLabel>
                       <FormControl>
                         <FileUploader
+                          value={
+                            form.getValues().image?.name &&
+                            form.getValues().image.name !== "filename"
+                              ? [form.getValues().image]
+                              : []
+                          }
                           previewHeight={150}
                           previewWidth={150}
                           onValueChange={(value) => {

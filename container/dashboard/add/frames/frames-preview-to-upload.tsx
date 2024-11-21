@@ -4,10 +4,11 @@ import { useMemo, useState } from "react";
 import Image from "next/image";
 import { FramesFormPropsValue, framesSchema } from "@/model/frames-schema";
 import { checkDuplicateFramesCode, UploadFrames } from "@/server/upload-frames";
+import { toast as promiseToast } from "sonner";
 
 import { cn, scrollToCarousel } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import { Button, buttonVariants, LoadingButton } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { CarouselApi } from "@/components/ui/carousel";
 import {
@@ -119,9 +120,17 @@ export default function FramesPreviewToUpload({
 
     if (formErrors.some((errors) => errors.length > 0)) return;
 
-    const checkCodes = await checkDuplicateFramesCode(
+    const checkCodesPromise = checkDuplicateFramesCode(
       framesFormPropsValue.map((frame) => frame.code)
     );
+
+    promiseToast.promise(checkCodesPromise, {
+      loading: "Checking for duplicate frame codes...",
+      success: "Duplicate frame codes have been checked successfully.",
+      error: "Error checking duplicate frame codes.",
+    });
+
+    const checkCodes = await checkCodesPromise;
 
     setFramesFormPropsValueAction((prev) => {
       return prev.map((frame, index) => {
@@ -242,7 +251,7 @@ export default function FramesPreviewToUpload({
       />
 
       <Credenza open={openUpload} onOpenChange={setOpenUpload}>
-        <CredenzaContent className="sm:max-w-[600px]" disableOutsideClick>
+        <CredenzaContent className="sm:max-w-[600px]" disableoutsideclick>
           <CredenzaHeader>
             <CredenzaTitle>Uploading Frames</CredenzaTitle>
             <CredenzaDescription>
@@ -281,7 +290,7 @@ export default function FramesPreviewToUpload({
             </ScrollArea>
           </CredenzaBody>
           <CredenzaFooter className="flex flex-row justify-center">
-            <LoadingButton
+            <Button
               loading={isUploading}
               onClick={() => {
                 setOpenUpload(false);
@@ -291,7 +300,7 @@ export default function FramesPreviewToUpload({
               }}
             >
               Close
-            </LoadingButton>
+            </Button>
           </CredenzaFooter>
         </CredenzaContent>
       </Credenza>

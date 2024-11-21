@@ -36,13 +36,13 @@ DrawerOverlay.displayName = DrawerPrimitive.Overlay.displayName;
 
 interface DrawerContentProps
   extends React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Content> {
-  disableOutsideClick?: boolean;
+  disableoutsideclick?: boolean;
 }
 
 const DrawerContent = React.forwardRef<
   React.ElementRef<typeof DrawerPrimitive.Content>,
   DrawerContentProps
->(({ className, disableOutsideClick, children, ...props }, ref) => (
+>(({ className, disableoutsideclick, children, ...props }, ref) => (
   <DrawerPortal>
     <DrawerOverlay />
     <DrawerPrimitive.Content
@@ -52,7 +52,7 @@ const DrawerContent = React.forwardRef<
         className
       )}
       onInteractOutside={
-        disableOutsideClick
+        disableoutsideclick
           ? (e) => e.preventDefault()
           : props.onInteractOutside
       }

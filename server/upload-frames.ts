@@ -5,7 +5,7 @@ import { FramesFormPropsValue, framesSchema } from "@/model/frames-schema";
 import { prisma } from "@/lib/database";
 import { getCurrentUser } from "@/lib/session";
 
-import { getCurrentEventIssues } from "./event-issues";
+import { getCurrentEvent } from "./events/_action";
 import { CustomIdFile, utapi } from "./uploadthing";
 
 export async function UploadFrames(
@@ -29,7 +29,7 @@ export async function UploadFrames(
     };
   }
 
-  const currentEvent = await getCurrentEventIssues();
+  const currentEvent = await getCurrentEvent(["issues"]);
   if (!currentEvent) {
     return {
       message: "was not uploaded to the server. No event is currently active.",
@@ -87,7 +87,7 @@ export async function UploadFrames(
 
 //TODO: Check if the frame code is already in the database (no frame model rn)
 export async function checkDuplicateFramesCode(codes: string[]) {
-  const issues = await prisma.pendingFrames.findMany({
+  const frames = await prisma.pendingFrames.findMany({
     where: {
       code: {
         in: codes,
@@ -95,5 +95,5 @@ export async function checkDuplicateFramesCode(codes: string[]) {
     },
   });
 
-  return issues.map((issue) => issue.code);
+  return frames.map((frame) => frame.code);
 }

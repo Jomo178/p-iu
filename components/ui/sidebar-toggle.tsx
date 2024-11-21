@@ -1,18 +1,39 @@
+"use client";
+
 import { ChevronLeft } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
+import { useSidebar } from "./sidebar";
+
 interface SidebarToggleProps {
-  isOpen: boolean | undefined;
-  setIsOpen?: () => void;
+  hiddenOnMobile?: boolean;
 }
 
-export function SidebarToggle({ isOpen, setIsOpen }: SidebarToggleProps) {
+export function SidebarToggle({ hiddenOnMobile }: SidebarToggleProps) {
+  const { open, isMobile, setOpen, setOpenMobile, openMobile } = useSidebar();
+
+  const setOpenSidebarHandler = () => {
+    if (isMobile) {
+      setOpenMobile?.(!openMobile);
+    } else {
+      setOpen?.(!open);
+    }
+  };
+
   return (
-    <div className="invisible absolute -right-[16px] top-[18px] z-20 lg:visible">
+    <div
+      className={cn(
+        hiddenOnMobile ? "absolute -right-[27px] z-20" : "mr-1 mt-1",
+        hiddenOnMobile && !isMobile ? "visible" : "",
+        !hiddenOnMobile && isMobile ? "visible" : "",
+        !hiddenOnMobile && !isMobile ? "invisible" : "",
+        hiddenOnMobile && isMobile ? "invisible" : ""
+      )}
+    >
       <Button
-        onClick={() => setIsOpen?.()}
+        onClick={setOpenSidebarHandler}
         className="h-8 w-8 rounded-md"
         variant="outline"
         size="icon"
@@ -20,7 +41,7 @@ export function SidebarToggle({ isOpen, setIsOpen }: SidebarToggleProps) {
         <ChevronLeft
           className={cn(
             "h-4 w-4 transition-transform duration-700 ease-in-out",
-            isOpen === false ? "rotate-180" : "rotate-0"
+            open === false ? "rotate-180" : "rotate-0"
           )}
         />
       </Button>

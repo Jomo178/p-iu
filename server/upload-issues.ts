@@ -5,7 +5,7 @@ import { IssuesFormPropsValue, issuesSchema } from "@/model/issues-schema";
 import { prisma } from "@/lib/database";
 import { getCurrentUser } from "@/lib/session";
 
-import { getCurrentEventIssues } from "./event-issues";
+import { getCurrentEvent } from "./events/_action";
 import { CustomIdFile, utapi } from "./uploadthing";
 
 export async function UploadIssues(
@@ -29,7 +29,7 @@ export async function UploadIssues(
     };
   }
 
-  const currentEvent = await getCurrentEventIssues();
+  const currentEvent = await getCurrentEvent(["issues"]);
   if (!currentEvent) {
     return {
       message: "was not uploaded to the server. No event is currently active.",
@@ -87,9 +87,8 @@ export async function UploadIssues(
   };
 }
 
-//TODO: Check if the issue code is already in the database (no issue model rn)
 export async function checkDuplicateIssuesCode(codes: string[]) {
-  const issues = await prisma.pendingIssues.findMany({
+  const pendingIssues = await prisma.pendingIssues.findMany({
     where: {
       code: {
         in: codes,
@@ -97,5 +96,13 @@ export async function checkDuplicateIssuesCode(codes: string[]) {
     },
   });
 
-  return issues.map((issue) => issue.code);
+  const issues = await prisma.issues.findMany({
+    where: {
+      code: {
+        in: codes,
+      },
+    },
+  });
+
+  return [...issues, ...pendingIssues].map((issue) => issue.code);
 }

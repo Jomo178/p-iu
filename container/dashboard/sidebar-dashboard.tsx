@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import { notFound, usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
@@ -25,6 +26,8 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarRail,
+  SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
 import { SidebarToggle } from "@/components/ui/sidebar-toggle";
@@ -35,26 +38,27 @@ interface DashboardSidebarProps {}
 export default function DashboardSidebar({}: DashboardSidebarProps) {
   const { toggleSidebar, open } = useSidebar();
   const pathname = usePathname();
+  if (!pathname) return notFound();
 
   const currentPath = dashboardActions.find((item) => item.href === pathname);
 
   if (!currentPath) return notFound();
   return (
-    <Sidebar variant="inset" collapsible="icon">
+    <Sidebar variant="floating" collapsible="icon">
       <SidebarHeader className="flex h-16 shrink-0 items-center gap-2">
-        <SidebarToggle isOpen={open} setIsOpen={toggleSidebar} />
         <SidebarMenu>
           <SidebarMenuItem>
+            <SidebarToggle hiddenOnMobile={true} />
             <SidebarMenuButton className="h-10 space-x-4">
               <Icons.icon />
               <Breadcrumb>
                 <BreadcrumbList>
-                  <BreadcrumbItem className="hidden md:block">
+                  <BreadcrumbItem>
                     <BreadcrumbLink>
-                      {toUpperCase(pathname.split("/", 3).pop() ?? "")}
+                      {toUpperCase(pathname.split("/", 2).pop() ?? "")}
                     </BreadcrumbLink>
                   </BreadcrumbItem>
-                  <BreadcrumbSeparator className="hidden md:block" />
+                  <BreadcrumbSeparator />
                   <BreadcrumbItem>
                     <BreadcrumbPage>
                       {toUpperCase(pathname.split("/").pop() ?? "")}

@@ -79,14 +79,39 @@ export const formatTimestamp = (date: Date) => {
 export function checkFileType(file: File) {
   if (file?.name) {
     const fileType = file.name.split(".").pop();
-    if (fileType === "png" || fileType === "jpg") return true;
+    if (fileType === "png" || fileType === "jpg" || fileType === "gif")
+      return true;
   }
   return false;
 }
 
+export async function urlToFile(
+  url: string,
+  filename: string,
+  mimeType: string
+): Promise<File & { preview: string }> {
+  try {
+    const response = await fetch(url, { mode: "cors" });
+    if (!response.ok) {
+      throw new Error(`Failed to fetch image: ${response.statusText}`);
+    }
+    const blob = await response.blob();
+    const file = new File([blob], filename, {
+      type: mimeType,
+      lastModified: Date.now(),
+    });
+    (file as any).preview = url;
+    return file as File & { preview: string };
+  } catch (error) {
+    console.error("Error converting URL to file:", error);
+    throw error;
+  }
+}
+
 export function toUpperCase(text: string) {
   return text
+    .replace(/-/g, " ")
     .replace(/([a-z])([A-Z])/g, "$1 $2")
     .replace(/([A-Z])([A-Z][a-z])/g, "$1 $2")
-    .replace(/^./, text[0].toUpperCase());
+    .replace(/^./, text[0]?.toUpperCase());
 }
