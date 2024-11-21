@@ -29,7 +29,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Icons } from "@/components/ui/Icons";
+import { Icons } from "@/components/ui/icons";
 import { MultiSelect } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Typography } from "@/components/ui/typography";

@@ -2,7 +2,7 @@ import { on } from "events";
 import { NavigationItem } from "@/types";
 import { signOut } from "next-auth/react";
 
-import { Icons } from "@/components/ui/Icons";
+import { Icons } from "@/components/ui/icons";
 
 export const mainNavigation: NavigationItem[] = [
   { href: "/docs", title: "Docs", disabled: true },

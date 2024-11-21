@@ -20,7 +20,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Icons } from "@/components/ui/Icons";
+import { Icons } from "@/components/ui/icons";
 import { FloatingLabelInput, Input, InputField } from "@/components/ui/input";
 import {
   Select,

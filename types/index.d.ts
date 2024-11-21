@@ -3,7 +3,7 @@ import { FramesFormPropsValue } from "@/model/frames-schema";
 import { IssuesFormPropsValue } from "@/model/issues-schema";
 import { Issues, PendingIssues } from "@prisma/client";
 
-import { Icons } from "@/components/ui/Icons";
+import { Icons } from "@/components/ui/icons";
 
 import {
   FramesWithRelation,

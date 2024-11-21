@@ -1,6 +1,6 @@
 import { DashboradActionsType } from "@/types";
 
-import { Icons } from "@/components/ui/Icons";
+import { Icons } from "@/components/ui/icons";
 
 export const dashboardActions: DashboradActionsType[] = [
   {

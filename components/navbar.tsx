@@ -16,7 +16,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
-import { Icons } from "./ui/Icons";
+import { Icons } from "./ui/icons";
 import ProfileAvatar from "./ui/profile-avatar";
 
 interface NavbarProps {

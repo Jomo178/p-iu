@@ -5,7 +5,7 @@ import {
 import { FramesViewPort } from "@/types";
 
 import { PendingFramesWithRelation } from "@/types/prisma";
-import { Icons } from "@/components/ui/Icons";
+import { Icons } from "@/components/ui/icons";
 
 export const framesViewPortType: FramesViewPort[] = [
   {

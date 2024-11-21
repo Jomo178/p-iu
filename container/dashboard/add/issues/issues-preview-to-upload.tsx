@@ -20,7 +20,7 @@ import {
   CredenzaHeader,
   CredenzaTitle,
 } from "@/components/ui/credenza";
-import { Icons } from "@/components/ui/Icons";
+import { Icons } from "@/components/ui/icons";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";

@@ -15,7 +15,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { Icons } from "@/components/ui/Icons";
+import { Icons } from "@/components/ui/icons";
 import {
   Sidebar,
   SidebarContent,

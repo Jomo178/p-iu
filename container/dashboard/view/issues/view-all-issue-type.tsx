@@ -13,7 +13,7 @@ import Balancer from "react-wrap-balancer";
 import { PendingIssuesWithRelation } from "@/types/prisma";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Icons } from "@/components/ui/Icons";
+import { Icons } from "@/components/ui/icons";
 import { Separator } from "@/components/ui/separator";
 import { useSidebar } from "@/components/ui/sidebar";
 

@@ -29,7 +29,7 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
-import { Icons } from "@/components/ui/Icons";
+import { Icons } from "@/components/ui/icons";
 import { ScrollBar } from "@/components/ui/scroll-area";
 import {
   Sidebar,

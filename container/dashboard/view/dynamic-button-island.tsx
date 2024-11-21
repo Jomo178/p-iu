@@ -5,7 +5,7 @@ import { FramesViewPort, IssuesViewPort, IssuesViewType } from "@/types";
 
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
-import { Icons } from "@/components/ui/Icons";
+import { Icons } from "@/components/ui/icons";
 import { Separator } from "@/components/ui/separator";
 import {
   Tooltip,

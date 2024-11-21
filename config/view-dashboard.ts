@@ -2,7 +2,7 @@ import { framesViewPortType } from "@/container/dashboard/view/issues/frames";
 import { issuesViewPortType } from "@/container/dashboard/view/issues/issues";
 import { ViewDashboardType } from "@/types";
 
-import { Icons } from "@/components/ui/Icons";
+import { Icons } from "@/components/ui/icons";
 
 import { dashboardActions } from "./dashboard";
 

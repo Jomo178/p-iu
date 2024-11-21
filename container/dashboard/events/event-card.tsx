@@ -4,7 +4,7 @@ import { UserProfile } from "@/types/next-auth";
 import { EventsWithRelation } from "@/types/prisma";
 import { cn, formatTimestamp } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
-import { Icons } from "@/components/ui/Icons";
+import { Icons } from "@/components/ui/icons";
 
 interface EventCardProps {
   event: EventsWithRelation;

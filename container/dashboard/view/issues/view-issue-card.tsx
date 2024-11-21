@@ -30,7 +30,7 @@ import {
   CredenzaHeader,
   CredenzaTitle,
 } from "@/components/ui/credenza";
-import { Icons } from "@/components/ui/Icons";
+import { Icons } from "@/components/ui/icons";
 import {
   AutosizeTextarea,
   AutosizeTextAreaRef,
