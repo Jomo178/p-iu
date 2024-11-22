@@ -84,7 +84,11 @@ export default function ViewIssueCard({
     (rejection) => !rejection.resubmitted
   );
 
-  const disableButton = issue.approvedBy !== null || pendingRejections;
+  const disableButton =
+    staff.id == issue.createdBy.id ||
+    issue.approvedBy !== null ||
+    pendingRejections ||
+    hasPermission(staff, `handle:${isFrame ? "frame" : "issue"}`);
 
   return (
     <div
@@ -115,10 +119,7 @@ export default function ViewIssueCard({
             </ContextMenuItem>
           )}
           <ContextMenuItem
-            disabled={
-              disableButton ||
-              hasPermission(staff, `handle:${isFrame ? "frame" : "issue"}`)
-            }
+            disabled={disableButton}
             onClick={() => handleApprovePendingIssues([issue.id])}
           >
             Approve
@@ -127,10 +128,7 @@ export default function ViewIssueCard({
             </ContextMenuShortcut>
           </ContextMenuItem>
           <ContextMenuItem
-            disabled={
-              disableButton ||
-              hasPermission(staff, `handle:${isFrame ? "frame" : "issue"}`)
-            }
+            disabled={disableButton}
             onClick={() => setOpenRejectDialog(true)}
           >
             Reject

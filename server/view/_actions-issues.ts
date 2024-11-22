@@ -4,7 +4,7 @@ import { IssuesFormPropsValue } from "@/model/issues-schema";
 import { EditIssueProps, FramesViewType, IssuesViewType } from "@/types";
 
 import { prisma } from "@/lib/database";
-import { getCurrentUser } from "@/lib/session";
+import { getCurrentStaff, getCurrentUser } from "@/lib/session";
 
 import { getCurrentEvent } from "../events/_action";
 import { CustomIdFile, utapi } from "../uploadthing";
@@ -79,13 +79,7 @@ export async function getRejectedIssues(
 export async function approvePendingIssues(
   issuesIds: [string, ...string[]]
 ): Promise<{ variant: "success" | "destructive"; message: string }> {
-  const currentUser = await getCurrentUser();
-  if (!currentUser || !currentUser.staff) {
-    return {
-      message: "Issues were not approved. You are not logged in.",
-      variant: "destructive",
-    };
-  }
+  const currentUser = await getCurrentStaff();
 
   for (const issueId of issuesIds) {
     await prisma.pendingIssues.update({
@@ -107,12 +101,7 @@ export async function rejectPendingIssues(
   issuesIds: [string, ...string[]],
   reason: string
 ) {
-  const currentUser = await getCurrentUser();
-  if (!currentUser || !currentUser.staff) {
-    return {
-      message: "Issues were not rejected. You are not logged in.",
-    };
-  }
+  const currentUser = await getCurrentStaff();
 
   await prisma.rejections.createMany({
     data: issuesIds.map((id) => ({
@@ -163,13 +152,7 @@ export async function getUpcomingIssues(
 export async function resubmitRejectedIssues(
   issuesIds: [string, ...string[]]
 ): Promise<{ variant: "success" | "destructive"; message: string }> {
-  const currentUser = await getCurrentUser();
-  if (!currentUser || !currentUser.staff) {
-    return {
-      message: "Issues were not resubmitted. You are not logged in.",
-      variant: "destructive",
-    };
-  }
+  const currentUser = await getCurrentStaff();
 
   await prisma.rejections.updateMany({
     where: {
@@ -218,10 +201,7 @@ export async function getIssues(
 }
 
 export async function editIssue({ viewPortId, issue }: EditIssueProps) {
-  const currentUser = await getCurrentUser();
-  if (!currentUser || !currentUser.staff) {
-    throw new Error("Issues was not Edited. You are not logged in.");
-  }
+  const currentUser = await getCurrentStaff();
 
   const currentEvent = await getCurrentEvent(["issues"]);
   if (!currentEvent) {
@@ -302,10 +282,7 @@ export async function deleteIssues(
   issuesIds: [string, ...string[]],
   password: string
 ) {
-  const currentUser = await getCurrentUser();
-  if (!currentUser || !currentUser.staff) {
-    throw new Error("Issues were not deleted. You are not logged in.");
-  }
+  const currentUser = await getCurrentStaff();
 
   if (password !== "test") {
     throw new Error("Issues were not deleted. Incorrect password.");

@@ -3,7 +3,7 @@
 import { Events, EventType } from "@prisma/client";
 
 import { prisma } from "@/lib/database";
-import { getCurrentUser } from "@/lib/session";
+import { getCurrentStaff, getCurrentUser } from "@/lib/session";
 
 export async function getCurrentEvent(type: EventType[]) {
   const event = await prisma.events.findFirst({
@@ -48,13 +48,7 @@ export async function createEvent(
     "id" | "createdAt" | "createdBy" | "updatedAt" | "createdById"
   >
 ) {
-  const currentUser = await getCurrentUser();
-  if (!currentUser || !currentUser.staff) {
-    return {
-      message: "Issues were not approved. You are not logged in.",
-      data: [],
-    };
-  }
+  const currentUser = await getCurrentStaff();
 
   const event = await prisma.events.create({
     data: {

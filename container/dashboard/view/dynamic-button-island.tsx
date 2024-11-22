@@ -54,6 +54,10 @@ export default function DynamicButtonIsland({
 
   const checkForAllowness = isType("rejected-issues") || disableButton;
 
+  const issueCreatedByUser = viewTypeData.selectedItems.some(
+    (item) => item.createdBy.id === staff.id
+  );
+
   const AllOrSelected =
     viewTypeData.selectedItems.length == viewTypeData.data.length
       ? "All"
@@ -150,6 +154,7 @@ export default function DynamicButtonIsland({
                   className={buttonVariants({ variant: "ghost" })}
                   disabled={
                     checkForAllowness ||
+                    issueCreatedByUser ||
                     hasPermission(
                       staff,
                       `handle:${viewTypeData.id.includes("frames") ? "frame" : "issue"}`
@@ -176,6 +181,7 @@ export default function DynamicButtonIsland({
                   className={buttonVariants({ variant: "ghost" })}
                   disabled={
                     checkForAllowness ||
+                    issueCreatedByUser ||
                     hasPermission(
                       staff,
                       `handle:${viewTypeData.id.includes("frames") ? "frame" : "issue"}`

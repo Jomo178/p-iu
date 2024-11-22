@@ -4,7 +4,7 @@ import { FramesFormPropsValue } from "@/model/frames-schema";
 import { EditIssueProps, FramesViewType, IssuesViewType } from "@/types";
 
 import { prisma } from "@/lib/database";
-import { getCurrentUser } from "@/lib/session";
+import { getCurrentStaff, getCurrentUser } from "@/lib/session";
 
 import { getCurrentEvent } from "../events/_action";
 import { CustomIdFile, utapi } from "../uploadthing";
@@ -79,13 +79,7 @@ export async function getRejectedFrames(
 export async function approvePendingFrames(
   framesIds: [string, ...string[]]
 ): Promise<{ variant: "success" | "destructive"; message: string }> {
-  const currentUser = await getCurrentUser();
-  if (!currentUser || !currentUser.staff) {
-    return {
-      message: "Frames were not approved. You are not logged in.",
-      variant: "destructive",
-    };
-  }
+  const currentUser = await getCurrentStaff();
 
   for (const frameId of framesIds) {
     await prisma.pendingIssues.update({
@@ -107,12 +101,7 @@ export async function rejectFramesIssues(
   framesIds: [string, ...string[]],
   reason: string
 ) {
-  const currentUser = await getCurrentUser();
-  if (!currentUser || !currentUser.staff) {
-    return {
-      message: "Frames were not rejected. You are not logged in.",
-    };
-  }
+  const currentUser = await getCurrentStaff();
 
   await prisma.rejections.createMany({
     data: framesIds.map((id) => ({
@@ -128,12 +117,7 @@ export async function rejectFramesIssues(
 }
 
 export async function resubmitRejectedFrames(framesIds: [string, ...string[]]) {
-  const currentUser = await getCurrentUser();
-  if (!currentUser || !currentUser.staff) {
-    return {
-      message: "Frames were not resubmitted. You are not logged in.",
-    };
-  }
+  const currentUser = await getCurrentStaff();
 
   await prisma.rejections.updateMany({
     where: {
@@ -153,10 +137,7 @@ export async function resubmitRejectedFrames(framesIds: [string, ...string[]]) {
 }
 
 export async function editFrame({ viewPortId, issue }: EditIssueProps) {
-  const currentUser = await getCurrentUser();
-  if (!currentUser || !currentUser.staff) {
-    throw new Error("Issues was not Edited. You are not logged in.");
-  }
+  const currentUser = await getCurrentStaff();
 
   const currentEvent = await getCurrentEvent(["issues"]);
   if (!currentEvent) {
@@ -235,10 +216,7 @@ export async function deleteFrames(
   framesIds: [string, ...string[]],
   password: string
 ) {
-  const currentUser = await getCurrentUser();
-  if (!currentUser || !currentUser.staff) {
-    throw new Error("Frames were not deleted. You are not logged in.");
-  }
+  const currentUser = await getCurrentStaff();
 
   if (password !== "test") {
     throw new Error("Frames were not deleted. Incorrect password.");

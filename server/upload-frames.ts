@@ -3,7 +3,7 @@
 import { FramesFormPropsValue, framesSchema } from "@/model/frames-schema";
 
 import { prisma } from "@/lib/database";
-import { getCurrentUser } from "@/lib/session";
+import { getCurrentStaff, getCurrentUser } from "@/lib/session";
 
 import { getCurrentEvent } from "./events/_action";
 import { CustomIdFile, utapi } from "./uploadthing";
@@ -11,13 +11,7 @@ import { CustomIdFile, utapi } from "./uploadthing";
 export async function UploadFrames(
   frame: FramesFormPropsValue
 ): Promise<{ variant: "success" | "error"; message: string }> {
-  const currentUser = await getCurrentUser();
-  if (!currentUser || !currentUser.staff) {
-    return {
-      message: "was not uploaded to the server. You are not logged in.",
-      variant: "error",
-    };
-  }
+  const currentUser = await getCurrentStaff();
 
   const parsedIssue = framesSchema.safeParse(frame);
 
