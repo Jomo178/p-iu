@@ -3,8 +3,10 @@
 import { useState } from "react";
 import { useDefaultFrameFormValues } from "@/model/client";
 import { FramesFormPropsValue } from "@/model/frames-schema";
+import { Staff } from "@prisma/client";
 
-import { scrollToCarousel } from "@/lib/utils";
+import { getCurrentStaff } from "@/lib/session";
+import { hasPermission, scrollToCarousel } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { CarouselApi } from "@/components/ui/carousel";
@@ -37,6 +39,7 @@ interface FramesButtonControlProps {
   carouselCount: number;
   setCarouselCountAction: React.Dispatch<React.SetStateAction<number>>;
   setCarouselCurrentIndexAction: React.Dispatch<React.SetStateAction<number>>;
+  staff: Staff;
 }
 
 export default function FramesButtonControl({
@@ -47,6 +50,7 @@ export default function FramesButtonControl({
   carouselCount,
   setCarouselCountAction,
   setCarouselCurrentIndexAction,
+  staff,
 }: FramesButtonControlProps) {
   const { toast } = useToast();
   const [openDialog, setOpenDialog] = useState(false);
@@ -141,6 +145,7 @@ export default function FramesButtonControl({
               ...getNewCustomProps,
               releaseDate: eventReleaseDate,
             }}
+            disabled={hasPermission(staff, "create:frame")}
           />
         </div>
       </div>

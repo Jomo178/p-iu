@@ -3,7 +3,7 @@
 import { Dispatch, SetStateAction, useRef, useState } from "react";
 import Image from "next/image";
 import { FramesViewPort, IssuesViewPort } from "@/types";
-import { FrameRarity } from "@prisma/client";
+import { FrameRarity, Staff } from "@prisma/client";
 
 import {
   IssuesWithRelation,
@@ -11,7 +11,7 @@ import {
   PendingIssuesWithRelation,
   RejectedIssuesWithRelation,
 } from "@/types/prisma";
-import { cn } from "@/lib/utils";
+import { cn, hasPermission } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   ContextMenu,
@@ -57,6 +57,7 @@ interface ViewIssueCardProps {
   >;
   viewPortType: IssuesViewPort | FramesViewPort;
   setInformationSidebarAction?: (open: boolean) => void;
+  staff: Staff;
 }
 
 export default function ViewIssueCard({
@@ -67,6 +68,7 @@ export default function ViewIssueCard({
   setViewTypeDataAction,
   setInformationSidebarAction,
   viewPortType,
+  staff,
   ...props
 }: DivProps) {
   const {
@@ -100,6 +102,10 @@ export default function ViewIssueCard({
         <ContextMenuContent className="w-40 cursor-pointer">
           {pendingRejections && (
             <ContextMenuItem
+              disabled={hasPermission(
+                staff,
+                `handle:${isFrame ? "frame" : "issue"}`
+              )}
               onClick={() => handleResubmitRejectedIssues([issue.id])}
             >
               Resubmit
@@ -109,7 +115,10 @@ export default function ViewIssueCard({
             </ContextMenuItem>
           )}
           <ContextMenuItem
-            disabled={disableButton}
+            disabled={
+              disableButton ||
+              hasPermission(staff, `handle:${isFrame ? "frame" : "issue"}`)
+            }
             onClick={() => handleApprovePendingIssues([issue.id])}
           >
             Approve
@@ -118,7 +127,10 @@ export default function ViewIssueCard({
             </ContextMenuShortcut>
           </ContextMenuItem>
           <ContextMenuItem
-            disabled={disableButton}
+            disabled={
+              disableButton ||
+              hasPermission(staff, `handle:${isFrame ? "frame" : "issue"}`)
+            }
             onClick={() => setOpenRejectDialog(true)}
           >
             Reject
@@ -127,13 +139,25 @@ export default function ViewIssueCard({
             </ContextMenuShortcut>
           </ContextMenuItem>
           <ContextMenuSeparator />
-          <ContextMenuItem onClick={() => setOpenEditDialog(true)}>
+          <ContextMenuItem
+            onClick={() => setOpenEditDialog(true)}
+            disabled={hasPermission(
+              staff,
+              `edit:${isFrame ? "frame" : "issue"}`
+            )}
+          >
             Edit
             <ContextMenuShortcut>
               <Icons.edit size={16} />
             </ContextMenuShortcut>
           </ContextMenuItem>
-          <ContextMenuItem onClick={() => setOpenDeleteDialog(true)}>
+          <ContextMenuItem
+            onClick={() => setOpenDeleteDialog(true)}
+            disabled={hasPermission(
+              staff,
+              `delete:${isFrame ? "frame" : "issue"}`
+            )}
+          >
             Delete
             <ContextMenuShortcut>
               <Icons.deleteButton size={16} />

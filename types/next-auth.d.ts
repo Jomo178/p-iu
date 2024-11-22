@@ -28,3 +28,7 @@ export type UserProfile = {
   discriminator: string;
   avatar: string | null;
 };
+
+export type NonNullableFields<T> = {
+  [K in keyof T]-?: NonNullable<T[K]>;
+};

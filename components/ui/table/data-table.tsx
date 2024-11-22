@@ -2,6 +2,7 @@
 
 import React from "react";
 import { StaffMemberDetails } from "@/container/dashboard/staff/staff-columns";
+import { Staff } from "@prisma/client";
 import {
   ColumnDef,
   flexRender,
@@ -23,11 +24,13 @@ import {
 interface DataTableProps<TData extends StaffMemberDetails, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  staff: Staff;
 }
 
 export function DataTable<TData extends StaffMemberDetails, TValue>({
   columns,
   data,
+  staff,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [dataState, setDataState] = React.useState<TData[]>(data);
@@ -55,6 +58,7 @@ export function DataTable<TData extends StaffMemberDetails, TValue>({
           });
         });
       },
+      staff: staff,
     },
   });
 

@@ -6,6 +6,7 @@ import { getAllStaffDiscordProfiles } from "@/server/staff/_action";
 import { Role } from "@prisma/client";
 
 import { prisma } from "@/lib/database";
+import { getCurrentStaff } from "@/lib/session";
 import { DataTable } from "@/components/ui/table/data-table";
 
 interface StaffProps {}
@@ -13,6 +14,7 @@ interface StaffProps {}
 export default async function Staff({}: StaffProps) {
   const staffDetails = await prisma.staff.findMany();
   const staffDiscordDetails = await getAllStaffDiscordProfiles();
+  const currenStaff = await getCurrentStaff();
 
   const data: StaffMemberDetails[] = await Promise.all(
     staffDetails.map(async (staff, index) => {
@@ -39,7 +41,7 @@ export default async function Staff({}: StaffProps) {
 
   return (
     <div className="mx-auto py-10 md:container">
-      <DataTable columns={columns} data={data} />
+      <DataTable staff={currenStaff.staff} columns={columns} data={data} />
     </div>
   );
 }

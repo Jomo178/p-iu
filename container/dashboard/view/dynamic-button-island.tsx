@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { FramesViewPort, IssuesViewPort, IssuesViewType } from "@/types";
+import { Staff } from "@prisma/client";
 
-import { cn } from "@/lib/utils";
+import { cn, hasPermission } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 import { Icons } from "@/components/ui/icons";
 import { Separator } from "@/components/ui/separator";
@@ -24,12 +25,14 @@ interface DynamicButtonIslandProps {
     React.SetStateAction<IssuesViewPort | FramesViewPort>
   >;
   setOpenSidebarAction: React.Dispatch<React.SetStateAction<boolean>>;
+  staff: Staff;
 }
 
 export default function DynamicButtonIsland({
   viewTypeData,
   setViewTypeDataAction,
   setOpenSidebarAction,
+  staff,
 }: DynamicButtonIslandProps) {
   const [openIsland, setOpenIsland] = useState(false);
   const [openRejectDialog, setOpenRejectDialog] = useState(false);
@@ -145,7 +148,13 @@ export default function DynamicButtonIsland({
               <Tooltip>
                 <TooltipTrigger
                   className={buttonVariants({ variant: "ghost" })}
-                  disabled={checkForAllowness}
+                  disabled={
+                    checkForAllowness ||
+                    hasPermission(
+                      staff,
+                      `handle:${viewTypeData.id.includes("frames") ? "frame" : "issue"}`
+                    )
+                  }
                   onClick={() =>
                     handleApprovePendingIssues([
                       viewTypeData.selectedItems[0]?.id,
@@ -165,7 +174,13 @@ export default function DynamicButtonIsland({
               <Tooltip>
                 <TooltipTrigger
                   className={buttonVariants({ variant: "ghost" })}
-                  disabled={checkForAllowness}
+                  disabled={
+                    checkForAllowness ||
+                    hasPermission(
+                      staff,
+                      `handle:${viewTypeData.id.includes("frames") ? "frame" : "issue"}`
+                    )
+                  }
                   onClick={() => setOpenRejectDialog(true)}
                 >
                   <Icons.rejected size={20} />
@@ -182,7 +197,13 @@ export default function DynamicButtonIsland({
               <Tooltip>
                 <TooltipTrigger
                   className={buttonVariants({ variant: "ghost" })}
-                  disabled={disableButton}
+                  disabled={
+                    disableButton ||
+                    hasPermission(
+                      staff,
+                      `handle:${viewTypeData.id.includes("frames") ? "frame" : "issue"}`
+                    )
+                  }
                   onClick={() =>
                     handleResubmitRejectedIssues([
                       viewTypeData.selectedItems[0]?.id,
@@ -204,7 +225,13 @@ export default function DynamicButtonIsland({
           <Tooltip>
             <TooltipTrigger
               className={buttonVariants({ variant: "ghost" })}
-              disabled={disableButton}
+              disabled={
+                disableButton ||
+                hasPermission(
+                  staff,
+                  `delete:${viewTypeData.id.includes("frames") ? "frame" : "issue"}`
+                )
+              }
               onClick={() => setOpenDeleteDialog(true)}
             >
               <Icons.deleteButton size={20} />

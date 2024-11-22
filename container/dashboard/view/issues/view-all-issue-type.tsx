@@ -7,6 +7,7 @@ import {
   IssuesViewPort,
   IssuesViewType,
 } from "@/types";
+import { Staff } from "@prisma/client";
 import { useInView } from "react-intersection-observer";
 import Balancer from "react-wrap-balancer";
 
@@ -27,10 +28,12 @@ import { ViewIssueSkeleton } from "./view-issue-skeleton";
 
 interface ViewAllIssuesTypeProps {
   viewType: IssuesViewType | FramesViewType;
+  staff: Staff;
 }
 
 export default function ViewAllIssuesType({
   viewType,
+  staff,
 }: ViewAllIssuesTypeProps) {
   const { open } = useSidebar();
   let findType = viewType.includes("frames")
@@ -50,6 +53,8 @@ export default function ViewAllIssuesType({
   const [filter, setFilter] = useState({});
   const [openSidebarInformation, setOpenSidebarInformation] = useState(false);
   const changeGrid = viewTypeData.selectedItems.length > 0;
+  const isAllSelected =
+    viewTypeData.selectedItems.length == viewTypeData.data.length;
 
   const fetchData = async () => {
     if (loading) return;
@@ -100,7 +105,7 @@ export default function ViewAllIssuesType({
           onClick={() => setSelectActive((prev) => !prev)}
         >
           {selectActive ? <Icons.selected className="h-5 w-5" /> : null}
-          Select
+          {isAllSelected ? "Selected All" : "Select"}
         </Button>
       </div>
       <Separator className="my-4" />
@@ -169,6 +174,7 @@ export default function ViewAllIssuesType({
                     ? "animate-shake"
                     : "transition-all duration-200 ease-in-out"
                 )}
+                staff={staff}
                 issue={issue}
                 isFrame={viewType.includes("frames")}
                 isSelected={isIssueSelected}
@@ -221,6 +227,7 @@ export default function ViewAllIssuesType({
         viewTypeData={viewTypeData}
         setViewTypeDataAction={setViewTypeData}
         setOpenSidebarAction={setOpenSidebarInformation}
+        staff={staff}
       />
     </div>
   );

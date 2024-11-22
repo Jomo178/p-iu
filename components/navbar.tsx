@@ -83,10 +83,12 @@ export default function Navbar({
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-44">
             <DropdownMenuGroup>
-              <DropdownMenuItem disabled={true}>
-                <Icons.user className="mr-2 h-4 w-4" />
-                <span>Profile</span>
-              </DropdownMenuItem>
+              <Link href="/dashboard" prefetch={true}>
+                <DropdownMenuItem>
+                  <Icons.user className="mr-2 h-4 w-4" />
+                  <span>Dashboard</span>
+                </DropdownMenuItem>
+              </Link>
               <DropdownMenuItem onClick={() => signOut()}>
                 <Icons.signOut className="mr-2 h-4 w-4" />
                 <span>Logout</span>

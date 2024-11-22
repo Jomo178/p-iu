@@ -36,7 +36,7 @@ import { Typography } from "@/components/ui/typography";
 interface DashboardSidebarProps {}
 
 export default function DashboardSidebar({}: DashboardSidebarProps) {
-  const { toggleSidebar, open } = useSidebar();
+  const { open } = useSidebar();
   const pathname = usePathname();
   if (!pathname) return notFound();
 
@@ -54,7 +54,7 @@ export default function DashboardSidebar({}: DashboardSidebarProps) {
               <Breadcrumb>
                 <BreadcrumbList>
                   <BreadcrumbItem>
-                    <BreadcrumbLink>
+                    <BreadcrumbLink href="/dashboard">
                       {toUpperCase(pathname.split("/", 2).pop() ?? "")}
                     </BreadcrumbLink>
                   </BreadcrumbItem>

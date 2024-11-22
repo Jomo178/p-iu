@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import ViewSidebar from "@/container/dashboard/view/sidebar-view";
 import ReactQueryProvider from "@/providers/react-query-client-provider";
 
-import { getCurrentUser } from "@/lib/session";
+import { getCurrentStaff, getCurrentUser } from "@/lib/session";
 import SidebarProviderPage from "@/components/sidebar-provider";
 
 interface ViewLayoutProps {
@@ -10,13 +10,12 @@ interface ViewLayoutProps {
 }
 
 export default async function ViewLayout({ children }: ViewLayoutProps) {
-  const user = await getCurrentUser();
-  if (!user) return notFound();
+  const staff = await getCurrentStaff();
 
   return (
     <>
       <SidebarProviderPage
-        user={user}
+        user={staff}
         sidebarMenu={<ViewSidebar />}
         name="view"
       >

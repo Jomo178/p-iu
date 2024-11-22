@@ -47,6 +47,7 @@ interface FramesPreviewToUploadProps {
     React.SetStateAction<FramesFormPropsValue[]>
   >;
   defaultValues: FramesFormPropsValue;
+  disabled: boolean;
 }
 
 export default function FramesPreviewToUpload({
@@ -54,6 +55,7 @@ export default function FramesPreviewToUpload({
   framesFormPropsValue,
   setFramesFormPropsValueAction,
   defaultValues,
+  disabled,
 }: FramesPreviewToUploadProps) {
   const { toast } = useToast();
   const [openSheet, setOpenSheet] = useState(false);
@@ -234,7 +236,7 @@ export default function FramesPreviewToUpload({
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="outline" onClick={openPreview}>
+            <Button variant="outline" onClick={openPreview} disabled={disabled}>
               <Icons.previewButton size={24} />
             </Button>
           </TooltipTrigger>

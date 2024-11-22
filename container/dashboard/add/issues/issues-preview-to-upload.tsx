@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import Image from "next/image";
 import { IssuesFormPropsValue, issuesSchema } from "@/model/issues-schema";
 import { checkDuplicateIssuesCode, UploadIssues } from "@/server/upload-issues";
+import { Staff } from "@prisma/client";
 import { toast as promiseToast } from "sonner";
 
 import { cn, scrollToCarousel } from "@/lib/utils";
@@ -47,6 +48,7 @@ interface IssuesPreviewToUploadProps {
     React.SetStateAction<IssuesFormPropsValue[]>
   >;
   defaultValues: IssuesFormPropsValue;
+  disabled: boolean;
 }
 
 export default function IssuesPreviewToUpload({
@@ -54,6 +56,7 @@ export default function IssuesPreviewToUpload({
   issuesFormPropsValue,
   setIssuesFormPropsValueAction,
   defaultValues,
+  disabled,
 }: IssuesPreviewToUploadProps) {
   const { toast } = useToast();
   const [openSheet, setOpenSheet] = useState(false);
@@ -234,7 +237,7 @@ export default function IssuesPreviewToUpload({
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="outline" onClick={openPreview}>
+            <Button variant="outline" onClick={openPreview} disabled={disabled}>
               <Icons.previewButton size={24} />
             </Button>
           </TooltipTrigger>

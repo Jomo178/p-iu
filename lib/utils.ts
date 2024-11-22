@@ -1,8 +1,8 @@
-import { ChangeEvent } from "react";
-import { IssuesFormPropsValue } from "@/model/issues-schema";
+import { Permission, Staff } from "@prisma/client";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
+import { StaffAction } from "@/types/prisma";
 import { CarouselApi } from "@/components/ui/carousel";
 
 export function cn(...inputs: ClassValue[]) {
@@ -114,4 +114,15 @@ export function toUpperCase(text: string) {
     .replace(/([a-z])([A-Z])/g, "$1 $2")
     .replace(/([A-Z])([A-Z][a-z])/g, "$1 $2")
     .replace(/^./, text[0]?.toUpperCase());
+}
+
+export function hasPermission(
+  staff: Staff,
+  resourceAccessPermission: `${StaffAction}:${Permission}`
+) {
+  const action = resourceAccessPermission.split(":")[0] as StaffAction;
+
+  const permissionType = resourceAccessPermission.split(":")[1] as Permission;
+
+  return !staff[action].includes(permissionType);
 }

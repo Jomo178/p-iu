@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { FramesViewPort, IssuesViewPort } from "@/types";
+import { EventType, Staff } from "@prisma/client";
 import Balancer from "react-wrap-balancer";
 
 import { PendingIssuesWithRelation } from "@/types/prisma";
@@ -17,15 +18,19 @@ import { Typography } from "@/components/ui/typography";
 
 import { framesViewPortType } from "./frames";
 import IssueInformationSidebar from "./issue-information-sidebar";
-import { issuesViewPortType, ItemsType } from "./issues";
+import { issuesViewPortType } from "./issues";
 import ViewIssueCard from "./view-issue-card";
 import { SkeletonViewPreview, ViewIssueSkeleton } from "./view-issue-skeleton";
 
 interface ViewIssuesPreviewProps {
-  type: `${ItemsType}`;
+  type: `${EventType}`;
+  staff: Staff;
 }
 
-export default function ViewIssuesPreview({ type }: ViewIssuesPreviewProps) {
+export default function ViewIssuesPreview({
+  type,
+  staff,
+}: ViewIssuesPreviewProps) {
   const { open } = useSidebar();
   const [loading, setLoading] = useState(false);
   const [openSidebarInformation, setOpenSidebarInformation] = useState(false);
@@ -52,7 +57,7 @@ export default function ViewIssuesPreview({ type }: ViewIssuesPreviewProps) {
             ...viewPort,
             data: data.map((item) => ({
               ...item,
-              approvedBy: item.approvedBy || undefined,
+              approvedBy: item.approvedBy,
             })),
             fetchCount: viewPort.fetchCount + data.length,
           };
@@ -71,7 +76,7 @@ export default function ViewIssuesPreview({ type }: ViewIssuesPreviewProps) {
         <div className="space-between flex items-center">
           <div className="space-between flex flex-col items-center gap-4 sm:flex-row">
             <TabsList className="w-full">
-              {Object.values(ItemsType).map((item) => (
+              {Object.values(EventType).map((item) => (
                 <Link
                   href={`/dashboard/view/${item}`}
                   prefetch={true}
@@ -140,6 +145,7 @@ export default function ViewIssuesPreview({ type }: ViewIssuesPreviewProps) {
                         return (
                           <ViewIssueCard
                             key={issue.id}
+                            staff={staff}
                             isFrame={type === "frames"}
                             issue={issue}
                             isSelected={issuesViewPort.selectedItems

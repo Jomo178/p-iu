@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { useDefaultIssueFormValues } from "@/model/client";
 import { IssuesFormPropsValue } from "@/model/issues-schema";
+import { Staff } from "@prisma/client";
 
-import { scrollToCarousel } from "@/lib/utils";
+import { hasPermission, scrollToCarousel } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { CarouselApi } from "@/components/ui/carousel";
@@ -37,6 +38,7 @@ interface IssuesButtonControlProps {
   carouselCount: number;
   setCarouselCountAction: React.Dispatch<React.SetStateAction<number>>;
   setCarouselCurrentIndexAction: React.Dispatch<React.SetStateAction<number>>;
+  staff: Staff;
 }
 
 export default function IssuesButtonControl({
@@ -47,6 +49,7 @@ export default function IssuesButtonControl({
   carouselCount,
   setCarouselCountAction,
   setCarouselCurrentIndexAction,
+  staff,
 }: IssuesButtonControlProps) {
   const { toast } = useToast();
   const [openDialog, setOpenDialog] = useState(false);
@@ -141,6 +144,7 @@ export default function IssuesButtonControl({
               ...getNewCustomProps,
               releaseDate: eventReleaseDate,
             }}
+            disabled={hasPermission(staff, "create:issue")}
           />
         </div>
       </div>

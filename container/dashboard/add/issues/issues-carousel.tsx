@@ -3,6 +3,7 @@
 import { use, useEffect, useId, useState } from "react";
 import { useDefaultIssueFormValues } from "@/model/client";
 import { IssuesFormPropsValue } from "@/model/issues-schema";
+import { Staff } from "@prisma/client";
 
 import { generateIssueCode } from "@/lib/utils";
 import {
@@ -19,10 +20,12 @@ import IssuesForm from "./issues-form";
 
 interface IssuesCarouselProps {
   eventReleaseDate: Date;
+  staff: Staff;
 }
 
 export default function IssuesCarousel({
   eventReleaseDate,
+  staff,
 }: IssuesCarouselProps) {
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
@@ -54,8 +57,9 @@ export default function IssuesCarousel({
         carouselCount={count}
         setCarouselCountAction={setCount}
         setCarouselCurrentIndexAction={setCurrent}
+        staff={staff}
       />
-      <Carousel setApi={setApi} className="w-full !max-w-sm">
+      <Carousel setApi={setApi} className="w-full !max-w-xs sm:!max-w-sm">
         <CarouselContent>
           {issuesFormPropsValue?.map((issuesForm, index) => (
             <CarouselItem key={issuesForm.id}>

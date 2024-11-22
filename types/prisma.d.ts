@@ -59,3 +59,5 @@ type FramesWithRelation = Prisma.FramesGetPayload<{
     approvedBy: true;
   };
 }>;
+
+export type StaffAction = "create" | "edit" | "delete" | "handle";

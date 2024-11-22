@@ -35,11 +35,6 @@ import {
 } from "@/types/prisma";
 import { Icons } from "@/components/ui/icons";
 
-export enum ItemsType {
-  Issues = "issues",
-  Frames = "frames",
-}
-
 export const issuesViewPortType: IssuesViewPort[] = [
   {
     title: "Rejected Issues",

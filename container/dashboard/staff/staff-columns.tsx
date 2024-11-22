@@ -76,6 +76,7 @@ export const columns: ColumnDef<StaffMemberDetails>[] = [
       const hasCreatePermissions = staff.create.length > 0;
       const hasEditPermissions = staff.edit.length > 0;
       const hasDeletePermissions = staff.delete.length > 0;
+      const hadHandlePermissions = staff.handle.length > 0;
       const PermissionBadges = ({
         permissions,
       }: {
@@ -115,22 +116,28 @@ export const columns: ColumnDef<StaffMemberDetails>[] = [
               "grid-cols-3"
           )}
         >
-          {staff.create.length > 0 && (
+          {hasCreatePermissions && (
             <div>
               <h4 className="mb-1 text-xs font-semibold">Create</h4>
               <PermissionBadges permissions={staff.create} />
             </div>
           )}
-          {staff.edit.length > 0 && (
+          {hasEditPermissions && (
             <div>
               <h4 className="mb-1 text-xs font-semibold">Edit</h4>
               <PermissionBadges permissions={staff.edit} />
             </div>
           )}
-          {staff.delete.length > 0 && (
+          {hasDeletePermissions && (
             <div>
               <h4 className="mb-1 text-xs font-semibold">Delete</h4>
               <PermissionBadges permissions={staff.delete} />
+            </div>
+          )}
+          {hadHandlePermissions && (
+            <div>
+              <h4 className="mb-1 text-xs font-semibold">Handle</h4>
+              <PermissionBadges permissions={staff.handle} />
             </div>
           )}
         </div>
@@ -147,6 +154,7 @@ export const columns: ColumnDef<StaffMemberDetails>[] = [
             table.options.meta?.setDataStateAction ?? (() => {})
           }
           row={row}
+          staff={table.options.meta?.staff}
         />
       );
     },

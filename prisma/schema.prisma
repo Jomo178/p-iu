@@ -81,6 +81,7 @@ model Staff {
   create                Permission[]    @default([])
   edit                  Permission[]    @default([])
   delete                Permission[]    @default([])
+  handle                Permission[]    @default([])
   createdAt             DateTime        @default(now())
   updatedAt             DateTime        @updatedAt
   createdPendingIssues  PendingIssues[] @relation("PendingIssuesCreatedBy")

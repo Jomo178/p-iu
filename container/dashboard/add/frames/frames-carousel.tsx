@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useDefaultFrameFormValues } from "@/model/client";
 import { FramesFormPropsValue } from "@/model/frames-schema";
+import { Staff } from "@prisma/client";
 
 import { generateFrameCode, generateIssueCode } from "@/lib/utils";
 import {
@@ -19,10 +20,12 @@ import FramesForm from "./frames-form";
 
 interface FramesCarouselProps {
   eventReleaseDate: Date;
+  staff: Staff;
 }
 
 export default function FramesCarousel({
   eventReleaseDate,
+  staff,
 }: FramesCarouselProps) {
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
@@ -54,8 +57,9 @@ export default function FramesCarousel({
         carouselCount={count}
         setCarouselCountAction={setCount}
         setCarouselCurrentIndexAction={setCurrent}
+        staff={staff}
       />
-      <Carousel setApi={setApi} className="w-full !max-w-sm">
+      <Carousel setApi={setApi} className="w-full !max-w-xs sm:!max-w-sm">
         <CarouselContent>
           {framesFormPropsValue?.map((framesForm, index) => (
             <CarouselItem key={framesForm.id}>

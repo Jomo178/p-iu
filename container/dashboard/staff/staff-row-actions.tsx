@@ -1,9 +1,10 @@
 "use client";
 
 import { Fragment, useState } from "react";
+import { notFound } from "next/navigation";
 import { editStaffDetails } from "@/server/staff/_action";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Permission, Role } from "@prisma/client";
+import { Permission, Role, Staff } from "@prisma/client";
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
 import { ColumnDef, Row } from "@tanstack/react-table";
 import { Check, ChevronsUpDown } from "lucide-react";
@@ -11,7 +12,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
-import { cn, toUpperCase } from "@/lib/utils";
+import { cn, hasPermission, toUpperCase } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { CheckboxTree, TreeNode } from "@/components/ui/checkbox-tree";
@@ -61,13 +62,16 @@ import { StaffMemberDetails } from "./staff-columns";
 interface StaffDataTableRowActionsProps {
   row: Row<StaffMemberDetails>;
   setDataStateAction: (state: StaffMemberDetails) => void;
+  staff: Staff | undefined;
 }
 
 export function StaffDataTableRowActions({
   row,
   setDataStateAction,
+  staff,
 }: StaffDataTableRowActionsProps) {
   const [openDialog, setOpenDialog] = useState(false);
+  if (!staff) return notFound();
 
   return (
     <>
@@ -82,11 +86,17 @@ export function StaffDataTableRowActions({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-[160px]">
-          <DropdownMenuItem onClick={() => setOpenDialog(true)}>
+          <DropdownMenuItem
+            onClick={() => setOpenDialog(true)}
+            disabled={hasPermission(staff, "edit:staff")}
+          >
             Edit
             <DropdownMenuShortcut>⌘E</DropdownMenuShortcut>
           </DropdownMenuItem>
-          <DropdownMenuItem disabled>
+          <DropdownMenuItem
+            disabled
+            // disabled={hasPermission(staff, "delete:staff")}
+          >
             Delete
             <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
           </DropdownMenuItem>
@@ -147,6 +157,15 @@ function EditStaffMemberDialog({
         defaultChecked: staff.delete.includes(permission),
       })),
     },
+    {
+      id: "handle",
+      label: "Handle",
+      children: permissions.map((permission) => ({
+        id: permission,
+        label: toUpperCase(permission),
+        defaultChecked: staff.handle.includes(permission),
+      })),
+    },
   ];
 
   const formSchema = z.object({
@@ -155,6 +174,7 @@ function EditStaffMemberDialog({
     create: z.array(z.nativeEnum(Permission)).optional().default([]),
     edit: z.array(z.nativeEnum(Permission)).optional().default([]),
     delete: z.array(z.nativeEnum(Permission)).optional().default([]),
+    handle: z.array(z.nativeEnum(Permission)).optional().default([]),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -165,6 +185,7 @@ function EditStaffMemberDialog({
       create: staff.create,
       edit: staff.edit,
       delete: staff.delete,
+      handle: staff.handle,
     },
   });
 
@@ -283,7 +304,7 @@ function EditStaffMemberDialog({
               />
               <div className="space-y-2">
                 <p className="text-sm">Permissions</p>
-                <div className="flex">
+                <div className="grid grid-cols-2">
                   {permissionsTree.map((node) => (
                     <FormField
                       control={form.control}
