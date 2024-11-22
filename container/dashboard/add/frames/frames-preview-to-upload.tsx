@@ -253,7 +253,10 @@ export default function FramesPreviewToUpload({
       />
 
       <Credenza open={openUpload} onOpenChange={setOpenUpload}>
-        <CredenzaContent className="sm:max-w-[600px]" disableoutsideclick>
+        <CredenzaContent
+          className="sm:max-w-[600px]"
+          disableoutsideclick="true"
+        >
           <CredenzaHeader>
             <CredenzaTitle>Uploading Frames</CredenzaTitle>
             <CredenzaDescription>

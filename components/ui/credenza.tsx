@@ -38,7 +38,7 @@ interface RootCredenzaProps extends BaseProps {
 interface CredenzaProps extends BaseProps {
   className?: string;
   asChild?: true;
-  disableoutsideclick?: boolean;
+  disableoutsideclick?: string;
 }
 
 const desktop = "(min-width: 768px)";
@@ -72,12 +72,21 @@ const CredenzaClose = ({ className, children, ...props }: CredenzaProps) => {
   );
 };
 
-const CredenzaContent = ({ className, children, ...props }: CredenzaProps) => {
+const CredenzaContent = ({
+  className,
+  children,
+  disableoutsideclick,
+  ...props
+}: CredenzaProps) => {
   const isDesktop = useMediaQuery(desktop);
   const CredenzaContent = isDesktop ? DialogContent : DrawerContent;
 
   return (
-    <CredenzaContent className={className} {...props}>
+    <CredenzaContent
+      className={className}
+      {...props}
+      disableoutsideclick={disableoutsideclick}
+    >
       {children}
     </CredenzaContent>
   );

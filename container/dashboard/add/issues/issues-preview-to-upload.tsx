@@ -254,7 +254,10 @@ export default function IssuesPreviewToUpload({
       />
 
       <Credenza open={openUpload} onOpenChange={setOpenUpload}>
-        <CredenzaContent className="sm:max-w-[600px]" disableoutsideclick>
+        <CredenzaContent
+          className="sm:max-w-[600px]"
+          disableoutsideclick="true"
+        >
           <CredenzaHeader>
             <CredenzaTitle>Uploading Issues</CredenzaTitle>
             <CredenzaDescription>
