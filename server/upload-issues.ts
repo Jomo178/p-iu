@@ -47,6 +47,7 @@ export async function UploadIssues(
   );
 
   if (response.error?.code || !response.data) {
+    console.error(response.error);
     return {
       message:
         "was not uploaded to the server. An error occurred while uploading the image.",
