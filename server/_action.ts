@@ -2,7 +2,6 @@
 
 import { env } from "@/env";
 import { UserProfile } from "@/types/next-auth";
-import { prisma } from "@/lib/database";
 
 export async function fetchDiscordUserProfile(
   id: string
@@ -20,7 +19,7 @@ export async function fetchDiscordUserProfile(
       parseInt(data.discriminator) % 5
     }.png`;
   } else {
-    const format = data.avatar.startsWith("a_") ? "gif" : "png";
+    const format = data.avatar?.startsWith("a_") ? "gif" : "png";
     data.avatar = `https://cdn.discordapp.com/avatars/${data.id}/${data.avatar}.${format}`;
   }
 
