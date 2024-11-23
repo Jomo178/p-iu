@@ -39,12 +39,11 @@ export async function UploadIssues(
     issue.act.replace(/\s/g, "-") +
     ".png";
 
-  const response = await utapi.uploadFiles(
-    new CustomIdFile([issue.image], issueImage, {
-      type: "image/png",
-      customId: currentEvent.name.replace(/\s/g, "-") + "-" + issueImage,
-    })
-  );
+  const response = await utapi.uploadFiles(issue.image);
+  // new CustomIdFile([issue.image], issueImage, {
+  //   type: "image/png",
+  //   customId: currentEvent.name.replace(/\s/g, "-") + "-" + issueImage,
+  // })
 
   if (response.error?.code || !response.data) {
     console.error(response.error);
