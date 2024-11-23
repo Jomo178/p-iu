@@ -213,7 +213,7 @@ export async function editFrame({ viewPortId, issue }: EditIssueProps) {
 
 export async function deleteFrames(
   viewPortId: IssuesViewType | FramesViewType,
-  framesIds: [string, ...string[]],
+  frames: { id: string; image: string }[],
   password: string
 ) {
   const currentUser = await getCurrentStaff();
@@ -222,8 +222,14 @@ export async function deleteFrames(
     throw new Error("Frames were not deleted. Incorrect password.");
   }
 
+  const deleteImages = await utapi.deleteFiles(
+    frames
+      .map((frame) => frame.image.split("/").pop())
+      .filter((image): image is string => !!image)
+  );
+
   if (viewPortId === "released-frames") {
-    // await prisma.issues.deleteMany({
+    // await prisma.frames.deleteMany({
     //   where: {
     //     id: {
     //       in: issuesIds,
@@ -231,11 +237,10 @@ export async function deleteFrames(
     //   },
     // });
   } else {
-    console.log(framesIds);
     await prisma.pendingFrames.deleteMany({
       where: {
         id: {
-          in: framesIds,
+          in: frames.map((frame) => frame.id),
         },
       },
     });

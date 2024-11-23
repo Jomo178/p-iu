@@ -51,7 +51,7 @@ export default async function Page({
         </TabsList>
 
         {Object.values(EventType).map((item) => (
-          <TabsContent value={item}>
+          <TabsContent value={item} key={item}>
             <Card className="ml-auto mr-auto max-h-fit max-w-fit p-6 md:p-11">
               <CardContent>
                 {item === "frames" ? (

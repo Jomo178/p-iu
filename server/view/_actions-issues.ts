@@ -279,31 +279,38 @@ export async function editIssue({ viewPortId, issue }: EditIssueProps) {
 
 export async function deleteIssues(
   viewPortId: IssuesViewType | FramesViewType,
-  issuesIds: [string, ...string[]],
+  issues: { id: string; image: string }[],
   password: string
 ) {
+  if (issues.length == 0) return { message: "No issues selected." };
   const currentUser = await getCurrentStaff();
 
-  if (password !== "test") {
+  if (password !== "iu-delete-issues") {
     throw new Error("Issues were not deleted. Incorrect password.");
   }
 
+  const deleteImages = await utapi.deleteFiles(
+    issues
+      .map((issue) => issue.image.split("/").pop())
+      .filter((image): image is string => !!image)
+  );
+
   if (viewPortId === "released-issues") {
-    // await prisma.issues.deleteMany({
-    //   where: {
-    //     id: {
-    //       in: issuesIds,
-    //     },
-    //   },
-    // });
+    await prisma.issues.deleteMany({
+      where: {
+        id: {
+          in: issues.map((issue) => issue.id),
+        },
+      },
+    });
   } else {
-    // await prisma.pendingIssues.deleteMany({
-    //   where: {
-    //     id: {
-    //       in: issuesIds,
-    //     },
-    //   },
-    // });
+    await prisma.pendingIssues.deleteMany({
+      where: {
+        id: {
+          in: issues.map((issue) => issue.id),
+        },
+      },
+    });
   }
 
   return {

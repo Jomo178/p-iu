@@ -3,7 +3,7 @@ import { DashboradActionsType } from "@/types";
 
 import { dashboardActions } from "@/config/dashboard";
 
-export default async function Home() {
+export default function Home() {
   return (
     <section
       id="features"

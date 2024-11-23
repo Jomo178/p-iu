@@ -134,7 +134,7 @@ export default function EventAdd({ setEventStateAction }: EventAddProps) {
                             form.setValue("start", range.from);
                             form.setValue("end", range.to || range.from);
                           }}
-                          disabledRange={{ before: new Date() }}
+                          // disabledRange={{ before: new Date() }}
                         />
                       </FormControl>
                       <FormDescription>

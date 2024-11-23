@@ -255,21 +255,21 @@ export function useHandleApprovePendingIssues(
 
   const handleDeletePendingIssues = async (
     viewTypeId: IssuesViewType | FramesViewType,
-    issuesIds: NonEmptyArray<string>,
+    issues: { id: string; image: string }[],
     password: string
   ) => {
     const { promise, title } = isFrame
       ? { promise: deleteFrames, title: "Deleting Frames..." }
       : { promise: deleteIssues, title: "Deleting Issues..." };
 
-    toast.promise(promise(viewTypeId, issuesIds, password), {
+    toast.promise(promise(viewTypeId, issues, password), {
       loading: title,
       success(data) {
         if (setViewTypeDataAction) {
           setViewTypeDataAction((prev) => ({
             ...prev,
             data: prev.data.filter(
-              (issue) => !issuesIds.includes(issue.id)
+              (issue) => !issues.map((issue) => issue.id).includes(issue.id)
             ) as PendingIssuesWithRelation[],
             selectedItems: [],
           }));

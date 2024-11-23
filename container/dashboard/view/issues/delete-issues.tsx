@@ -18,7 +18,7 @@ import { PasswordInput } from "@/components/ui/input";
 import { useHandleApprovePendingIssues } from "./issues";
 
 interface DeleteIssuesProps {
-  issues: { id: string; name: string }[];
+  issues: { id: string; name: string; image: string }[];
   isFrame: boolean;
   openDialog: boolean;
   setOpenDialogAction: React.Dispatch<React.SetStateAction<boolean>>;
@@ -48,7 +48,7 @@ export default function DeleteIssuesDialog({
 
     const response = await handleDeletePendingIssues(
       viewPortType.id,
-      [issues[0].id, ...issues.slice(1).map((issue) => issue.id)],
+      issues.map((issue) => ({ id: issue.id, image: issue.image })),
       password
     );
 
