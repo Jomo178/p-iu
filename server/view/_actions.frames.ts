@@ -296,7 +296,7 @@ export async function deleteFrames(
 ) {
   const currentUser = await getCurrentStaff();
 
-  if (password !== "test") {
+  if (password !== "iu-delete-frames") {
     throw new Error("Frames were not deleted. Incorrect password.");
   }
 
