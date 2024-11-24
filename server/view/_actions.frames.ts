@@ -307,13 +307,13 @@ export async function deleteFrames(
   );
 
   if (viewPortId === "released-frames") {
-    // await prisma.frames.deleteMany({
-    //   where: {
-    //     id: {
-    //       in: issuesIds,
-    //     },
-    //   },
-    // });
+    await prisma.frames.deleteMany({
+      where: {
+        id: {
+          in: frames.map((frame) => frame.id),
+        },
+      },
+    });
   } else {
     await prisma.pendingFrames.deleteMany({
       where: {
