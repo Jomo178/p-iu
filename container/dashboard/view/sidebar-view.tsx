@@ -116,7 +116,7 @@ export default function ViewSidebar({}: ViewSidebarProps) {
                           >
                             <Link href={subItem.href} prefetch={true}>
                               <subItem.Icon />
-                              <Typography variant="list" className="ml-2">
+                              <Typography variant="list" className="ml-1">
                                 {subItem.title}
                               </Typography>
                             </Link>

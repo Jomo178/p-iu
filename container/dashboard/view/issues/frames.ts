@@ -1,10 +1,12 @@
 import {
   getPendingFrames,
   getRejectedFrames,
+  getReleasedFrames,
+  getUpcomingFrames,
 } from "@/server/view/_actions.frames";
 import { FramesViewPort } from "@/types";
 
-import { PendingFramesWithRelation } from "@/types/prisma";
+import { FramesWithRelation, PendingFramesWithRelation } from "@/types/prisma";
 import { Icons } from "@/components/ui/icons";
 
 export const framesViewPortType: FramesViewPort[] = [
@@ -35,30 +37,30 @@ export const framesViewPortType: FramesViewPort[] = [
     href: "/dashboard/view/pending-frames",
     Icon: Icons.pending,
   },
-  // {
-  //   title: "Upcoming Issues",
-  //   description: "Issues that will be released soon.",
-  //   id: "upcoming-issues",
-  //   fetchCount: 0,
-  //   fetchFunction: (skip, amount, filter, orderBy) =>
-  //     getUpcomingIssues(skip, amount, filter, orderBy),
-  //   data: [] as PendingIssuesWithRelation[],
-  //   selectedItems: [] as PendingIssuesWithRelation[],
-  //   disabled: false,
-  //   href: "/dashboard/view/upcoming-issues",
-  //   Icon: Icons.soon,
-  // },
-  // {
-  //   title: "Issues",
-  //   description: "Issues that are published and available to collect.",
-  //   id: "issues",
-  //   fetchCount: 0,
-  //   fetchFunction: (skip, amount, filter, orderBy) =>
-  //     getIssues(skip, amount, filter, orderBy),
-  //   data: [] as IssuesWithRelation[],
-  //   selectedItems: [] as IssuesWithRelation[],
-  //   disabled: false,
-  //   href: "/dashboard/view/issues",
-  //   Icon: Icons.addIssue,
-  // },
+  {
+    title: "Upcoming Frames",
+    description: "Frames that will be released soon.",
+    id: "upcoming-frames",
+    fetchCount: 0,
+    fetchFunction: (skip, amount, filter, orderBy) =>
+      getUpcomingFrames(skip, amount, filter, orderBy),
+    data: [] as PendingFramesWithRelation[],
+    selectedItems: [] as PendingFramesWithRelation[],
+    disabled: false,
+    href: "/dashboard/view/upcoming-frames",
+    Icon: Icons.soon,
+  },
+  {
+    title: "Released Frames",
+    description: "Frames that are published and available to collect.",
+    id: "released-frames",
+    fetchCount: 0,
+    fetchFunction: (skip, amount, filter, orderBy) =>
+      getReleasedFrames(skip, amount, filter, orderBy),
+    data: [] as FramesWithRelation[],
+    selectedItems: [] as FramesWithRelation[],
+    disabled: false,
+    href: "/dashboard/view/released-frames",
+    Icon: Icons.addIssue,
+  },
 ];

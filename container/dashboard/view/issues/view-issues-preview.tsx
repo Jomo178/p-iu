@@ -63,7 +63,7 @@ export default function ViewIssuesPreview({
           };
         })
       );
-      setIssuesViewPortData(updatedViewPortData);
+      setIssuesViewPortData(updatedViewPortData as any);
       setLoading(false);
     };
 
@@ -91,7 +91,6 @@ export default function ViewIssuesPreview({
                 Fonts
               </TabsTrigger>
             </TabsList>
-            <DatetimePicker value={new Date()} disabled action={() => {}} />
           </div>
         </div>
         <Separator className="my-4" />
@@ -167,7 +166,7 @@ export default function ViewIssuesPreview({
 
                               setIssuesViewPort({
                                 ...viewPort,
-                                selectedItems: [issue],
+                                selectedItems: [issue as any],
                               });
 
                               setOpenSidebarInformation(open);

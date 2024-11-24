@@ -31,6 +31,7 @@ export async function getPendingFrames(
     include: {
       createdBy: true,
       approvedBy: true,
+      event: true,
       rejections: {
         include: {
           rejectedBy: true,
@@ -64,6 +65,7 @@ export async function getRejectedFrames(
     include: {
       createdBy: true,
       approvedBy: true,
+      event: true,
       rejections: {
         include: {
           rejectedBy: true,
@@ -76,25 +78,101 @@ export async function getRejectedFrames(
   return rejectedIssues;
 }
 
+export async function getUpcomingFrames(
+  skip: number,
+  amount: number,
+  filter: any,
+  orderBy: any
+) {
+  const soonToBeReleasedIssues = await prisma.pendingFrames.findMany({
+    skip,
+    take: amount,
+    where: {
+      approvedBy: {
+        id: {
+          not: undefined,
+        },
+      },
+      ...filter,
+    },
+    orderBy,
+    include: {
+      createdBy: true,
+      approvedBy: true,
+      event: true,
+      rejections: {
+        include: {
+          rejectedBy: true,
+          resubmittedBy: true,
+        },
+      },
+    },
+  });
+
+  return soonToBeReleasedIssues;
+}
+
+export async function getReleasedFrames(
+  skip: number,
+  amount: number,
+  filter: any,
+  orderBy: any
+) {
+  const frames = await prisma.frames.findMany({
+    skip,
+    take: amount,
+    where: {
+      ...filter,
+    },
+    orderBy,
+    include: {
+      createdBy: true,
+      approvedBy: true,
+      event: true,
+      rejections: {
+        include: {
+          rejectedBy: true,
+          resubmittedBy: true,
+        },
+      },
+    },
+  });
+
+  return frames;
+}
+
 export async function approvePendingFrames(
   framesIds: [string, ...string[]]
 ): Promise<{ variant: "success" | "destructive"; message: string }> {
+  console.log(framesIds);
   const currentUser = await getCurrentStaff();
 
-  for (const frameId of framesIds) {
-    await prisma.pendingIssues.update({
-      where: { id: frameId },
-      data: {
-        approvedAt: new Date(),
-        approvedById: currentUser.staff.id,
-      },
-    });
-  }
+  try {
+    await prisma.$transaction([
+      prisma.pendingFrames.updateMany({
+        where: {
+          id: {
+            in: framesIds,
+          },
+        },
+        data: {
+          approvedAt: new Date(),
+          approvedById: currentUser.staff.id,
+        },
+      }),
+    ]);
 
-  return {
-    message: "Frames approved successfully.",
-    variant: "success",
-  };
+    return {
+      message: "Frames approved successfully.",
+      variant: "success",
+    };
+  } catch (error) {
+    console.error("Error approving pending frames:", error);
+    return {
+      message: "Failed to approve some or all frames.",
+      variant: "destructive",
+    };
+  }
 }
 
 export async function rejectFramesIssues(

@@ -4,6 +4,7 @@ type PendingIssuesWithRelation = Prisma.PendingIssuesGetPayload<{
   include: {
     createdBy: true;
     approvedBy: true;
+    event: true;
     rejections: {
       include: {
         rejectedBy: true;
@@ -17,6 +18,7 @@ type IssuesWithRelation = Prisma.IssuesGetPayload<{
   include: {
     createdBy: true;
     approvedBy: true;
+    event: true;
     rejections: {
       include: {
         rejectedBy: true;
@@ -37,6 +39,26 @@ type RejectedIssuesWithRelation = Prisma.RejectionsGetPayload<{
 type EventsWithRelation = Prisma.EventsGetPayload<{
   include: {
     createdBy: true;
+    issues: true;
+    frames: true;
+    pendingFrames: {
+      where: {
+        rejections: {
+          every: {
+            resubmitted: true;
+          };
+        };
+      };
+    };
+    pendingIssues: {
+      where: {
+        rejections: {
+          every: {
+            resubmitted: true;
+          };
+        };
+      };
+    };
   };
 }>;
 
@@ -44,6 +66,7 @@ type PendingFramesWithRelation = Prisma.PendingFramesGetPayload<{
   include: {
     createdBy: true;
     approvedBy: true;
+    event: true;
     rejections: {
       include: {
         rejectedBy: true;
@@ -57,6 +80,13 @@ type FramesWithRelation = Prisma.FramesGetPayload<{
   include: {
     createdBy: true;
     approvedBy: true;
+    event: true;
+    rejections: {
+      include: {
+        rejectedBy: true;
+        resubmittedBy: true;
+      };
+    };
   };
 }>;
 

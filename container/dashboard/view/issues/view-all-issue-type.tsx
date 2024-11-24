@@ -11,7 +11,12 @@ import { Staff } from "@prisma/client";
 import { useInView } from "react-intersection-observer";
 import Balancer from "react-wrap-balancer";
 
-import { PendingIssuesWithRelation } from "@/types/prisma";
+import {
+  FramesWithRelation,
+  IssuesWithRelation,
+  PendingFramesWithRelation,
+  PendingIssuesWithRelation,
+} from "@/types/prisma";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Icons } from "@/components/ui/icons";
@@ -61,14 +66,14 @@ export default function ViewAllIssuesType({
     setLoading(true);
     const data = await viewTypeData.fetchFunction(
       fetchCount,
-      5,
+      10,
       filter,
       orderBy
     );
 
     setViewTypeData({
       ...viewTypeData,
-      data: viewTypeData.data.concat(data) as any,
+      data: viewTypeData.data.concat(data) as any[],
     });
     setFetchCount(fetchCount + data.length);
     setLoading(false);
@@ -202,7 +207,7 @@ export default function ViewAllIssuesType({
 
                   setViewTypeData({
                     ...viewTypeData,
-                    selectedItems: [issue],
+                    selectedItems: [issue as any],
                   });
 
                   setOpenSidebarInformation(true);

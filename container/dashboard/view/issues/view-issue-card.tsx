@@ -9,7 +9,6 @@ import {
   IssuesWithRelation,
   PendingFramesWithRelation,
   PendingIssuesWithRelation,
-  RejectedIssuesWithRelation,
 } from "@/types/prisma";
 import { cn, hasPermission } from "@/lib/utils";
 import { Button } from "@/components/ui/button";

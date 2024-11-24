@@ -79,9 +79,8 @@ export async function UploadFrames(
   };
 }
 
-//TODO: Check if the frame code is already in the database (no frame model rn)
 export async function checkDuplicateFramesCode(codes: string[]) {
-  const frames = await prisma.pendingFrames.findMany({
+  const pendingFrames = await prisma.pendingFrames.findMany({
     where: {
       code: {
         in: codes,
@@ -89,5 +88,13 @@ export async function checkDuplicateFramesCode(codes: string[]) {
     },
   });
 
-  return frames.map((frame) => frame.code);
+  const frames = await prisma.frames.findMany({
+    where: {
+      code: {
+        in: codes,
+      },
+    },
+  });
+
+  return [...frames, ...pendingFrames].map((frame) => frame.code);
 }

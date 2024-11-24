@@ -4,9 +4,9 @@ import {
   approvePendingIssues,
   deleteIssues,
   editIssue,
-  getIssues,
   getPendingIssues,
   getRejectedIssues,
+  getReleasedIssues,
   getUpcomingIssues,
   rejectPendingIssues,
   resubmitRejectedIssues,
@@ -24,14 +24,13 @@ import {
   FramesViewType,
   IssuesViewPort,
   IssuesViewType,
-  NonEmptyArray,
 } from "@/types";
 import { toast } from "sonner";
 
 import {
+  FramesWithRelation,
   IssuesWithRelation,
   PendingIssuesWithRelation,
-  RejectedIssuesWithRelation,
 } from "@/types/prisma";
 import { Icons } from "@/components/ui/icons";
 
@@ -82,7 +81,7 @@ export const issuesViewPortType: IssuesViewPort[] = [
     id: "released-issues",
     fetchCount: 0,
     fetchFunction: (skip, amount, filter, orderBy) =>
-      getIssues(skip, amount, filter, orderBy),
+      getReleasedIssues(skip, amount, filter, orderBy),
     data: [] as IssuesWithRelation[],
     selectedItems: [] as IssuesWithRelation[],
     disabled: false,
@@ -120,7 +119,7 @@ export function useHandleApprovePendingIssues(
             ...prev,
             data: prev.data.filter(
               (issue) => !issuesIds.includes(issue.id)
-            ) as PendingIssuesWithRelation[],
+            ) as any[],
             selectedItems: [],
           }));
         }
@@ -154,7 +153,7 @@ export function useHandleApprovePendingIssues(
             ...prev,
             data: prev.data.filter(
               (issue) => !issuesIds.includes(issue.id)
-            ) as PendingIssuesWithRelation[],
+            ) as any[],
             selectedItems: [],
           }));
         }
@@ -187,7 +186,7 @@ export function useHandleApprovePendingIssues(
             ...prev,
             data: prev.data.filter(
               (issue) => !issuesIds.includes(issue.id)
-            ) as PendingIssuesWithRelation[],
+            ) as any[],
             selectedItems: [],
           }));
         }
@@ -240,7 +239,7 @@ export function useHandleApprovePendingIssues(
               ...prev,
               data: prev.data.map((issueType) =>
                 issueType.id === issue.id ? issue : issueType
-              ) as PendingIssuesWithRelation[],
+              ) as any[],
               selectedItems: [],
             }));
           }
@@ -270,7 +269,7 @@ export function useHandleApprovePendingIssues(
             ...prev,
             data: prev.data.filter(
               (issue) => !issues.map((issue) => issue.id).includes(issue.id)
-            ) as PendingIssuesWithRelation[],
+            ) as any[],
             selectedItems: [],
           }));
         }

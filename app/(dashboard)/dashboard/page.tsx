@@ -2,8 +2,10 @@ import Link from "next/link";
 import { DashboradActionsType } from "@/types";
 
 import { dashboardActions } from "@/config/dashboard";
+import { getCurrentStaff } from "@/lib/session";
 
-export default function Home() {
+export default async function Home() {
+  const staff = await getCurrentStaff();
   return (
     <section
       id="features"

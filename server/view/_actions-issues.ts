@@ -31,6 +31,7 @@ export async function getPendingIssues(
     include: {
       createdBy: true,
       approvedBy: true,
+      event: true,
       rejections: {
         include: {
           rejectedBy: true,
@@ -64,6 +65,7 @@ export async function getRejectedIssues(
     include: {
       createdBy: true,
       approvedBy: true,
+      event: true,
       rejections: {
         include: {
           rejectedBy: true,
@@ -81,20 +83,32 @@ export async function approvePendingIssues(
 ): Promise<{ variant: "success" | "destructive"; message: string }> {
   const currentUser = await getCurrentStaff();
 
-  for (const issueId of issuesIds) {
-    await prisma.pendingIssues.update({
-      where: { id: issueId },
-      data: {
-        approvedAt: new Date(),
-        approvedById: currentUser.staff.id,
-      },
-    });
-  }
+  try {
+    await prisma.$transaction([
+      prisma.pendingIssues.updateMany({
+        where: {
+          id: {
+            in: issuesIds,
+          },
+        },
+        data: {
+          approvedAt: new Date(),
+          approvedById: currentUser.staff.id,
+        },
+      }),
+    ]);
 
-  return {
-    message: "Issues approved successfully.",
-    variant: "success",
-  };
+    return {
+      message: "Issues approved successfully.",
+      variant: "success",
+    };
+  } catch (error) {
+    console.error("Error approving pending issues:", error);
+    return {
+      message: "Failed to approve some or all issues.",
+      variant: "destructive",
+    };
+  }
 }
 
 export async function rejectPendingIssues(
@@ -137,6 +151,7 @@ export async function getUpcomingIssues(
     include: {
       createdBy: true,
       approvedBy: true,
+      event: true,
       rejections: {
         include: {
           rejectedBy: true,
@@ -172,7 +187,7 @@ export async function resubmitRejectedIssues(
   };
 }
 
-export async function getIssues(
+export async function getReleasedIssues(
   skip: number,
   amount: number,
   filter: any,
@@ -188,6 +203,7 @@ export async function getIssues(
     include: {
       createdBy: true,
       approvedBy: true,
+      event: true,
       rejections: {
         include: {
           rejectedBy: true,
