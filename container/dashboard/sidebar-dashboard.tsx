@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import Link from "next/link";
 import { notFound, usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";

@@ -2,7 +2,6 @@
 
 import { UserProfile } from "@/types/next-auth";
 import {
-  IssuesWithRelation,
   PendingFramesWithRelation,
   PendingIssuesWithRelation,
 } from "@/types/prisma";
@@ -11,12 +10,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
-interface IssueHistoryProps {
+interface ItemsHistoryProps {
   issue: PendingIssuesWithRelation | PendingFramesWithRelation;
   data: UserProfile[] | undefined;
 }
 
-export default function IssueHistory({ issue, data }: IssueHistoryProps) {
+export default function ItemsHistory({ issue, data }: ItemsHistoryProps) {
   const getDataByDiscordId = (id: string) => {
     const defaultData = { username: "IU", avatar: "/images/iu.png" };
     if (!data) return defaultData;

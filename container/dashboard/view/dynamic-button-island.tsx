@@ -15,9 +15,9 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-import DeleteIssuesDialog from "./issues/delete-issues";
-import { useHandleApprovePendingIssues } from "./issues/issues";
-import { RejectionsDialog } from "./issues/view-issue-card";
+import DeleteItemsDialog from "./delete-items";
+import { useHandleApprovePendingIssues } from "./issues";
+import { RejectionsDialog } from "./view-item-card";
 
 interface DynamicButtonIslandProps {
   viewTypeData: IssuesViewPort | FramesViewPort;
@@ -258,7 +258,7 @@ export default function DynamicButtonIsland({
         }))}
       />
 
-      <DeleteIssuesDialog
+      <DeleteItemsDialog
         issues={viewTypeData.selectedItems}
         isFrame={viewTypeData.id.includes("frames")}
         openDialog={openDeleteDialog}

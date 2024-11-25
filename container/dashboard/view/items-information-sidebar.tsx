@@ -7,7 +7,6 @@ import { useQuery } from "@tanstack/react-query";
 
 import { UserProfile } from "@/types/next-auth";
 import {
-  IssuesWithRelation,
   PendingFramesWithRelation,
   PendingIssuesWithRelation,
 } from "@/types/prisma";
@@ -27,7 +26,6 @@ import {
   DrawerContent,
   DrawerHeader,
   DrawerTitle,
-  DrawerTrigger,
 } from "@/components/ui/drawer";
 import { Icons } from "@/components/ui/icons";
 import { ScrollBar } from "@/components/ui/scroll-area";
@@ -35,14 +33,13 @@ import {
   Sidebar,
   SidebarContent,
   SidebarProvider,
-  SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Typography } from "@/components/ui/typography";
 
-import IssueHistory from "./issue-history";
+import ItemsHistory from "./items-history";
 
-interface IssueInformationSidebarProps {
+interface ItemsInformationSidebarProps {
   issueType: string;
   issues: PendingIssuesWithRelation[] | PendingFramesWithRelation[];
   isFrames: boolean | undefined;
@@ -50,13 +47,13 @@ interface IssueInformationSidebarProps {
   setOpenSidebarAction: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export default function IssueInformationSidebar({
+export default function ItemsInformationSidebar({
   issueType,
   issues,
   isFrames = false,
   openSidebar,
   setOpenSidebarAction,
-}: IssueInformationSidebarProps) {
+}: ItemsInformationSidebarProps) {
   const isSelected = issues.length > 0 && openSidebar;
   const { isMobile } = useSidebar();
 
@@ -154,7 +151,7 @@ function SelectedIssuesCarousel({
 
             <IssueRejections issue={issue} data={data} />
 
-            <IssueHistory data={data} issue={issue} />
+            <ItemsHistory data={data} issue={issue} />
           </CarouselItem>
         ))}
       </CarouselContent>

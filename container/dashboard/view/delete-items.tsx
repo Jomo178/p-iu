@@ -28,7 +28,7 @@ interface DeleteIssuesProps {
   viewPortType: IssuesViewPort | FramesViewPort;
 }
 
-export default function DeleteIssuesDialog({
+export default function DeleteItemsDialog({
   issues,
   isFrame,
   openDialog,

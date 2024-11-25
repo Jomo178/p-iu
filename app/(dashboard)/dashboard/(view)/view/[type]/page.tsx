@@ -1,7 +1,7 @@
-import { framesViewPortType } from "@/container/dashboard/view/issues/frames";
-import { issuesViewPortType } from "@/container/dashboard/view/issues/issues";
-import ViewAllIssuesType from "@/container/dashboard/view/issues/view-all-issue-type";
-import ViewIssuesPreview from "@/container/dashboard/view/issues/view-issues-preview";
+import { framesViewPortType } from "@/container/dashboard/view/frames";
+import { issuesViewPortType } from "@/container/dashboard/view/issues";
+import ViewAllItems from "@/container/dashboard/view/view-all-items";
+import ViewItemsGroupPreview from "@/container/dashboard/view/view-items-group-preview";
 import { getAllStaffDiscordProfiles } from "@/server/staff/_action";
 import { IssuesViewType } from "@/types";
 import { EventType } from "@prisma/client";
@@ -40,12 +40,9 @@ export default async function Page({
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
       {Object.values(EventType).includes(type as EventType) ? (
-        <ViewIssuesPreview type={type as EventType} staff={staff.staff} />
+        <ViewItemsGroupPreview type={type as EventType} staff={staff.staff} />
       ) : (
-        <ViewAllIssuesType
-          viewType={type as IssuesViewType}
-          staff={staff.staff}
-        />
+        <ViewAllItems viewType={type as IssuesViewType} staff={staff.staff} />
       )}
     </HydrationBoundary>
   );

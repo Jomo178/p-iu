@@ -1,12 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { IssuesFormPropsValue } from "@/model/issues-schema";
-import { editIssue } from "@/server/view/_actions-issues";
+import { FramesFormPropsValue } from "@/model/frames-schema";
 import { FramesViewPort, IssuesViewPort } from "@/types";
+import { FrameRarity } from "@prisma/client";
 
-import { PendingIssuesWithRelation } from "@/types/prisma";
-import { cn, generateIssueCode, urlToFile } from "@/lib/utils";
+import { cn, generateFrameCode, urlToFile } from "@/lib/utils";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,74 +19,73 @@ import {
 } from "@/components/ui/credenza";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-import IssuesForm from "../../add/issues/issues-form";
+import FramesForm from "../add/frames/frames-form";
 import { useHandleApprovePendingIssues } from "./issues";
 
-interface EditIssuesDialogProps {
-  issue: {
+interface EditFramesDialogProps {
+  frame: {
     id: string;
     name: string;
-    group: string;
-    act: string;
-    rarity: number;
+    rarity: FrameRarity;
     code: string;
     image: string;
   };
   openDialog: boolean;
   setOpenDialogAction: React.Dispatch<React.SetStateAction<boolean>>;
-  viewPortType: IssuesViewPort;
+  viewPortType: FramesViewPort;
   setViewTypeDataAction?: React.Dispatch<
-    React.SetStateAction<IssuesViewPort | FramesViewPort>
+    React.SetStateAction<FramesViewPort | IssuesViewPort>
   >;
 }
 
-export default function EditIssuesDialog({
-  issue,
+export default function EditFramesDialog({
+  frame,
   openDialog,
   setOpenDialogAction,
   viewPortType,
   setViewTypeDataAction,
-}: EditIssuesDialogProps) {
+}: EditFramesDialogProps) {
   const isDesktop = useMediaQuery();
   const [imageLoaded, setImageLoaded] = useState(false);
   const defaultValues = {
-    ...issue,
+    ...frame,
     codeDuplicate: false,
     releaseDate: new Date(),
     image: new File([], "filename"),
-    imageLink: issue.image,
+    imageLink: frame.image,
     changedImage: false,
     errors: [],
   };
-  const [issueData, setIssueData] = useState<
-    IssuesFormPropsValue & { imageLink: string; changedImage: boolean }
+  const [frameData, setFrameData] = useState<
+    FramesFormPropsValue & { imageLink: string; changedImage: boolean }
   >(defaultValues);
+
   const { handleEditPendingIssues } = useHandleApprovePendingIssues(
-    false,
+    true,
     setViewTypeDataAction
   );
 
   useEffect(() => {
     const fetchImage = async () => {
-      if (issue.image && openDialog && issueData.image.size === 0) {
+      if (frame.image && openDialog && frameData.image.size === 0) {
         const file = await urlToFile(
-          issue.image,
+          frame.image,
           "card-image.png",
           "image/png"
         );
 
-        setIssueData((prev) => ({ ...prev, image: file }));
+        setFrameData((prev) => ({ ...prev, image: file }));
         setImageLoaded(true);
       }
     };
 
     fetchImage();
-  }, [issue.image, openDialog]);
+  }, [frame.image, openDialog]);
 
   const handleEdit = async () => {
     await handleEditPendingIssues({
       viewPortId: viewPortType.id,
-      issue: issueData,
+      issue: frameData,
     });
 
     setOpenDialogAction(false);
@@ -100,14 +98,14 @@ export default function EditIssuesDialog({
         onOpenChange={() => {
           setOpenDialogAction(false);
           setImageLoaded(false);
-          setIssueData(defaultValues);
+          setFrameData(defaultValues);
         }}
       >
         <CredenzaContent className="sm:max-w-[600px]">
           <CredenzaHeader>
-            <CredenzaTitle>Edit Pending Issue</CredenzaTitle>
+            <CredenzaTitle>Edit Pending Frame</CredenzaTitle>
             <CredenzaDescription>
-              Edit the pending issue details.
+              Edit the pending frame details.
             </CredenzaDescription>
           </CredenzaHeader>
 
@@ -119,7 +117,7 @@ export default function EditIssuesDialog({
                 )}
               >
                 {imageLoaded ? (
-                  <EditFrom issueData={issueData} setIssueData={setIssueData} />
+                  <EditFrom frameData={frameData} setFrameData={setFrameData} />
                 ) : (
                   <p>Loading image...</p>
                 )}
@@ -127,7 +125,7 @@ export default function EditIssuesDialog({
             ) : (
               <>
                 {imageLoaded ? (
-                  <EditFrom issueData={issueData} setIssueData={setIssueData} />
+                  <EditFrom frameData={frameData} setFrameData={setFrameData} />
                 ) : (
                   <p>Loading image...</p>
                 )}
@@ -151,29 +149,24 @@ export default function EditIssuesDialog({
 }
 
 interface EditFromProps {
-  issueData: IssuesFormPropsValue;
-  setIssueData: React.Dispatch<
+  frameData: FramesFormPropsValue;
+  setFrameData: React.Dispatch<
     React.SetStateAction<
-      IssuesFormPropsValue & { imageLink: string; changedImage: boolean }
+      FramesFormPropsValue & { imageLink: string; changedImage: boolean }
     >
   >;
 }
 
-function EditFrom({ issueData, setIssueData }: EditFromProps) {
+function EditFrom({ frameData, setFrameData }: EditFromProps) {
   return (
-    <IssuesForm
+    <FramesForm
       index={1}
       hiddenFields={["releaseDate"]}
-      defaultValues={issueData}
+      defaultValues={frameData}
       onFormChangeAction={(_, value) => {
-        value.code = generateIssueCode(
-          value.name,
-          value.act,
-          value.group,
-          value.rarity
-        );
+        value.code = generateFrameCode(value.name, value.rarity);
 
-        setIssueData((prev) => {
+        setFrameData((prev) => {
           if (
             prev.image?.size !== value.image?.size &&
             prev.image?.name !== value.image?.name

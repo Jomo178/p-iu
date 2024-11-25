@@ -1,6 +1,6 @@
 "use client";
 
-import { Dispatch, SetStateAction, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
 import { FramesViewPort, IssuesViewPort } from "@/types";
 import { FrameRarity, Staff } from "@prisma/client";
@@ -35,16 +35,16 @@ import {
   AutosizeTextAreaRef,
 } from "@/components/ui/textarea";
 
-import DeleteIssuesDialog from "./delete-issues";
-import EditFramesDialog from "./edit-frames";
-import EditIssuesDialog from "./edit-issues";
+import DeleteItemsDialog from "./delete-items";
+import EditFramesDialog from "./edit-frame-items";
+import EditIssuesDialog from "./edit-issue-items";
 import { useHandleApprovePendingIssues } from "./issues";
 
 interface DivProps
   extends React.ButtonHTMLAttributes<HTMLDivElement>,
-    ViewIssueCardProps {}
+    ViewItemCardProps {}
 
-interface ViewIssueCardProps {
+interface ViewItemCardProps {
   issue:
     | PendingIssuesWithRelation
     | IssuesWithRelation
@@ -59,7 +59,7 @@ interface ViewIssueCardProps {
   staff: Staff;
 }
 
-export default function ViewIssueCard({
+export default function ViewItemCard({
   issue,
   isFrame = false,
   isSelected = false,
@@ -100,7 +100,7 @@ export default function ViewIssueCard({
     >
       <ContextMenu>
         <ContextMenuTrigger>
-          <ViewIssueImage {...issue} />
+          <ViewItemImage {...issue} />
         </ContextMenuTrigger>
         <ContextMenuContent className="w-40 cursor-pointer">
           {pendingRejections && (
@@ -211,7 +211,7 @@ export default function ViewIssueCard({
         />
       )}
 
-      <DeleteIssuesDialog
+      <DeleteItemsDialog
         issues={[issue]}
         isFrame={isFrame}
         openDialog={openDeleteDialog}
@@ -246,7 +246,7 @@ export function ViewFrameFooter(frame: { name: string; rarity: FrameRarity }) {
   );
 }
 
-export function ViewIssueImage(issue: { name: string; image: string }) {
+export function ViewItemImage(issue: { name: string; image: string }) {
   return <Image src={issue.image} alt={issue.name} width={250} height={250} />;
 }
 

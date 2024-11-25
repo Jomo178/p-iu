@@ -5,7 +5,6 @@ import { notFound, usePathname } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 import { signOut } from "next-auth/react";
 
-import { dashboardActions } from "@/config/dashboard";
 import { viewDashboard } from "@/config/view-dashboard";
 import { cn, toUpperCase } from "@/lib/utils";
 import {

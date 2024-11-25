@@ -39,16 +39,16 @@ const stringInputs = ["name", "act", "group"] as FilterKeys[];
 type FilterConfiguration = Partial<Record<FilterKeys, any>>;
 type FilterOrder = Partial<Record<FilterKeys, "asc" | "desc">>;
 
-interface FilterIssuesProps {
+interface ItemsFilterMenuProps {
   setFilterConfigurationAction: (
     filter: FilterConfiguration,
     order: FilterOrder
   ) => void;
 }
 
-export default function FilterIssues({
+export default function ItemsFilterMenu({
   setFilterConfigurationAction,
-}: FilterIssuesProps) {
+}: ItemsFilterMenuProps) {
   const [filterOpen, setFilterOpen] = useState(false);
   const defaultFilter = {
     name: "",

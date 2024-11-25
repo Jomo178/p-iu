@@ -2,13 +2,13 @@ import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 
-interface ViewIssueSkeletonProps
+interface ViewItemSkeletonProps
   extends React.ButtonHTMLAttributes<HTMLDivElement> {}
 
-export function ViewIssueSkeleton({
+export function ViewItemSkeleton({
   className,
   ...props
-}: ViewIssueSkeletonProps) {
+}: ViewItemSkeletonProps) {
   return (
     <div className={cn("space-y-2", className)} {...props}>
       <Skeleton className="h-[266px] w-[200px]"></Skeleton>
@@ -20,7 +20,7 @@ export function ViewIssueSkeleton({
   );
 }
 
-export function SkeletonViewPreview() {
+export function SkeletonViewGroup() {
   return (
     <>
       <div className="flex items-center justify-between">
@@ -37,7 +37,7 @@ export function SkeletonViewPreview() {
         <div className="w-72">
           <div className="flex space-x-4 pb-4">
             {Array.from({ length: 3 }).map((_, index) => (
-              <ViewIssueSkeleton key={index} />
+              <ViewItemSkeleton key={index} />
             ))}
           </div>
         </div>
