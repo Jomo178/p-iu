@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter as FontSans } from "next/font/google";
 import localFont from "next/font/local";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 import "../styles/globals.css";
 
@@ -53,6 +54,7 @@ export default function RootLayout({
             position="top-right"
           />
           <TailwindIndicator />
+          <SpeedInsights />
         </div>
       </body>
     </html>
