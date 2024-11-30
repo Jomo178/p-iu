@@ -200,20 +200,6 @@ export function useHandleApprovePendingIssues(
     viewPortId,
     issue,
   }: EditIssueProps) => {
-    if (isFrame) {
-      const checkCodeDuplicate = await checkDuplicateFramesCode([issue.code]);
-      if (checkCodeDuplicate.length > 0) {
-        toast.error("Code already exists.");
-        return;
-      }
-    } else {
-      const checkCodeDuplicate = await checkDuplicateIssuesCode([issue.code]);
-      if (checkCodeDuplicate.length > 0) {
-        toast.error("Code already exists.");
-        return;
-      }
-    }
-
     const { promise, title, error } = isFrame
       ? {
           promise: editFrame,
