@@ -125,7 +125,7 @@ export default function ViewAllItems({ viewType, staff }: ViewAllItemsProps) {
         <>
           <Separator className="my-4" />
           <ItemsFilterMenu
-            type={viewType.includes("frames") ? "frames" : "issues"}
+            // type={viewType.includes("frames") ? "frames" : "issues"}
             setFilterConfigurationAction={async (filter, orderBy) => {
               setViewTypeData((prev) => {
                 return {

@@ -1,8 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { getEvents } from "@/server/events/_action";
-import { EventType, PendingIssues, Prisma } from "@prisma/client";
+import { useState } from "react";
 import {
   ArrowDownIcon,
   ArrowUpIcon,
@@ -36,23 +34,12 @@ import { MultiSelect } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Typography } from "@/components/ui/typography";
 
-type FilterKeys = "name" | "act" | "group" | "rarity" | "createdAt" | "events";
-const stringInputs = ["name", "act", "group", "rarity"] as FilterKeys[];
+type FilterKeys = "name" | "act" | "group" | "rarity" | "createdAt";
+const stringInputs = ["name", "act", "group"] as FilterKeys[];
 type FilterConfiguration = Partial<Record<FilterKeys, any>>;
 type FilterOrder = Partial<Record<FilterKeys, "asc" | "desc">>;
 
-interface filterValues {
-  name: string;
-  act: string;
-  group: string;
-  code: string;
-  rarity: number[];
-  events: string[];
-  createdAt: { start: Date | null; end: Date | null };
-}
-
 interface ItemsFilterMenuProps {
-  type: EventType;
   setFilterConfigurationAction: (
     filter: FilterConfiguration,
     order: FilterOrder
@@ -61,39 +48,22 @@ interface ItemsFilterMenuProps {
 
 export default function ItemsFilterMenu({
   setFilterConfigurationAction,
-  type,
 }: ItemsFilterMenuProps) {
-  const [events, setEvents] = useState<{ id: string; name: string }[]>([]);
   const [filterOpen, setFilterOpen] = useState(false);
-  const defaultFilter: filterValues = {
+  const defaultFilter = {
     name: "",
+    rarity: [] as number[],
     act: "",
     group: "",
-    code: "",
-    rarity: [],
-    events: [],
-    createdAt: { start: null, end: null },
+    createdAt: { start: null, end: null } as {
+      start: Date | null;
+      end: Date | null;
+    },
   };
 
-  const defaultOrder = {
-    name: "",
-    act: "",
-    group: "",
-    rarity: "",
-    createdAt: "",
-    events: "",
-  };
   const [filter, setFilter] = useState<Record<FilterKeys, any>>(defaultFilter);
-  const [uiFilter, setUiFilter] = useState<Prisma.PendingIssuesWhereInput>();
-
-  useEffect(() => {
-    async function fetchEventsId() {
-      const events = await getEvents([type], { id: true, name: true });
-      setEvents(events);
-    }
-
-    fetchEventsId();
-  }, []);
+  const [uiFilter, setUiFilter] =
+    useState<Record<FilterKeys, any>>(defaultFilter);
 
   let rarityOptions = Array.from({ length: 5 }).map((_, index) => ({
     label: `Rarity ${index + 1}`,
@@ -104,9 +74,8 @@ export default function ItemsFilterMenu({
   }));
 
   async function configureIssueFilters() {
-    console.log(uiFilter);
     setFilter(uiFilter);
-    const prismaFilter: Prisma.PendingIssuesWhereInput = {
+    const prismaFilter: Partial<Record<FilterKeys, any>> = {
       rarity: uiFilter.rarity.length > 0 ? { in: uiFilter.rarity } : undefined,
       createdAt:
         uiFilter.createdAt.start && uiFilter.createdAt.end
@@ -115,47 +84,18 @@ export default function ItemsFilterMenu({
               lte: uiFilter.createdAt.end,
             }
           : undefined,
-      eventId: uiFilter.events.length > 0 ? { in: uiFilter.events } : undefined,
     };
 
-    const prismaOrderBy: Prisma.PendingIssuesOrderByWithAggregationInput =
-      stringInputs.reduce(
-        (acc: Prisma.PendingIssuesOrderByWithAggregationInput, field) => {
-          if (uiFilter[field as keyof typeof uiFilter]) {
-            acc[field as keyof typeof acc] =
-              uiFilter[field as keyof typeof uiFilter];
-          }
-          return acc;
-        },
-        {} as Prisma.PendingIssuesOrderByWithAggregationInput
-      );
+    const prismaOrderBy: FilterOrder = stringInputs.reduce((acc, field) => {
+      if (uiFilter[field]) {
+        acc[field] = uiFilter[field];
+      }
+      return acc;
+    }, {} as FilterOrder);
 
     setFilterConfigurationAction(prismaFilter, prismaOrderBy);
     setFilterOpen(false);
   }
-  // async function configureIssueFilters() {
-  //   setFilter(uiFilter);
-  //   const prismaFilter: Partial<Record<FilterKeys, any>> = {
-  //     rarity: uiFilter.rarity.length > 0 ? { in: uiFilter.rarity } : undefined,
-  //     createdAt:
-  //       uiFilter.createdAt.start && uiFilter.createdAt.end
-  //         ? {
-  //             gte: uiFilter.createdAt.start,
-  //             lte: uiFilter.createdAt.end,
-  //           }
-  //         : undefined,
-  //   };
-
-  //   const prismaOrderBy: FilterOrder = stringInputs.reduce((acc, field) => {
-  //     if (uiFilter[field]) {
-  //       acc[field] = uiFilter[field];
-  //     }
-  //     return acc;
-  //   }, {} as FilterOrder);
-
-  //   setFilterConfigurationAction(prismaFilter, prismaOrderBy);
-  //   setFilterOpen(false);
-  // }
 
   return (
     <div className="container">
@@ -169,15 +109,6 @@ export default function ItemsFilterMenu({
               if (filter[key as FilterKeys].length === 0) return null;
               filterVerb = "is";
               filterText = filter[key as FilterKeys].join(", ");
-              break;
-            case "events":
-              if (filter[key as FilterKeys].length === 0) return null;
-              filterVerb = "is";
-              filterText = (filter[key as FilterKeys] as string[])
-                .map(
-                  (id: string) => events.find((event) => event.id === id)?.name
-                )
-                .join(", ");
               break;
             case "createdAt":
               if (
@@ -255,95 +186,7 @@ export default function ItemsFilterMenu({
             </CredenzaDescription>
           </CredenzaHeader>
           <CredenzaBody className="col-span-3 grid content-start space-y-4">
-            {Object.entries(defaultFilter).map(([key, value]) => {
-              switch (key) {
-                case "rarity":
-                  return (
-                    <div key={key} className="flex flex-col gap-2">
-                      <Typography variant="large">Rarity</Typography>
-                      <MultiSelect
-                        description="Select Rarities"
-                        options={rarityOptions}
-                        defaultValue={rarityOptions.filter((option) =>
-                          uiFilter["rarity"].includes(Number(option.value))
-                        )}
-                        onValueChange={(option) => {
-                          if (uiFilter["rarity"].includes(Number(option.value))) {
-                            setUiFilter({
-                              ...uiFilter,
-                              rarity: uiFilter["rarity"].filter(
-                                (value: number) => value !== Number(option.value)
-                              ),
-                            });
-                          } else {
-                            setUiFilter({
-                              ...uiFilter,
-                              rarity: [...uiFilter["rarity"], Number(option.value)],
-                            });
-                          }
-                        }}
-                      />
-                    </div>
-                  );
-                case "events":
-                  return (
-                    <div key={key} className="flex flex-col gap-2">
-                      <Typography variant="large">Events</Typography>
-                      <MultiSelect
-                        description="Select Events"
-                        options={events.map((event) => ({
-                          label: event.name,
-                          value: event.id,
-                          icon: null,
-                        }))}
-                        defaultValue={events
-                          .filter((event) => uiFilter["events"].includes(event.id))
-                          .map((event) => ({
-                            value: event.id,
-                            label: event.name,
-                            icon: null,
-                          }))}
-                        onValueChange={(option) => {
-                          if (uiFilter["events"].includes(option.value)) {
-                            setUiFilter({
-                              ...uiFilter,
-                              events: uiFilter["events"].filter(
-                                (value: string) => value !== option.value
-                              ),
-                            });
-                          } else {
-                            setUiFilter({
-                              ...uiFilter,
-                              events: [...uiFilter["events"], option.value],
-                            });
-                          }
-                        }}
-                      />
-                    </div>
-                  );
-                case "createdAt":
-                  return (
-                    <div key={key} className="flex flex-col gap-2">
-                      <Typography variant="large">Created At</Typography>
-                      <DateRangePicker
-                        className="border-dashed"
-                        align="end"
-                        showCompare={false}
-                        onUpdate={(values) => {
-                          setUiFilter({
-                            ...uiFilter,
-                            createdAt: {
-                              start: values.range.from,
-                              end: values.range.to,
-                            },
-                          });
-                        }
-                        }
-                      />
-                    </div>
-                  );
-            })}
-            {/* <div className="flex flex-col justify-center gap-2">
+            <div className="flex flex-col justify-center gap-2">
               <Typography variant="large">Sort by</Typography>
               <div className="flex justify-center gap-8 lg:ml-3 lg:justify-normal">
                 {stringInputs.map((input) => (
@@ -394,39 +237,6 @@ export default function ItemsFilterMenu({
               />
             </div>
             <div className="flex flex-col gap-2">
-              <Typography variant="large">Events</Typography>
-              <MultiSelect
-                description="Select Events"
-                options={events.map((event) => ({
-                  label: event.name,
-                  value: event.id,
-                  icon: null,
-                }))}
-                defaultValue={events
-                  .filter((event) => uiFilter["events"].includes(event.id))
-                  .map((event) => ({
-                    value: event.id,
-                    label: event.name,
-                    icon: null,
-                  }))}
-                onValueChange={(option) => {
-                  if (uiFilter["events"].includes(option.value)) {
-                    setUiFilter({
-                      ...uiFilter,
-                      events: uiFilter["events"].filter(
-                        (value: string) => value !== option.value
-                      ),
-                    });
-                  } else {
-                    setUiFilter({
-                      ...uiFilter,
-                      events: [...uiFilter["events"], option.value],
-                    });
-                  }
-                }}
-              />
-            </div>
-            <div className="flex flex-col gap-2">
               <Typography variant="large">Created At</Typography>
               <DateRangePicker
                 className="border-dashed"
@@ -442,7 +252,7 @@ export default function ItemsFilterMenu({
                   });
                 }}
               />
-            </div> */}
+            </div>
           </CredenzaBody>
           <CredenzaFooter>
             <Button variant="outline" onClick={() => setFilterOpen(false)}>
