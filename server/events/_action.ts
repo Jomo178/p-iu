@@ -1,8 +1,9 @@
 "use server";
 
-import { Events, EventType } from "@prisma/client";
+import Issue from "@/model/issue";
+import { Events, EventType, Prisma } from "@prisma/client";
 
-import { prisma } from "@/lib/database";
+import { connectDB, prisma } from "@/lib/database";
 import { getCurrentStaff, getCurrentUser } from "@/lib/session";
 
 export async function getCurrentEvent(type: EventType[]) {
@@ -29,7 +30,7 @@ export async function getCurrentEvent(type: EventType[]) {
   return event;
 }
 
-export async function getEvents(type?: EventType[] | undefined) {
+export async function getAllEvents(type?: EventType[] | undefined) {
   const events = await prisma.events.findMany({
     where: {
       type: type ? { hasSome: type } : undefined,
@@ -63,6 +64,23 @@ export async function getEvents(type?: EventType[] | undefined) {
   });
 
   return events;
+}
+
+export async function getEvents<T extends Prisma.EventsSelect>(
+  type?: EventType[] | undefined,
+  select?: T
+): Promise<Prisma.EventsGetPayload<{ select: T }>[]> {
+  const events = await prisma.events.findMany({
+    where: {
+      type: type ? { hasSome: type } : undefined,
+    },
+    orderBy: {
+      name: "asc",
+    },
+    select,
+  });
+
+  return events as Prisma.EventsGetPayload<{ select: T }>[];
 }
 
 export async function createEvent(
@@ -135,6 +153,8 @@ export async function editEvent(
 }
 
 export async function releaseEvent(eventId: string) {
+  await connectDB();
+
   return await prisma.$transaction(async (tx) => {
     const approvedPendingIssues = await tx.pendingIssues.findMany({
       where: {
@@ -145,6 +165,9 @@ export async function releaseEvent(eventId: string) {
         approvedAt: {
           not: null,
         },
+      },
+      include: {
+        event: true,
       },
     });
 
@@ -171,6 +194,30 @@ export async function releaseEvent(eventId: string) {
     await tx.issues.createMany({
       data: issuesData,
     });
+
+    await Issue.insertMany(
+      approvedPendingIssues.map((issue) => ({
+        name: issue.name,
+        group: issue.group,
+        act: issue.act,
+        rarity: issue.rarity.toString(),
+        code: issue.code,
+        image: issue.image,
+        createdAt: issue.createdAt,
+        updatedAt: issue.updatedAt,
+        eventId: issue.eventId,
+        createdById: issue.createdById,
+        approvedById: issue.approvedById!,
+        approvedAt: issue.approvedAt!,
+        dropAble: issue.dropAble,
+        releaseDate: issue.event.start,
+      }))
+    )
+      .then(() => console.log("Data inserted"))
+      .catch(function (error) {
+        console.log(error);
+        new Error("Error inserting data");
+      });
 
     await tx.pendingIssues.deleteMany({
       where: {
