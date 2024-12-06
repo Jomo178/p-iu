@@ -45,3 +45,15 @@ export const issuesSchema = z
 
 export type IssuesFormPropsValue = z.infer<typeof issuesSchema>;
 export type IssuesFormPropsValueKeys = keyof IssuesFormPropsValue;
+
+export const IssueFilterSchema = z.object({
+  name: z.string().optional(),
+  group: z.string().optional(),
+  act: z.string().optional(),
+  code: z.string().optional(),
+  rarity: z.array(z.string()).optional(),
+  createdBy: z.array(z.string()).optional(),
+  updatedBy: z.array(z.string()).optional(),
+  approvedBy: z.array(z.string()).optional(),
+  eventId: z.array(z.string()).optional(),
+});

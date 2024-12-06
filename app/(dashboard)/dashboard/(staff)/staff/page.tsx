@@ -2,7 +2,7 @@ import {
   columns,
   StaffMemberDetails,
 } from "@/container/dashboard/staff/staff-columns";
-import { getAllStaffDiscordProfiles } from "@/server/staff/_action";
+import { getCachedStaffDiscordProfiles } from "@/server/staff/_action";
 import { Role } from "@prisma/client";
 
 import { prisma } from "@/lib/database";
@@ -13,7 +13,7 @@ interface StaffProps {}
 
 export default async function Staff({}: StaffProps) {
   const staffDetails = await prisma.staff.findMany();
-  const staffDiscordDetails = await getAllStaffDiscordProfiles();
+  const staffDiscordDetails = await getCachedStaffDiscordProfiles();
   const currenStaff = await getCurrentStaff();
 
   const data: StaffMemberDetails[] = await Promise.all(

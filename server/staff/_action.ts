@@ -1,5 +1,6 @@
 "use server";
 
+import { unstable_cache } from "next/cache";
 import { Staff } from "@prisma/client";
 
 import { prisma } from "@/lib/database";
@@ -20,6 +21,14 @@ export async function getAllStaffDiscordProfiles() {
 
   return Promise.all(data);
 }
+
+export const getCachedStaffDiscordProfiles = unstable_cache(
+  getAllStaffDiscordProfiles,
+  [],
+  {
+    revalidate: 60 * 60,
+  }
+);
 
 export async function editStaffDetails(
   id: string,

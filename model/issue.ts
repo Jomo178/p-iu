@@ -44,6 +44,7 @@ const issueSchema = new Schema<IIssue>(
 
 // Check if the model is already compiled
 const Issue =
-  mongoose.models.Issue || mongoose.model<IIssue>("Issue", issueSchema);
+  (mongoose.models && mongoose.models.Issue) ||
+  mongoose.model<IIssue>("Issue", issueSchema);
 
 export default Issue;

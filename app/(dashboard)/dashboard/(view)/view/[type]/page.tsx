@@ -2,7 +2,7 @@ import { framesViewPortType } from "@/container/dashboard/view/frames";
 import { issuesViewPortType } from "@/container/dashboard/view/issues";
 import ViewAllItems from "@/container/dashboard/view/view-all-items";
 import ViewItemsGroupPreview from "@/container/dashboard/view/view-items-group-preview";
-import { getAllStaffDiscordProfiles } from "@/server/staff/_action";
+import { getCachedStaffDiscordProfiles } from "@/server/staff/_action";
 import { IssuesViewType } from "@/types";
 import { EventType } from "@prisma/client";
 import {
@@ -33,7 +33,7 @@ export default async function Page({
   const queryClient = new QueryClient();
   await queryClient.prefetchQuery({
     queryKey: ["staff-info"],
-    queryFn: getAllStaffDiscordProfiles,
+    queryFn: getCachedStaffDiscordProfiles,
     staleTime: Infinity,
   });
 
