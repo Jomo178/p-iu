@@ -45,3 +45,14 @@ export async function editStaffDetails(
     message: "Staff details updated successfully",
   };
 }
+
+export async function getStaffIds() {
+  const staffsIds = await prisma.staff.findMany({
+    select: {
+      id: true,
+      discordId: true,
+    },
+  });
+
+  return staffsIds;
+}

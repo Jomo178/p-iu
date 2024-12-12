@@ -1,6 +1,7 @@
 "use client";
 
 import { use, useEffect, useState } from "react";
+import { getStaffIds } from "@/server/staff/_action";
 import {
   FramesViewPort,
   FramesViewType,
@@ -9,11 +10,13 @@ import {
 } from "@/types";
 import { Staff } from "@prisma/client";
 import { isEmpty } from "lodash";
+import { useQueryState } from "nuqs";
 import { useInView } from "react-intersection-observer";
 import Balancer from "react-wrap-balancer";
 import { toast } from "sonner";
 
 import { PendingIssuesWithRelation } from "@/types/prisma";
+import { prisma } from "@/lib/database";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Icons } from "@/components/ui/icons";
@@ -24,8 +27,9 @@ import { EmptyState } from "@/components/empty-state";
 import DynamicButtonIsland from "./dynamic-button-island";
 import { framesViewPortType } from "./frames";
 import { issuesViewPortType } from "./issues";
-import ItemsFilterMenu from "./items-filter-menu";
+import ItemsFilterMenu, { constructWhereConditions } from "./items-filter-menu";
 import ItemsInformationSidebar from "./items-information-sidebar";
+import { searchParams } from "./searchParams";
 import ViewItemCard from "./view-item-card";
 import { ViewItemSkeleton } from "./view-item-skeleton";
 
@@ -50,8 +54,11 @@ export default function ViewAllItems({ viewType, staff }: ViewAllItemsProps) {
   const [loading, setLoading] = useState(false);
   const [noData, setNoData] = useState(false);
   const [orderBy, setOrderBy] = useState({});
-  const [filter, setFilter] = useState({});
+  const [filters, setFilters] = useQueryState("filters", searchParams.filters);
   const [openSidebarInformation, setOpenSidebarInformation] = useState(false);
+  const [staffInfo, setStaffInfo] = useState<
+    { id: string; discordId: string }[]
+  >([]);
   const changeGrid = viewTypeData.selectedItems.length > 0;
   const isAllSelected =
     viewTypeData.selectedItems.length == viewTypeData.data.length;
@@ -59,10 +66,14 @@ export default function ViewAllItems({ viewType, staff }: ViewAllItemsProps) {
   const fetchData = async (customFetchCount: number = 10) => {
     if (loading) return;
     setLoading(true);
+    if (staffInfo.length === 0) {
+      const staffs = await getStaffIds();
+      setStaffInfo(staffs);
+    }
     const data = await viewTypeData.fetchFunction(
       viewTypeData.fetchCount,
       customFetchCount,
-      filter,
+      constructWhereConditions(filters, staffInfo),
       orderBy
     );
 
@@ -90,10 +101,10 @@ export default function ViewAllItems({ viewType, staff }: ViewAllItemsProps) {
   }, [inView]);
 
   useEffect(() => {
-    if (!isEmpty(filter) || !isEmpty(orderBy)) {
+    if (!isEmpty({}) || !isEmpty(orderBy)) {
       fetchData();
     }
-  }, [filter, orderBy]);
+  }, [orderBy]);
 
   return (
     <div className="container !px-0 lg:!px-8">
@@ -136,7 +147,7 @@ export default function ViewAllItems({ viewType, staff }: ViewAllItemsProps) {
                 };
               });
 
-              setFilter(filter);
+              // setFilter(filter);
               setOrderBy(orderBy);
             }}
           />

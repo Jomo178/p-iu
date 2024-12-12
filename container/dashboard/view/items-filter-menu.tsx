@@ -1,9 +1,13 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import { IssueFilterSchema } from "@/model/issues-schema";
+import {
+  IssueFilterPropsValue,
+  IssueFilterSchema,
+} from "@/model/issues-schema";
 import { getAllEvents } from "@/server/events/_action";
 import { getCachedStaffDiscordProfiles } from "@/server/staff/_action";
+import { Staff } from "@prisma/client";
 import { Filter, X } from "lucide-react";
 import {
   createParser,
@@ -51,7 +55,12 @@ const containsFields = [
 ] as const;
 type ContainsFields = (typeof containsFields)[number];
 const dateFields = ["createdAt", "updatedAt", "approvedAt"] as const;
-const userFields = ["createdBy", "updatedBy", "approvedBy"] as const;
+const userFields = [
+  "createdBy",
+  "approvedBy",
+  "rejectedBy",
+  "resubmittedBy",
+] as const;
 type UserFields = (typeof userFields)[number];
 const sortByFields = [...containsFields, ...dateFields] as const;
 const sortOrderFields = ["asc", "desc"] as const;
@@ -75,6 +84,8 @@ export default function ItemsFilterMenu({
   const [events, setEvents] = useState<EventsWithRelation[]>([]);
   const [filters, setFilters] = useQueryState("filters", searchParams.filters);
   const [filtersUi, setFiltersUi] = useState<Object | any>();
+  const [isLoading, startTransition] = useTransition();
+  const [filterOpen, setFilterOpen] = useState(false);
 
   useEffect(() => {
     getCachedStaffDiscordProfiles().then(setStaffProfiles);
@@ -95,9 +106,6 @@ export default function ItemsFilterMenu({
     return eventOption;
   });
 
-  const [isLoading, startTransition] = useTransition();
-
-  const [filterOpen, setFilterOpen] = useState(false);
   const [sortBy, setSortBy] = useQueryState(
     "sortBy",
     parseAsStringLiteral(sortByFields)
@@ -109,11 +117,13 @@ export default function ItemsFilterMenu({
     parseAsStringLiteral(sortOrderFields).withDefault("asc")
   );
   const handleFilterChange = (key: string, value: any) => {
-    setFiltersUi((prev: any) => ({ ...prev, [key]: value }));
+    if (value.length === 0) {
+      const { [key]: _, ...rest } = filtersUi;
+      setFiltersUi(rest);
+    } else {
+      setFiltersUi((prev: any) => ({ ...prev, [key]: value }));
+    }
   };
-
-  const [sortByUi, setSortByUi] = useState("");
-  const [sortOrderUi, setSortOrderUi] = useState("");
 
   useEffect(() => {
     setFilterConfigurationAction({}, { [sortBy]: sortOrder });
@@ -221,13 +231,13 @@ export default function ItemsFilterMenu({
                           }
                           onValueChange={(option) => {
                             let rarity = [];
-                            if (filters?.rarity?.includes(option.value)) {
-                              rarity = filters.rarity.filter(
-                                (value) => value !== option.value
+                            if (filtersUi?.rarity?.includes(option.value)) {
+                              rarity = filtersUi.rarity.filter(
+                                (value: any) => value !== option.value
                               );
                             } else {
                               rarity = [
-                                ...(filters?.rarity ?? []),
+                                ...(filtersUi?.rarity ?? []),
                                 option.value,
                               ];
                             }
@@ -266,8 +276,8 @@ export default function ItemsFilterMenu({
                       avatarUrl: profile.avatar ?? "/avatar.png",
                     }))}
                     defaultValue={
-                      filters?.[key]
-                        ?.map((value) => {
+                      filtersUi?.[key]
+                        ?.map((value: any) => {
                           const profile = staffProfiles.find(
                             (profile) => profile.id === value
                           );
@@ -279,18 +289,18 @@ export default function ItemsFilterMenu({
                               }
                             : undefined;
                         })
-                        .filter((option) => option !== undefined) ?? []
+                        .filter((option: any) => option !== undefined) ?? []
                     }
                     onValueChange={(option) => {
                       let items = [];
-                      if (filters?.[key]?.includes(option.value)) {
-                        items = filters[key].filter(
-                          (value) => value !== option.value
+                      if (filtersUi?.[key]?.includes(option.value)) {
+                        items = filtersUi[key].filter(
+                          (value: any) => value !== option.value
                         );
                       } else {
-                        items = [...(filters?.[key] ?? []), option.value];
+                        items = [...(filtersUi?.[key] ?? []), option.value];
                       }
-                      setFilters((prev) => ({ ...prev, [key]: items }));
+                      setFiltersUi((prev: any) => ({ ...prev, [key]: items }));
                     }}
                   />
                 </div>
@@ -386,4 +396,63 @@ function FilterButton({ name, filterVerb, filterText }: FilterButtonProps) {
       <X size={20} className="pl-2" />
     </Button>
   );
+}
+
+export function constructWhereConditions(
+  filters: IssueFilterPropsValue | null = {},
+  staff: { id: string; discordId: string }[] = []
+) {
+  if (!filters) return {};
+
+  const getIdsByDiscordIds = (discordIds: string[]) =>
+    staff
+      .filter((staff) => discordIds.includes(staff.discordId))
+      .map((staff) => staff.id);
+
+  const where = {
+    ...(filters.createdBy
+      ? { createdById: { in: getIdsByDiscordIds(filters.createdBy) } }
+      : {}),
+    ...(filters.rarity ? { rarity: { in: filters.rarity } } : {}),
+    ...(filters.eventId
+      ? { eventId: { in: getIdsByDiscordIds(filters.eventId) } }
+      : {}),
+    ...(filters.approvedBy
+      ? { approvedById: { in: getIdsByDiscordIds(filters.approvedBy) } }
+      : {}),
+    ...(filters.rejectedBy || filters.resubmittedBy
+      ? {
+          rejections: {
+            some: {
+              ...(filters.rejectedBy
+                ? {
+                    rejectedById: {
+                      in: getIdsByDiscordIds(filters.rejectedBy),
+                    },
+                  }
+                : {}),
+              ...(filters.resubmittedBy
+                ? {
+                    resubmittedById: {
+                      in: getIdsByDiscordIds(filters.resubmittedBy),
+                    },
+                  }
+                : {}),
+            },
+          },
+        }
+      : {}),
+  };
+
+  const {
+    approvedBy,
+    rejectedBy,
+    resubmittedBy,
+    createdBy,
+    rarity,
+    eventId,
+    ...remainingProps
+  } = filters;
+
+  return { ...remainingProps, ...where };
 }
