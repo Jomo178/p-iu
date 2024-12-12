@@ -1,0 +1,190 @@
+[{
+  "_id": {
+    "$oid": "66d2d2214a813ebd684addfe"
+  },
+  "name": "Fjalla One",
+  "price": 100,
+  "onMarket": true,
+  "isBig": false,
+  "short": "F1"
+},
+{
+  "_id": {
+    "$oid": "66d2d2394a813ebd684ade01"
+  },
+  "name": "Amunt Espanya",
+  "price": 100,
+  "onMarket": false,
+  "isBig": true,
+  "short": "AE"
+},
+{
+  "_id": {
+    "$oid": "66d2d2464a813ebd684ade03"
+  },
+  "name": "Bodoni Moda",
+  "price": 100,
+  "onMarket": false,
+  "isBig": false,
+  "short": "BM"
+},
+{
+  "_id": {
+    "$oid": "66d2d2694a813ebd684ade05"
+  },
+  "name": "Spicy Rice",
+  "price": 100,
+  "onMarket": false,
+  "isBig": false,
+  "short": "SR"
+},
+{
+  "_id": {
+    "$oid": "66d2d2784a813ebd684ade07"
+  },
+  "name": "Contrail One",
+  "price": 100,
+  "onMarket": false,
+  "isBig": false,
+  "short": "C1"
+},
+{
+  "_id": {
+    "$oid": "66ee9271b6355cafe4c017fc"
+  },
+  "name": "Jersey 10",
+  "price": 100,
+  "onMarket": false,
+  "isBig": false,
+  "short": "J1"
+},
+{
+  "_id": {
+    "$oid": "66ee9290b6355cafe4c017fd"
+  },
+  "name": "Montserrat",
+  "price": 100,
+  "onMarket": false,
+  "isBig": false,
+  "short": "MT"
+},
+{
+  "_id": {
+    "$oid": "66ee92a6b6355cafe4c017fe"
+  },
+  "name": "Unica One",
+  "price": 100,
+  "onMarket": false,
+  "isBig": false,
+  "short": "U1"
+},
+{
+  "_id": {
+    "$oid": "67012a866b03b1214a33aaa7"
+  },
+  "name": "Berkshire Swash",
+  "price": 100,
+  "onMarket": false,
+  "isBig": false,
+  "short": "BS"
+},
+{
+  "_id": {
+    "$oid": "67012aa06b03b1214a33aaa8"
+  },
+  "name": "Send Flowers",
+  "price": 100,
+  "onMarket": false,
+  "isBig": false,
+  "short": "SF"
+},
+{
+  "_id": {
+    "$oid": "67012ac16b03b1214a33aaaa"
+  },
+  "name": "Space Grotesk",
+  "price": 100,
+  "onMarket": false,
+  "isBig": false,
+  "short": "SG"
+},
+{
+  "_id": {
+    "$oid": "671398116c9e2816278960b4"
+  },
+  "name": "Caveat",
+  "price": 100,
+  "onMarket": false,
+  "isBig": false,
+  "short": "CV"
+},
+{
+  "_id": {
+    "$oid": "671398226c9e2816278960b5"
+  },
+  "name": "Comic Neue",
+  "price": 100,
+  "onMarket": false,
+  "isBig": false,
+  "short": "CN"
+},
+{
+  "_id": {
+    "$oid": "6713982d6c9e2816278960b6"
+  },
+  "name": "Playwrite GB",
+  "price": 100,
+  "onMarket": false,
+  "isBig": false,
+  "short": "PW"
+},
+{
+  "_id": {
+    "$oid": "671bfbc26c9e2816278960df"
+  },
+  "name": "Jolly Lodger",
+  "price": 100,
+  "onMarket": false,
+  "isBig": false,
+  "short": "JL"
+},
+{
+  "_id": {
+    "$oid": "671bfbd46c9e2816278960e0"
+  },
+  "name": "CF Halloween",
+  "price": 100,
+  "onMarket": false,
+  "isBig": true,
+  "short": "CF Halloween"
+},
+{
+  "_id": {
+    "$oid": "674b1dec1b32192579854834"
+  },
+  "name": "Bebas Neue",
+  "price": 100,
+  "onMarket": false,
+  "isBig": false,
+  "short": "BN"
+},
+{
+  "_id": {
+    "$oid": "674b1df91b32192579854835"
+  },
+  "name": "Galindo",
+  "price": 100,
+  "onMarket": false,
+  "isBig": false,
+  "short": "CN"
+},
+{
+  "_id": {
+    "$oid": "674b1e041b32192579854836"
+  },
+  "name": "Sancreek",
+  "price": 100,
+  "onMarket": false,
+  "isBig": false,
+  "short": "SR"
+}]
