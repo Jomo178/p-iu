@@ -7,27 +7,34 @@ import { connectDB, prisma } from "@/lib/database";
 import { getCurrentStaff, getCurrentUser } from "@/lib/session";
 
 export async function getCurrentEvent(type: EventType[]) {
-  const event = await prisma.events.findFirst({
+  const futureEvent = await prisma.events.findFirst({
     where: {
       type: {
         hasSome: type,
       },
-      OR: [
-        {
-          start: { lte: new Date() },
-          end: { gt: new Date() },
-        },
-        {
-          start: { gt: new Date() },
-        },
-      ],
+      start: { gt: new Date() },
     },
     orderBy: {
       start: "asc",
     },
   });
 
-  return event;
+  if (futureEvent) return futureEvent;
+
+  const ongoingEvent = await prisma.events.findFirst({
+    where: {
+      type: {
+        hasSome: type,
+      },
+      start: { lte: new Date() },
+      end: { gt: new Date() },
+    },
+    orderBy: {
+      start: "asc",
+    },
+  });
+
+  return ongoingEvent;
 }
 
 export async function getAllEvents(type?: EventType[] | undefined) {
@@ -98,6 +105,26 @@ export async function createEvent(
     },
     include: {
       createdBy: true,
+      issues: true,
+      frames: true,
+      pendingFrames: {
+        where: {
+          rejections: {
+            every: {
+              resubmitted: true,
+            },
+          },
+        },
+      },
+      pendingIssues: {
+        where: {
+          rejections: {
+            every: {
+              resubmitted: true,
+            },
+          },
+        },
+      },
     },
   });
 

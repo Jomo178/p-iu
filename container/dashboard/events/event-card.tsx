@@ -98,7 +98,7 @@ export default function EventCard({
                     toUpperCase(type)) as EventType;
                   return (
                     <span key={index} className="text-xs text-muted-foreground">
-                      {`${toUpperCase(type)}: ${event[type].length + event[pendingName].length}`}
+                      {`${toUpperCase(type)}: ${event[type]?.length + event[pendingName]?.length}`}
                       {index < event.type.length - 1 && ", "}
                     </span>
                   );

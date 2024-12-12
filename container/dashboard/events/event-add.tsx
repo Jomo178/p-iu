@@ -55,10 +55,7 @@ export default function EventAdd({
       success: (response) => {
         setLoading(false);
         if (!response.data) return response.message;
-        setEventStateAction((prev) => [
-          ...prev,
-          response.data as EventsWithRelation,
-        ]);
+        setEventStateAction((prev) => [...prev, response.data]);
         form.reset();
         setOpenDialog(false);
         return response.message;

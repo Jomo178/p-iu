@@ -25,7 +25,7 @@ export default function EventsContainer({
   const [eventState, setEventState] = useState<EventsWithRelation[]>(events);
 
   const currentDate = new Date();
-  const currentEvent = eventState.find(
+  const currentEvents = eventState.filter(
     (event) =>
       new Date(event.start) <= currentDate && new Date(event.end) >= currentDate
   );
@@ -42,7 +42,18 @@ export default function EventsContainer({
       (a, b) => new Date(a.start).getTime() - new Date(b.start).getTime()
     )[0];
 
-    upcomingEvents.splice(upcomingEvents.indexOf(nextEvent), 1);
+    if (nextEvent.name.includes("IU Release")) {
+      const alternativeEvent = upcomingEvents.find(
+        (event) => !event.name.includes("IU Release")
+      );
+
+      if (alternativeEvent) {
+        nextEvent = alternativeEvent;
+        upcomingEvents.splice(upcomingEvents.indexOf(alternativeEvent), 1);
+      }
+    } else {
+      upcomingEvents.splice(upcomingEvents.indexOf(nextEvent), 1);
+    }
   }
 
   return (
@@ -54,17 +65,22 @@ export default function EventsContainer({
         />
       </div>
 
-      {currentEvent ? (
+      {currentEvents ? (
         <section>
-          <h2 className="mb-4 text-xl font-bold">Current Event</h2>
-          <div className="grid grid-cols-1 gap-5">
-            <EventCard
-              event={currentEvent}
-              staffDetails={staffDetails}
-              isCurrentEvent={true}
-              setEventStateAction={setEventState}
-              currentStaff={currentStaff}
-            />
+          <h2 className="mb-4 text-xl font-bold">
+            {currentEvents.length > 0 ? "Current Events" : "Current Event"}
+          </h2>
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+            {currentEvents.map((event, index) => (
+              <EventCard
+                event={event}
+                key={`current-${index}`}
+                staffDetails={staffDetails}
+                setEventStateAction={setEventState}
+                currentStaff={currentStaff}
+                isCurrentEvent={true}
+              />
+            ))}
           </div>
         </section>
       ) : (
