@@ -65,9 +65,16 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: "https://iu-website-v2.vercel.app/",
     title: "IU-Bot",
+    siteName: "IU-Bot",
     description:
       "IU-Bot is a K-Pop Discord bot. You can collect and trade K-Pop cards, play games, and more!",
     images: [
+      {
+        width: 192,
+        height: 192,
+        alt: "IU-Bot",
+        url: "/images/icon-192x192.png",
+      },
       {
         width: 512,
         height: 512,
