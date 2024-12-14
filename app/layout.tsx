@@ -59,6 +59,23 @@ export const metadata: Metadata = {
       url: "/images/apple-touch-icon.png",
     },
   ],
+  creator: "Jomo",
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://iu-website-v2.vercel.app/",
+    title: "IU-Bot",
+    description:
+      "IU-Bot is a K-Pop Discord bot. You can collect and trade K-Pop cards, play games, and more!",
+    images: [
+      {
+        width: 512,
+        height: 512,
+        alt: "IU-Bot",
+        url: "/images/icon-512x512.png",
+      },
+    ],
+  },
 };
 
 export default function RootLayout({
