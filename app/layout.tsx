@@ -5,11 +5,10 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 
 import "../styles/globals.css";
 
-import { Toaster as Toaster2 } from "sonner";
+import { Toaster } from "sonner";
 
 import { cn } from "@/lib/utils";
 import { TailwindIndicator } from "@/components/ui/tailwind-indicator";
-import { Toaster } from "@/components/ui/toaster";
 
 const fontSans = FontSans({
   subsets: ["latin"],
@@ -42,13 +41,17 @@ export default function RootLayout({
       >
         <div className="flex min-h-screen flex-col">
           <main className="flex-1">{children}</main>
-          <Toaster />
-          <Toaster2
+          <Toaster
+            richColors
             toastOptions={{
               style: {
                 background: "hsl(var(--background))",
                 color: "hsl(var(--foreground))",
                 border: "1px solid hsl(var(--border))",
+              },
+              actionButtonStyle: {
+                background: "hsl(var(--primary))",
+                height: "2rem",
               },
             }}
             position="top-right"

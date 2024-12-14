@@ -1,5 +1,3 @@
-import { checkDuplicateFramesCode } from "@/server/upload-frames";
-import { checkDuplicateIssuesCode } from "@/server/upload-issues";
 import {
   approvePendingIssues,
   deleteIssues,
@@ -90,13 +88,13 @@ export const issuesViewPortType: IssuesViewPort[] = [
   },
 ];
 
-export function useHandleApprovePendingIssues(
+export function usehandleApprovePendingItems(
   isFrame: boolean,
   setViewTypeDataAction?: React.Dispatch<
     React.SetStateAction<IssuesViewPort | FramesViewPort>
   >
 ) {
-  const handleApprovePendingIssues = async (
+  const handleApprovePendingItems = async (
     issuesIds: [string, ...string[]]
   ) => {
     const { promise, title, error } = isFrame
@@ -129,7 +127,7 @@ export function useHandleApprovePendingIssues(
     });
   };
 
-  const handleRejectPendingIssues = async (
+  const handleRejectPendingItems = async (
     issuesIds: [string, ...string[]],
     reason: string
   ) => {
@@ -163,7 +161,7 @@ export function useHandleApprovePendingIssues(
     });
   };
 
-  const handleResubmitRejectedIssues = async (
+  const handleResubmitRejectedItems = async (
     issuesIds: [string, ...string[]]
   ) => {
     const { promise, title, error } = isFrame
@@ -196,20 +194,15 @@ export function useHandleApprovePendingIssues(
     });
   };
 
-  const handleEditPendingIssues = async ({
-    viewPortId,
-    issue,
-  }: EditIssueProps) => {
-    const { promise, title, error } = isFrame
+  const handleEditItems = async ({ viewPortId, issue }: EditIssueProps) => {
+    const { promise, title } = isFrame
       ? {
           promise: editFrame,
           title: "Editing Frame...",
-          error: "Frame was not edited. You are not logged in.",
         }
       : {
           promise: editIssue,
           title: "Editing Issue...",
-          error: "Issue was not edited. You are not logged in.",
         };
 
     toast.promise(
@@ -231,14 +224,12 @@ export function useHandleApprovePendingIssues(
           }
           return message;
         },
-        error(data) {
-          return data.message;
-        },
+        error: `Failed to edit ${isFrame ? "frame" : "issue"}.`,
       }
     );
   };
 
-  const handleDeletePendingIssues = async (
+  const handleDeleteItems = async (
     viewTypeId: IssuesViewType | FramesViewType,
     issues: { id: string; image: string }[],
     password: string
@@ -261,17 +252,15 @@ export function useHandleApprovePendingIssues(
         }
         return data.message;
       },
-      error(data) {
-        return data.message;
-      },
+      error: `${isFrame ? "Frames" : "Issues"} were not deleted. Incorrect password.`,
     });
   };
 
   return {
-    handleApprovePendingIssues,
-    handleRejectPendingIssues,
-    handleResubmitRejectedIssues,
-    handleEditPendingIssues,
-    handleDeletePendingIssues,
+    handleApprovePendingItems,
+    handleRejectPendingItems,
+    handleResubmitRejectedItems,
+    handleEditItems,
+    handleDeleteItems,
   };
 }

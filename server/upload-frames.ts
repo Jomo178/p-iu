@@ -96,5 +96,11 @@ export async function checkDuplicateFramesCode(codes: string[]) {
     },
   });
 
-  return [...frames, ...pendingFrames].map((frame) => frame.code);
+  const duplicateCodes = codes
+    .filter((code, index) => codes.indexOf(code) !== index)
+    .map((code) => ({ code }));
+
+  return [...frames, ...pendingFrames, ...duplicateCodes].map(
+    (frame) => frame.code
+  );
 }

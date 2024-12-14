@@ -19,7 +19,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 import IssuesForm from "../add/issues/issues-form";
-import { useHandleApprovePendingIssues } from "./issues";
+import { usehandleApprovePendingItems } from "./issues";
 
 interface EditIssuesDialogProps {
   issue: {
@@ -60,7 +60,7 @@ export default function EditIssuesDialog({
   const [issueData, setIssueData] = useState<
     IssuesFormPropsValue & { imageLink: string; changedImage: boolean }
   >(defaultValues);
-  const { handleEditPendingIssues } = useHandleApprovePendingIssues(
+  const { handleEditItems } = usehandleApprovePendingItems(
     false,
     setViewTypeDataAction
   );
@@ -83,7 +83,7 @@ export default function EditIssuesDialog({
   }, [issue.image, openDialog]);
 
   const handleEdit = async () => {
-    await handleEditPendingIssues({
+    await handleEditItems({
       viewPortId: viewPortType.id,
       issue: issueData,
     });

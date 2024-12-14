@@ -4,11 +4,10 @@ import { useMemo, useState } from "react";
 import Image from "next/image";
 import { FramesFormPropsValue, framesSchema } from "@/model/frames-schema";
 import { checkDuplicateFramesCode, UploadFrames } from "@/server/upload-frames";
-import { toast as promiseToast } from "sonner";
+import { toast } from "sonner";
 
 import { cn, scrollToCarousel } from "@/lib/utils";
-import { useToast } from "@/hooks/use-toast";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { CarouselApi } from "@/components/ui/carousel";
 import {
@@ -31,7 +30,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { ToastAction } from "@/components/ui/toast";
 import {
   Tooltip,
   TooltipContent,
@@ -57,7 +55,6 @@ export default function FramesPreviewToUpload({
   defaultValues,
   disabled,
 }: FramesPreviewToUploadProps) {
-  const { toast } = useToast();
   const [openSheet, setOpenSheet] = useState(false);
   const [openUpload, setOpenUpload] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -94,27 +91,14 @@ export default function FramesPreviewToUpload({
 
       for (let i = 0; i < formErrors.length; i++) {
         if (!formErrors[i].length) continue;
-        toast({
-          title: "Frame Form Error",
+        toast.error("Frame Form Error", {
           description:
             "Please fill out the required fields in the frame form before uploading.",
-          variant: "destructive",
-          duration: 3000,
-          action: (
-            <ToastAction
-              onClick={() =>
-                scrollToCarousel(carouselApi, formErrors[i][0].index)
-              }
-              className={cn(
-                buttonVariants({
-                  variant: "ghost",
-                })
-              )}
-              altText="Brings you to the Frame Form."
-            >
-              Jump to Form
-            </ToastAction>
-          ),
+          action: {
+            label: "Jump to Form",
+            onClick: () =>
+              scrollToCarousel(carouselApi, formErrors[i][0].index),
+          },
         });
         break;
       }
@@ -126,7 +110,7 @@ export default function FramesPreviewToUpload({
       framesFormPropsValue.map((frame) => frame.code)
     );
 
-    promiseToast.promise(checkCodesPromise, {
+    toast.promise(checkCodesPromise, {
       loading: "Checking for duplicate frame codes...",
       success: "Duplicate frame codes have been checked successfully.",
       error: "Error checking duplicate frame codes.",
@@ -152,32 +136,19 @@ export default function FramesPreviewToUpload({
 
     if (checkCodes.length != 0) {
       for (let i = 0; i < checkCodes.length; i++) {
-        toast({
-          title: "Duplicate Frame Code",
+        toast.error("Duplicate Frame Code", {
           description:
             "Please change the frame code to a unique one before uploading.",
-          variant: "destructive",
-          duration: 3000,
-          action: (
-            <ToastAction
-              onClick={() =>
-                scrollToCarousel(
-                  carouselApi,
-                  framesFormPropsValue.findIndex(
-                    (frame) => frame.code === checkCodes[i]
-                  )
+          action: {
+            label: "Jump to Form",
+            onClick: () =>
+              scrollToCarousel(
+                carouselApi,
+                framesFormPropsValue.findIndex(
+                  (frame) => frame.code === checkCodes[i]
                 )
-              }
-              className={cn(
-                buttonVariants({
-                  variant: "ghost",
-                })
-              )}
-              altText="Brings you to the Frame Form."
-            >
-              Jump to Form
-            </ToastAction>
-          ),
+              ),
+          },
         });
         break;
       }

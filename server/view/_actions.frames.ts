@@ -217,74 +217,71 @@ export async function resubmitRejectedFrames(framesIds: [string, ...string[]]) {
 export async function editFrame({ viewPortId, issue }: EditIssueProps) {
   const currentUser = await getCurrentStaff();
 
-  const currentEvent = await getCurrentEvent(["issues"]);
-  if (!currentEvent) {
-    throw new Error("Issues was not Edited. No event is currently active.");
-  }
-
-  issue = issue as FramesFormPropsValue & {
+  const frame = issue as FramesFormPropsValue & {
     imageLink: string;
     changedImage: boolean;
   };
 
-  if (issue.changedImage) {
+  if (frame.changedImage) {
     const deleteImage = await utapi.deleteFiles([
-      issue.imageLink.split("/").pop()!,
+      frame.imageLink.split("/").pop()!,
     ]);
 
     if (!deleteImage.success) {
       throw new Error(
-        "Issues was not Edited. An error occurred while deleting the image."
+        "Frame was not Edited. An error occurred while deleting the image."
       );
     }
 
-    const frameImage =
-      "Frame-" +
-      issue.name.replace(/\s/g, "-") +
-      "-" +
-      issue.rarity.replace(/\s/g, "-") +
-      ".png";
-
-    const response = await utapi.uploadFiles(
-      new CustomIdFile([issue.image], frameImage, {
-        type: "image/png",
-        customId: currentEvent.name.replace(/\s/g, "-") + "-" + frameImage,
-      })
-    );
+    const response = await utapi.uploadFiles(frame.image);
 
     if (response.error?.code || !response.data) {
       throw new Error(
-        "Issues was not Edited. An error occurred while uploading the image."
+        "Frame was not Edited. An error occurred while uploading the image."
       );
     }
 
-    issue.imageLink = response.data.url;
+    frame.imageLink = response.data.url;
   }
 
-  const edited = await prisma.pendingFrames.update({
-    where: {
-      id: issue.id,
-    },
-    data: {
-      name: issue.name,
-      rarity: issue.rarity,
-      code: issue.code,
-      image: issue.imageLink,
-    },
-    include: {
-      createdBy: true,
-      approvedBy: true,
-      rejections: {
-        include: {
-          rejectedBy: true,
-          resubmittedBy: true,
-        },
+  let edited;
+  let data = {
+    name: frame.name,
+    rarity: frame.rarity,
+    code: frame.code,
+    image: frame.imageLink,
+  };
+  let include = {
+    createdBy: true,
+    approvedBy: true,
+    rejections: {
+      include: {
+        rejectedBy: true,
+        resubmittedBy: true,
       },
     },
-  });
+  };
+
+  if (viewPortId === "released-frames") {
+    edited = await prisma.frames.update({
+      where: {
+        id: frame.id,
+      },
+      data,
+      include,
+    });
+  } else {
+    edited = await prisma.pendingFrames.update({
+      where: {
+        id: frame.id,
+      },
+      data,
+      include,
+    });
+  }
 
   return {
-    message: "Issues was successfully Edited.",
+    message: "Frame was successfully Edited.",
     issue: edited,
   };
 }

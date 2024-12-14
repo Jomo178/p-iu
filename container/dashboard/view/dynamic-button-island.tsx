@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/tooltip";
 
 import DeleteItemsDialog from "./delete-items";
-import { useHandleApprovePendingIssues } from "./issues";
+import { usehandleApprovePendingItems } from "./issues";
 import { RejectionsDialog } from "./view-item-card";
 
 interface DynamicButtonIslandProps {
@@ -38,10 +38,10 @@ export default function DynamicButtonIsland({
   const [openRejectDialog, setOpenRejectDialog] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const {
-    handleApprovePendingIssues,
-    handleRejectPendingIssues,
-    handleResubmitRejectedIssues,
-  } = useHandleApprovePendingIssues(
+    handleApprovePendingItems,
+    handleRejectPendingItems,
+    handleResubmitRejectedItems,
+  } = usehandleApprovePendingItems(
     viewTypeData.id.includes("frames"),
     setViewTypeDataAction
   );
@@ -161,7 +161,7 @@ export default function DynamicButtonIsland({
                     )
                   }
                   onClick={() =>
-                    handleApprovePendingIssues([
+                    handleApprovePendingItems([
                       viewTypeData.selectedItems[0]?.id,
                       ...viewTypeData.selectedItems
                         .slice(1)
@@ -211,7 +211,7 @@ export default function DynamicButtonIsland({
                     )
                   }
                   onClick={() =>
-                    handleResubmitRejectedIssues([
+                    handleResubmitRejectedItems([
                       viewTypeData.selectedItems[0]?.id,
                       ...viewTypeData.selectedItems
                         .slice(1)
@@ -251,7 +251,7 @@ export default function DynamicButtonIsland({
       <RejectionsDialog
         openDialog={openRejectDialog}
         setOpenDialogAction={setOpenRejectDialog}
-        handleRejectPendingIssuesAction={handleRejectPendingIssues}
+        handleRejectPendingItemsAction={handleRejectPendingItems}
         pendingIssues={viewTypeData.selectedItems.map((item) => ({
           id: item.id,
           name: item.name,
