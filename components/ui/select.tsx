@@ -217,7 +217,7 @@ function MultiSelect({
     return options.filter(
       (option) =>
         !selected.map((s) => s.value).includes(option.value) &&
-        option.label.toLowerCase().includes(inputValue.toLowerCase())
+        option.label?.toLowerCase().includes(inputValue?.toLowerCase())
     );
   }, [options, selected, inputValue]);
 
