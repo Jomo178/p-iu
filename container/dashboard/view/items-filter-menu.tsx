@@ -7,7 +7,6 @@ import {
 } from "@/model/issues-schema";
 import { getAllEvents } from "@/server/events/_action";
 import { getCachedStaffDiscordProfiles } from "@/server/staff/_action";
-import { Staff } from "@prisma/client";
 import { Filter, X } from "lucide-react";
 import {
   createParser,
@@ -43,27 +42,14 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 
-import { searchParams } from "./searchParams";
-
-const containsFields = [
-  "name",
-  "act",
-  "group",
-  "code",
-  "rarity",
-  "eventId",
-] as const;
-type ContainsFields = (typeof containsFields)[number];
-const dateFields = ["createdAt", "updatedAt", "approvedAt"] as const;
-const userFields = [
-  "createdBy",
-  "approvedBy",
-  "rejectedBy",
-  "resubmittedBy",
-] as const;
-type UserFields = (typeof userFields)[number];
-const sortByFields = [...containsFields, ...dateFields] as const;
-const sortOrderFields = ["asc", "desc"] as const;
+import {
+  containsFields,
+  ContainsFields,
+  searchParams,
+  sortByFields,
+  userFields,
+  UserFields,
+} from "./searchParams";
 
 let rarityOptions = Array.from({ length: 5 }).map((_, index) => ({
   label: `Rarity ${index + 1}`,
@@ -74,23 +60,31 @@ let rarityOptions = Array.from({ length: 5 }).map((_, index) => ({
 }));
 
 interface ItemsFilterMenuProps {
-  setFilterConfigurationAction: (filter: any, order: any) => void;
+  appliedFilterAction: () => void;
 }
 
 export default function ItemsFilterMenu({
-  setFilterConfigurationAction,
+  appliedFilterAction,
 }: ItemsFilterMenuProps) {
   const [staffProfiles, setStaffProfiles] = useState<UserProfile[]>([]);
   const [events, setEvents] = useState<EventsWithRelation[]>([]);
   const [filters, setFilters] = useQueryState("filters", searchParams.filters);
   const [filtersUi, setFiltersUi] = useState<Object | any>();
-  const [isLoading, startTransition] = useTransition();
+  const [sortBy, setSortBy] = useQueryState("sortBy", searchParams.sortBy);
+  const [sortByUI, setSortByUI] = useState<string | any>();
+  const [sortOrder, setSortOrder] = useQueryState(
+    "sortOrder",
+    searchParams.sortOrder
+  );
+  const [sortOrderUI, setSortOrderUI] = useState<string | any>();
   const [filterOpen, setFilterOpen] = useState(false);
 
   useEffect(() => {
     getCachedStaffDiscordProfiles().then(setStaffProfiles);
     getAllEvents().then(setEvents);
     setFiltersUi(filters);
+    setSortByUI(sortBy);
+    setSortOrderUI(sortOrder);
   }, []);
 
   const eventsOptions = events.map((event) => {
@@ -106,16 +100,6 @@ export default function ItemsFilterMenu({
     return eventOption;
   });
 
-  const [sortBy, setSortBy] = useQueryState(
-    "sortBy",
-    parseAsStringLiteral(sortByFields)
-      .withDefault("createdAt")
-      .withOptions({ startTransition, shallow: false })
-  );
-  const [sortOrder, setSortOrder] = useQueryState(
-    "sortOrder",
-    parseAsStringLiteral(sortOrderFields).withDefault("asc")
-  );
   const handleFilterChange = (key: string, value: any) => {
     if (value.length === 0) {
       const { [key]: _, ...rest } = filtersUi;
@@ -125,20 +109,22 @@ export default function ItemsFilterMenu({
     }
   };
 
-  useEffect(() => {
-    setFilterConfigurationAction({}, { [sortBy]: sortOrder });
-  }, [filters, sortBy, sortOrder]);
-
-  if (isLoading) return <div>Loading...</div>;
-
   return (
     <div className="container">
       <div className="space-x-1 space-y-4 border-b-4 border-dashed py-2 md:p-4">
-        {sortOrder && (
+        {sortBy && (
           <FilterButton
             name="Sorted By"
-            filterVerb={sortBy}
-            filterText={sortOrder === "asc" ? "Ascending" : "Descending"}
+            filterVerb={toUpperCase(sortBy)}
+            filterText={sortOrder === "asc" ? "ascending" : "descending"}
+            removeItem={() => {
+              if (sortBy == "createdAt" && sortOrder == "asc") return;
+              setSortBy("createdAt");
+              setSortOrder("asc");
+              setSortByUI("createdAt");
+              setSortOrderUI("asc");
+              appliedFilterAction();
+            }}
           />
         )}
         {Object.keys(IssueFilterSchema.shape).map((key) => {
@@ -184,6 +170,12 @@ export default function ItemsFilterMenu({
               name={item}
               filterVerb={filterVerb}
               filterText={filterText}
+              removeItem={() => {
+                const { [item]: _, ...rest } = filters;
+                setFilters(rest);
+                setFiltersUi(rest);
+                appliedFilterAction();
+              }}
             />
           );
         })}
@@ -230,18 +222,20 @@ export default function ItemsFilterMenu({
                               ) ?? []
                           }
                           onValueChange={(option) => {
-                            let rarity = [];
-                            if (filtersUi?.rarity?.includes(option.value)) {
-                              rarity = filtersUi.rarity.filter(
-                                (value: any) => value !== option.value
-                              );
-                            } else {
-                              rarity = [
-                                ...(filtersUi?.rarity ?? []),
-                                option.value,
-                              ];
-                            }
-                            setFiltersUi((prev: any) => ({ ...prev, rarity }));
+                            setFiltersUi((prev: any) => {
+                              const currentRarity = prev?.rarity ?? [];
+                              let rarity;
+
+                              if (currentRarity.includes(option.value)) {
+                                rarity = currentRarity.filter(
+                                  (value: any) => value !== option.value
+                                );
+                              } else {
+                                rarity = [...currentRarity, option.value];
+                              }
+
+                              return { ...prev, rarity };
+                            });
                           }}
                         />
                       </div>
@@ -292,15 +286,19 @@ export default function ItemsFilterMenu({
                         .filter((option: any) => option !== undefined) ?? []
                     }
                     onValueChange={(option) => {
-                      let items = [];
-                      if (filtersUi?.[key]?.includes(option.value)) {
-                        items = filtersUi[key].filter(
-                          (value: any) => value !== option.value
-                        );
-                      } else {
-                        items = [...(filtersUi?.[key] ?? []), option.value];
-                      }
-                      setFiltersUi((prev: any) => ({ ...prev, [key]: items }));
+                      setFiltersUi((prev: any) => {
+                        const current = prev?.[key] ?? [];
+                        let users;
+
+                        if (current.includes(option.value)) {
+                          users = current.filter(
+                            (value: any) => value !== option.value
+                          );
+                        } else {
+                          users = [...current, option.value];
+                        }
+                        return { ...prev, [key]: users };
+                      });
                     }}
                   />
                 </div>
@@ -315,15 +313,20 @@ export default function ItemsFilterMenu({
                   )
                   .filter((option) => option !== undefined)}
                 onValueChange={(option) => {
-                  let events = [];
-                  if (filters?.eventId?.includes(option.value)) {
-                    events = filters.eventId.filter(
-                      (value) => value !== option.value
-                    );
-                  } else {
-                    events = [...(filters?.eventId ?? []), option.value];
-                  }
-                  setFilters((prev) => ({ ...prev, eventId: events }));
+                  setFiltersUi((prev: any) => {
+                    const currentEvents = prev?.eventId ?? [];
+                    let events;
+
+                    if (currentEvents.includes(option.value)) {
+                      events = currentEvents.filter(
+                        (value: any) => value !== option.value
+                      );
+                    } else {
+                      events = [...currentEvents, option.value];
+                    }
+
+                    return { ...prev, eventId: events };
+                  });
                 }}
               />
             </div>
@@ -331,14 +334,14 @@ export default function ItemsFilterMenu({
               <Label htmlFor="sortBy">Sort by</Label>
               <div className="flex space-x-2">
                 <Select
-                  value={sortBy as any}
-                  onValueChange={(value) => setSortBy(value as any)}
+                  value={sortByUI as any}
+                  onValueChange={(value) => setSortByUI(value as any)}
                 >
                   <SelectTrigger id="sortBy">
                     <SelectValue placeholder="Select sort field" />
                   </SelectTrigger>
                   <SelectContent>
-                    {sortByFields.map((key) => (
+                    {sortByFields.map((key: string) => (
                       <SelectItem value={key} key={key}>
                         {toUpperCase(key)}
                       </SelectItem>
@@ -349,10 +352,12 @@ export default function ItemsFilterMenu({
                   variant="outline"
                   size="sm"
                   onClick={() =>
-                    setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"))
+                    setSortOrderUI((prev: string) =>
+                      prev === "asc" ? "desc" : "asc"
+                    )
                   }
                 >
-                  {sortOrder === "asc" ? "↑ Ascending" : "↓ Descending"}
+                  {sortOrderUI === "asc" ? "↑ Ascending" : "↓ Descending"}
                 </Button>
               </div>
             </div>
@@ -364,6 +369,10 @@ export default function ItemsFilterMenu({
             <Button
               onClick={() => {
                 setFilters(filtersUi);
+                setSortBy(sortByUI);
+                setSortOrder(sortOrderUI);
+                setFilterOpen(false);
+                appliedFilterAction();
               }}
             >
               Apply
@@ -379,9 +388,15 @@ interface FilterButtonProps {
   name: string;
   filterVerb: string;
   filterText: string;
+  removeItem: () => void;
 }
 
-function FilterButton({ name, filterVerb, filterText }: FilterButtonProps) {
+function FilterButton({
+  name,
+  filterVerb,
+  filterText,
+  removeItem,
+}: FilterButtonProps) {
   return (
     <Button variant="outline" size="sm">
       {toUpperCase(name)}
@@ -393,66 +408,7 @@ function FilterButton({ name, filterVerb, filterText }: FilterButtonProps) {
       <Badge variant="secondary" className="rounded-sm px-1 font-normal">
         {filterText}
       </Badge>
-      <X size={20} className="pl-2" />
+      <X size={20} className="pl-2" onClick={() => removeItem()} />
     </Button>
   );
-}
-
-export function constructWhereConditions(
-  filters: IssueFilterPropsValue | null = {},
-  staff: { id: string; discordId: string }[] = []
-) {
-  if (!filters) return {};
-
-  const getIdsByDiscordIds = (discordIds: string[]) =>
-    staff
-      .filter((staff) => discordIds.includes(staff.discordId))
-      .map((staff) => staff.id);
-
-  const where = {
-    ...(filters.createdBy
-      ? { createdById: { in: getIdsByDiscordIds(filters.createdBy) } }
-      : {}),
-    ...(filters.rarity ? { rarity: { in: filters.rarity } } : {}),
-    ...(filters.eventId
-      ? { eventId: { in: getIdsByDiscordIds(filters.eventId) } }
-      : {}),
-    ...(filters.approvedBy
-      ? { approvedById: { in: getIdsByDiscordIds(filters.approvedBy) } }
-      : {}),
-    ...(filters.rejectedBy || filters.resubmittedBy
-      ? {
-          rejections: {
-            some: {
-              ...(filters.rejectedBy
-                ? {
-                    rejectedById: {
-                      in: getIdsByDiscordIds(filters.rejectedBy),
-                    },
-                  }
-                : {}),
-              ...(filters.resubmittedBy
-                ? {
-                    resubmittedById: {
-                      in: getIdsByDiscordIds(filters.resubmittedBy),
-                    },
-                  }
-                : {}),
-            },
-          },
-        }
-      : {}),
-  };
-
-  const {
-    approvedBy,
-    rejectedBy,
-    resubmittedBy,
-    createdBy,
-    rarity,
-    eventId,
-    ...remainingProps
-  } = filters;
-
-  return { ...remainingProps, ...where };
 }
