@@ -26,7 +26,7 @@ export const getCachedStaffDiscordProfiles = unstable_cache(
   getAllStaffDiscordProfiles,
   [],
   {
-    revalidate: 1,
+    revalidate: 60 * 60,
   }
 );
 

@@ -80,8 +80,17 @@ export default function ItemsFilterMenu({
   const [filterOpen, setFilterOpen] = useState(false);
 
   useEffect(() => {
-    getCachedStaffDiscordProfiles().then(setStaffProfiles);
-    getAllEvents().then(setEvents);
+    const fetchData = async () => {
+      const [events, staffProfiles] = await Promise.all([
+        getAllEvents(),
+        getCachedStaffDiscordProfiles(),
+      ]);
+
+      setEvents(events);
+      setStaffProfiles(staffProfiles);
+    };
+
+    fetchData();
     setFiltersUi(filters);
     setSortByUI(sortBy);
     setSortOrderUI(sortOrder);

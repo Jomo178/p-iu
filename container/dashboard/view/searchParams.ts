@@ -2,11 +2,7 @@ import {
   IssueFilterPropsValue,
   IssueFilterSchema,
 } from "@/model/issues-schema";
-import {
-  createSearchParamsCache,
-  parseAsJson,
-  parseAsStringLiteral,
-} from "nuqs/server";
+import { parseAsJson, parseAsStringLiteral } from "nuqs/server";
 
 export const containsFields = [
   "name",
@@ -43,8 +39,6 @@ export const searchParams = {
       history: "push",
     }),
 };
-
-export const searchParamsCache = createSearchParamsCache(searchParams);
 
 export function constructWhereConditions(
   filters: IssueFilterPropsValue | null = {},
