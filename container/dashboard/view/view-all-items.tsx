@@ -1,6 +1,7 @@
 "use client";
 
 import { use, useEffect, useState } from "react";
+import { getStaffIds } from "@/server/staff/_action";
 import {
   FramesViewPort,
   FramesViewType,
@@ -9,11 +10,13 @@ import {
 } from "@/types";
 import { Staff } from "@prisma/client";
 import { isEmpty } from "lodash";
+import { parseAsStringLiteral, useQueryState } from "nuqs";
 import { useInView } from "react-intersection-observer";
 import Balancer from "react-wrap-balancer";
 import { toast } from "sonner";
 
 import { PendingIssuesWithRelation } from "@/types/prisma";
+import { prisma } from "@/lib/database";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Icons } from "@/components/ui/icons";
@@ -26,6 +29,11 @@ import { framesViewPortType } from "./frames";
 import { issuesViewPortType } from "./issues";
 import ItemsFilterMenu from "./items-filter-menu";
 import ItemsInformationSidebar from "./items-information-sidebar";
+import {
+  constructOrderByConditions,
+  constructWhereConditions,
+  searchParams,
+} from "./searchParams";
 import ViewItemCard from "./view-item-card";
 import { ViewItemSkeleton } from "./view-item-skeleton";
 
@@ -49,9 +57,17 @@ export default function ViewAllItems({ viewType, staff }: ViewAllItemsProps) {
   const [selectActive, setSelectActive] = useState(false);
   const [loading, setLoading] = useState(false);
   const [noData, setNoData] = useState(false);
-  const [orderBy, setOrderBy] = useState({});
-  const [filter, setFilter] = useState({});
+  const [filters, setFilters] = useQueryState("filters", searchParams.filters);
+  const [sortBy, setSortBy] = useQueryState("sortBy", searchParams.sortBy);
+  const [sortOrder, setSortOrder] = useQueryState(
+    "sortOrder",
+    searchParams.sortOrder
+  );
+
   const [openSidebarInformation, setOpenSidebarInformation] = useState(false);
+  const [staffInfo, setStaffInfo] = useState<
+    { id: string; discordId: string }[]
+  >([]);
   const changeGrid = viewTypeData.selectedItems.length > 0;
   const isAllSelected =
     viewTypeData.selectedItems.length == viewTypeData.data.length;
@@ -59,11 +75,17 @@ export default function ViewAllItems({ viewType, staff }: ViewAllItemsProps) {
   const fetchData = async (customFetchCount: number = 10) => {
     if (loading) return;
     setLoading(true);
+    let staffs = null;
+    if (staffInfo.length === 0) {
+      staffs = await getStaffIds();
+      setStaffInfo(staffs);
+    }
+
     const data = await viewTypeData.fetchFunction(
       viewTypeData.fetchCount,
       customFetchCount,
-      filter,
-      orderBy
+      constructWhereConditions(filters, staffs == null ? staffInfo : staffs),
+      constructOrderByConditions(sortBy, sortOrder)
     );
 
     if (data.length === 0) {
@@ -82,18 +104,12 @@ export default function ViewAllItems({ viewType, staff }: ViewAllItemsProps) {
   };
 
   useEffect(() => {
-    if (viewTypeData.fetchCount == 0 && inView && !noData) {
+    if (viewTypeData.fetchCount === 0 && inView && !noData) {
       fetchData(20);
     } else {
       fetchData();
     }
-  }, [inView]);
-
-  useEffect(() => {
-    if (!isEmpty(filter) || !isEmpty(orderBy)) {
-      fetchData();
-    }
-  }, [filter, orderBy]);
+  }, [inView, filters, sortBy, sortOrder]);
 
   return (
     <div className="container !px-0 lg:!px-8">
@@ -115,6 +131,12 @@ export default function ViewAllItems({ viewType, staff }: ViewAllItemsProps) {
           {isAllSelected ? "Selected All" : "Select"}
         </Button>
       </div>
+      <Separator className="my-4" />
+      <ItemsFilterMenu
+        appliedFilterAction={() => {
+          setViewTypeData({ ...viewTypeData, data: [], fetchCount: 0 });
+        }}
+      />
       {noData && viewTypeData.data.length === 0 ? (
         <EmptyState
           title={`No ${findType.title} found`}
@@ -123,23 +145,6 @@ export default function ViewAllItems({ viewType, staff }: ViewAllItemsProps) {
         />
       ) : (
         <>
-          <Separator className="my-4" />
-          <ItemsFilterMenu
-            // type={viewType.includes("frames") ? "frames" : "issues"}
-            setFilterConfigurationAction={async (filter, orderBy) => {
-              setViewTypeData((prev) => {
-                return {
-                  ...prev,
-                  data: [],
-                  selectedItems: [],
-                  fetchCount: 0,
-                };
-              });
-
-              setFilter(filter);
-              setOrderBy(orderBy);
-            }}
-          />
           <div
             className={cn(
               "grid grid-cols-2 justify-items-center gap-4 sm:grid-cols-3 sm:justify-items-start md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8",
@@ -240,7 +245,10 @@ export default function ViewAllItems({ viewType, staff }: ViewAllItemsProps) {
           </div>
           <div
             ref={scrollTrigger}
-            className="flex h-40 !w-full items-center text-center"
+            className={cn(
+              "flex h-40 !w-full items-center text-center",
+              viewTypeData.fetchCount === 0 && "hidden"
+            )}
           >
             {loading ? (
               <p className="w-full">Loading...</p>

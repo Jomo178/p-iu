@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getAllStaffDiscordProfiles } from "@/server/staff/_action";
+import { getCachedStaffDiscordProfiles } from "@/server/staff/_action";
 import { ScrollArea } from "@radix-ui/react-scroll-area";
 import { useQuery } from "@tanstack/react-query";
 
@@ -121,7 +121,7 @@ function SelectedIssuesCarousel({
 }) {
   const { data } = useQuery({
     queryKey: ["staff-info"],
-    queryFn: getAllStaffDiscordProfiles,
+    queryFn: getCachedStaffDiscordProfiles,
     staleTime: Infinity,
     refetchOnMount: false,
   });

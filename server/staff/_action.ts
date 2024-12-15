@@ -1,5 +1,6 @@
 "use server";
 
+import { unstable_cache } from "next/cache";
 import { Staff } from "@prisma/client";
 
 import { prisma } from "@/lib/database";
@@ -21,6 +22,14 @@ export async function getAllStaffDiscordProfiles() {
   return Promise.all(data);
 }
 
+export const getCachedStaffDiscordProfiles = unstable_cache(
+  getAllStaffDiscordProfiles,
+  [],
+  {
+    revalidate: 60 * 60,
+  }
+);
+
 export async function editStaffDetails(
   id: string,
   data: Omit<Staff, "createdAt" | "updatedAt" | "id">
@@ -35,4 +44,15 @@ export async function editStaffDetails(
   return {
     message: "Staff details updated successfully",
   };
+}
+
+export async function getStaffIds() {
+  const staffsIds = await prisma.staff.findMany({
+    select: {
+      id: true,
+      discordId: true,
+    },
+  });
+
+  return staffsIds;
 }

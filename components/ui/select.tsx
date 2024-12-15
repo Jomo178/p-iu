@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Image from "next/image";
 import {
   CaretSortIcon,
   CheckIcon,
@@ -162,7 +163,8 @@ SelectSeparator.displayName = SelectPrimitive.Separator.displayName;
 type SelectValue = {
   value: string;
   label: string;
-  icon: React.ReactNode;
+  icon?: React.ReactNode;
+  avatarUrl?: string;
 };
 
 interface MultiSelectProps {
@@ -244,7 +246,20 @@ function MultiSelect({
         <div className="flex flex-wrap gap-1">
           {selected.map((option) => {
             return (
-              <Badge key={option.value} variant="secondary">
+              <Badge
+                key={option.value}
+                variant="secondary"
+                className="flex min-h-fit gap-2"
+              >
+                {option.avatarUrl && (
+                  <Image
+                    className="rounded-full"
+                    src={option.avatarUrl}
+                    alt={option.label}
+                    width={24}
+                    height={24}
+                  />
+                )}
                 {option.label}
                 <button
                   className="ml-1 rounded-full outline-none ring-offset-background"
@@ -297,7 +312,17 @@ function MultiSelect({
                       className={"cursor-pointer"}
                       value={option.label}
                     >
-                      {option.icon ? option.icon : option.label}
+                      {option.avatarUrl && (
+                        <Image
+                          className="rounded-full"
+                          src={option.avatarUrl}
+                          alt={option.label}
+                          width={24}
+                          height={24}
+                        />
+                      )}
+                      {option.icon && option.icon}
+                      {option.label}
                     </CommandItem>
                   );
                 })}
