@@ -1,33 +1,39 @@
 "use server";
 
-import Issue from "@/model/issue";
 import { Events, EventType, Prisma } from "@prisma/client";
 
-import { connectDB, prisma } from "@/lib/database";
+import { prisma } from "@/lib/database";
 import { getCurrentStaff, getCurrentUser } from "@/lib/session";
 
 export async function getCurrentEvent(type: EventType[]) {
-  const event = await prisma.events.findFirst({
+  const futureEvent = await prisma.events.findFirst({
     where: {
       type: {
         hasSome: type,
       },
-      OR: [
-        {
-          start: { lte: new Date() },
-          end: { gt: new Date() },
-        },
-        {
-          start: { gt: new Date() },
-        },
-      ],
+      start: { gt: new Date() },
     },
     orderBy: {
       start: "asc",
     },
   });
 
-  return event;
+  if (futureEvent) return futureEvent;
+
+  const ongoingEvent = await prisma.events.findFirst({
+    where: {
+      type: {
+        hasSome: type,
+      },
+      start: { lte: new Date() },
+      end: { gt: new Date() },
+    },
+    orderBy: {
+      start: "asc",
+    },
+  });
+
+  return ongoingEvent;
 }
 
 export async function getAllEvents(type?: EventType[] | undefined) {
@@ -98,6 +104,26 @@ export async function createEvent(
     },
     include: {
       createdBy: true,
+      issues: true,
+      frames: true,
+      pendingFrames: {
+        where: {
+          rejections: {
+            every: {
+              resubmitted: true,
+            },
+          },
+        },
+      },
+      pendingIssues: {
+        where: {
+          rejections: {
+            every: {
+              resubmitted: true,
+            },
+          },
+        },
+      },
     },
   });
 
@@ -153,8 +179,6 @@ export async function editEvent(
 }
 
 export async function releaseEvent(eventId: string) {
-  await connectDB();
-
   return await prisma.$transaction(async (tx) => {
     const approvedPendingIssues = await tx.pendingIssues.findMany({
       where: {
@@ -194,30 +218,6 @@ export async function releaseEvent(eventId: string) {
     await tx.issues.createMany({
       data: issuesData,
     });
-
-    await Issue.insertMany(
-      approvedPendingIssues.map((issue) => ({
-        name: issue.name,
-        group: issue.group,
-        act: issue.act,
-        rarity: issue.rarity.toString(),
-        code: issue.code,
-        image: issue.image,
-        createdAt: issue.createdAt,
-        updatedAt: issue.updatedAt,
-        eventId: issue.eventId,
-        createdById: issue.createdById,
-        approvedById: issue.approvedById!,
-        approvedAt: issue.approvedAt!,
-        dropAble: issue.dropAble,
-        releaseDate: issue.event.start,
-      }))
-    )
-      .then(() => console.log("Data inserted"))
-      .catch(function (error) {
-        console.log(error);
-        new Error("Error inserting data");
-      });
 
     await tx.pendingIssues.deleteMany({
       where: {

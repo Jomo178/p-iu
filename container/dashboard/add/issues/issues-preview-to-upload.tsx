@@ -4,11 +4,9 @@ import { useMemo, useState } from "react";
 import Image from "next/image";
 import { IssuesFormPropsValue, issuesSchema } from "@/model/issues-schema";
 import { checkDuplicateIssuesCode, UploadIssues } from "@/server/upload-issues";
-import { Staff } from "@prisma/client";
-import { toast as promiseToast } from "sonner";
+import { toast } from "sonner";
 
 import { cn, scrollToCarousel } from "@/lib/utils";
-import { useToast } from "@/hooks/use-toast";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CarouselApi } from "@/components/ui/carousel";
@@ -58,7 +56,6 @@ export default function IssuesPreviewToUpload({
   defaultValues,
   disabled,
 }: IssuesPreviewToUploadProps) {
-  const { toast } = useToast();
   const [openSheet, setOpenSheet] = useState(false);
   const [openUpload, setOpenUpload] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -95,27 +92,14 @@ export default function IssuesPreviewToUpload({
 
       for (let i = 0; i < formErrors.length; i++) {
         if (!formErrors[i].length) continue;
-        toast({
-          title: "Issue Form Error",
+        toast.error("Issue Form Error", {
           description:
             "Please fill out the required fields in the issue form before uploading.",
-          variant: "destructive",
-          duration: 3000,
-          action: (
-            <ToastAction
-              onClick={() =>
-                scrollToCarousel(carouselApi, formErrors[i][0].index)
-              }
-              className={cn(
-                buttonVariants({
-                  variant: "ghost",
-                })
-              )}
-              altText="Brings you to the Issue Form."
-            >
-              Jump to Form
-            </ToastAction>
-          ),
+          action: {
+            label: "Jump to Form",
+            onClick: () =>
+              scrollToCarousel(carouselApi, formErrors[i][0].index),
+          },
         });
         break;
       }
@@ -127,7 +111,7 @@ export default function IssuesPreviewToUpload({
       issuesFormPropsValue.map((issue) => issue.code)
     );
 
-    promiseToast.promise(checkCodesPromise, {
+    toast.promise(checkCodesPromise, {
       loading: "Checking for duplicate issue codes...",
       success: "Duplicate issue codes have been checked successfully.",
       error: "Error checking duplicate issue codes.",
@@ -153,32 +137,19 @@ export default function IssuesPreviewToUpload({
 
     if (checkCodes.length != 0) {
       for (let i = 0; i < checkCodes.length; i++) {
-        toast({
-          title: "Duplicate Issue Code",
+        toast.error("Duplicate Issue Code", {
           description:
             "Please change the issue code to a unique one before uploading.",
-          variant: "destructive",
-          duration: 3000,
-          action: (
-            <ToastAction
-              onClick={() =>
-                scrollToCarousel(
-                  carouselApi,
-                  issuesFormPropsValue.findIndex(
-                    (issue) => issue.code === checkCodes[i]
-                  )
+          action: {
+            label: "Jump to Form",
+            onClick: () =>
+              scrollToCarousel(
+                carouselApi,
+                issuesFormPropsValue.findIndex(
+                  (issue) => issue.code === checkCodes[i]
                 )
-              }
-              className={cn(
-                buttonVariants({
-                  variant: "ghost",
-                })
-              )}
-              altText="Brings you to the Issue Form."
-            >
-              Jump to Form
-            </ToastAction>
-          ),
+              ),
+          },
         });
         break;
       }

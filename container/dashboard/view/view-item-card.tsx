@@ -38,7 +38,7 @@ import {
 import DeleteItemsDialog from "./delete-items";
 import EditFramesDialog from "./edit-frame-items";
 import EditIssuesDialog from "./edit-issue-items";
-import { useHandleApprovePendingIssues } from "./issues";
+import { usehandleApprovePendingItems } from "./issues";
 
 interface DivProps
   extends React.ButtonHTMLAttributes<HTMLDivElement>,
@@ -71,10 +71,10 @@ export default function ViewItemCard({
   ...props
 }: DivProps) {
   const {
-    handleApprovePendingIssues,
-    handleRejectPendingIssues,
-    handleResubmitRejectedIssues,
-  } = useHandleApprovePendingIssues(isFrame, setViewTypeDataAction);
+    handleApprovePendingItems,
+    handleRejectPendingItems,
+    handleResubmitRejectedItems,
+  } = usehandleApprovePendingItems(isFrame, setViewTypeDataAction);
   const [openRejectDialog, setOpenRejectDialog] = useState(false);
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
@@ -109,7 +109,7 @@ export default function ViewItemCard({
                 staff,
                 `handle:${isFrame ? "frame" : "issue"}`
               )}
-              onClick={() => handleResubmitRejectedIssues([issue.id])}
+              onClick={() => handleResubmitRejectedItems([issue.id])}
             >
               Resubmit
               <ContextMenuShortcut>
@@ -119,7 +119,7 @@ export default function ViewItemCard({
           )}
           <ContextMenuItem
             disabled={disableButton}
-            onClick={() => handleApprovePendingIssues([issue.id])}
+            onClick={() => handleApprovePendingItems([issue.id])}
           >
             Approve
             <ContextMenuShortcut>
@@ -191,7 +191,7 @@ export default function ViewItemCard({
         openDialog={openRejectDialog}
         setOpenDialogAction={setOpenRejectDialog}
         pendingIssues={[issue]}
-        handleRejectPendingIssuesAction={handleRejectPendingIssues}
+        handleRejectPendingItemsAction={handleRejectPendingItems}
       />
       {isFrame ? (
         <EditFramesDialog
@@ -255,7 +255,7 @@ interface RejectionsDialogProps {
   setOpenDialogAction: (open: boolean) => void;
   pendingIssues: { id: string; name: string }[];
 
-  handleRejectPendingIssuesAction: (
+  handleRejectPendingItemsAction: (
     issuesIds: [string, ...string[]],
     reason: string
   ) => Promise<void>;
@@ -265,7 +265,7 @@ export function RejectionsDialog({
   openDialog,
   setOpenDialogAction,
   pendingIssues,
-  handleRejectPendingIssuesAction,
+  handleRejectPendingItemsAction,
 }: RejectionsDialogProps) {
   const textareaRef = useRef<AutosizeTextAreaRef>(null);
   const [error, setError] = useState<boolean>(true);
@@ -275,7 +275,7 @@ export function RejectionsDialog({
       setError(true);
     } else {
       setError(false);
-      handleRejectPendingIssuesAction(
+      handleRejectPendingItemsAction(
         [
           pendingIssues[0].id,
           ...pendingIssues.slice(1).map((issue) => issue.id),

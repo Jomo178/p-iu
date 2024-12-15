@@ -219,11 +219,6 @@ export async function getReleasedIssues(
 export async function editIssue({ viewPortId, issue }: EditIssueProps) {
   const currentUser = await getCurrentStaff();
 
-  const currentEvent = await getCurrentEvent(["issues"]);
-  if (!currentEvent) {
-    throw new Error("Issues was not Edited. No event is currently active.");
-  }
-
   issue = issue as IssuesFormPropsValue & {
     imageLink: string;
     changedImage: boolean;
@@ -236,59 +231,66 @@ export async function editIssue({ viewPortId, issue }: EditIssueProps) {
 
     if (!deleteImage.success) {
       throw new Error(
-        "Issues was not Edited. An error occurred while deleting the image."
+        "Issue was not Edited. An error occurred while deleting the image."
       );
     }
 
-    const issueImage =
-      "Issue-" +
-      issue.name.replace(/\s/g, "-") +
-      "-" +
-      issue.act.replace(/\s/g, "-") +
-      ".png";
-
-    const response = await utapi.uploadFiles(
-      new CustomIdFile([issue.image], issueImage, {
-        type: "image/png",
-        customId: currentEvent.name.replace(/\s/g, "-") + "-" + issueImage,
-      })
-    );
+    const response = await utapi.uploadFiles(issue.image);
 
     if (response.error?.code || !response.data) {
       throw new Error(
-        "Issues was not Edited. An error occurred while uploading the image."
+        "Issue was not Edited. An error occurred while uploading the image."
       );
     }
 
     issue.imageLink = response.data.url;
   }
 
-  const edited = await prisma.pendingIssues.update({
-    where: {
-      id: issue.id,
-    },
-    data: {
-      name: issue.name,
-      group: issue.group,
-      act: issue.act,
-      rarity: issue.rarity,
-      code: issue.code,
-      image: issue.imageLink,
-    },
-    include: {
-      createdBy: true,
-      approvedBy: true,
-      rejections: {
-        include: {
-          rejectedBy: true,
-          resubmittedBy: true,
-        },
+  let edited;
+  const data = {
+    name: issue.name,
+    group: issue.group,
+    act: issue.act,
+    rarity: issue.rarity,
+    code: issue.code,
+    image: issue.imageLink,
+  };
+  const include = {
+    createdBy: true,
+    approvedBy: true,
+    rejections: {
+      include: {
+        rejectedBy: true,
+        resubmittedBy: true,
       },
     },
-  });
+  };
+
+  if (viewPortId === "released-issues") {
+    edited = await prisma.issues.update({
+      where: {
+        id: issue.id,
+      },
+      data,
+      include,
+    });
+
+    return {
+      message: "Issue was successfully Edited.",
+      issue: edited,
+    };
+  } else {
+    edited = await prisma.pendingIssues.update({
+      where: {
+        id: issue.id,
+      },
+      data,
+      include,
+    });
+  }
 
   return {
-    message: "Issues was successfully Edited.",
+    message: "Issue was successfully Edited.",
     issue: edited,
   };
 }

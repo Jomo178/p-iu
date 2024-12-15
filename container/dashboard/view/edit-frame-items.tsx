@@ -20,7 +20,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 import FramesForm from "../add/frames/frames-form";
-import { useHandleApprovePendingIssues } from "./issues";
+import { usehandleApprovePendingItems } from "./issues";
 
 interface EditFramesDialogProps {
   frame: {
@@ -60,7 +60,7 @@ export default function EditFramesDialog({
     FramesFormPropsValue & { imageLink: string; changedImage: boolean }
   >(defaultValues);
 
-  const { handleEditPendingIssues } = useHandleApprovePendingIssues(
+  const { handleEditItems } = usehandleApprovePendingItems(
     true,
     setViewTypeDataAction
   );
@@ -83,7 +83,7 @@ export default function EditFramesDialog({
   }, [frame.image, openDialog]);
 
   const handleEdit = async () => {
-    await handleEditPendingIssues({
+    await handleEditItems({
       viewPortId: viewPortType.id,
       issue: frameData,
     });

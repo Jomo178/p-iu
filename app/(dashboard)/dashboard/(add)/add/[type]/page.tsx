@@ -8,6 +8,7 @@ import { getCurrentStaff } from "@/lib/session";
 import { toUpperCase } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { EmptyState } from "@/components/empty-state";
 
 export async function generateStaticParams() {
   const types = Object.values(EventType);
@@ -25,9 +26,6 @@ export default async function Page({
   const issueEvent = await getCurrentEvent(["issues"]);
   const frameEvent = await getCurrentEvent(["frames"]);
   const staff = await getCurrentStaff();
-
-  //TODO: handle error
-  if (!frameEvent || !issueEvent) return;
 
   return (
     <>
@@ -55,14 +53,40 @@ export default async function Page({
             <Card className="ml-auto mr-auto max-h-fit max-w-fit p-6 md:p-11">
               <CardContent>
                 {item === "frames" ? (
-                  <FramesCarousel
-                    staff={staff.staff}
-                    eventReleaseDate={frameEvent.start}
-                  />
-                ) : (
+                  frameEvent ? (
+                    <FramesCarousel
+                      staff={staff.staff}
+                      eventReleaseDate={frameEvent.start}
+                    />
+                  ) : (
+                    <EmptyState
+                      title="No frames event found"
+                      description="Please create a frames event first"
+                      action={
+                        <Link href="/dashboard/events">
+                          <button className="btn btn-primary">
+                            Create Event
+                          </button>
+                        </Link>
+                      }
+                    />
+                  )
+                ) : issueEvent ? (
                   <IssuesCarousel
                     staff={staff.staff}
                     eventReleaseDate={issueEvent.start}
+                  />
+                ) : (
+                  <EmptyState
+                    title="No issues event found"
+                    description="Please create an issues event first"
+                    action={
+                      <Link href="/dashboard/events">
+                        <button className="btn btn-primary">
+                          Create Event
+                        </button>
+                      </Link>
+                    }
                   />
                 )}
               </CardContent>

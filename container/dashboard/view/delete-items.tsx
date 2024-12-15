@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/credenza";
 import { PasswordInput } from "@/components/ui/input";
 
-import { useHandleApprovePendingIssues } from "./issues";
+import { usehandleApprovePendingItems } from "./issues";
 
 interface DeleteIssuesProps {
   issues: { id: string; name: string; image: string }[];
@@ -36,7 +36,7 @@ export default function DeleteItemsDialog({
   setViewTypeDataAction,
   viewPortType,
 }: DeleteIssuesProps) {
-  const { handleDeletePendingIssues } = useHandleApprovePendingIssues(
+  const { handleDeleteItems } = usehandleApprovePendingItems(
     isFrame,
     setViewTypeDataAction
   );
@@ -46,7 +46,7 @@ export default function DeleteItemsDialog({
   const handleDelete = async () => {
     if (password === "") return setError("Password is required!");
 
-    const response = await handleDeletePendingIssues(
+    const response = await handleDeleteItems(
       viewPortType.id,
       issues.map((issue) => ({ id: issue.id, image: issue.image })),
       password

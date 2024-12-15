@@ -4,10 +4,9 @@ import { useState } from "react";
 import { useDefaultFrameFormValues } from "@/model/client";
 import { FramesFormPropsValue } from "@/model/frames-schema";
 import { Staff } from "@prisma/client";
+import { toast } from "sonner";
 
-import { getCurrentStaff } from "@/lib/session";
 import { hasPermission, scrollToCarousel } from "@/lib/utils";
-import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { CarouselApi } from "@/components/ui/carousel";
 import {
@@ -52,7 +51,6 @@ export default function FramesButtonControl({
   setCarouselCurrentIndexAction,
   staff,
 }: FramesButtonControlProps) {
-  const { toast } = useToast();
   const [openDialog, setOpenDialog] = useState(false);
   const [getNewCustomProps, setNewCustomProps] = useDefaultFrameFormValues();
 
@@ -153,7 +151,6 @@ export default function FramesButtonControl({
       <CustomPropertiesDialog
         openDialog={openDialog}
         setOpenDialog={setOpenDialog}
-        toast={toast}
         setFramesFormPropsValueAction={setFramesFormPropsValueAction}
         getNewCustomProps={{
           ...getNewCustomProps,
@@ -168,7 +165,6 @@ export default function FramesButtonControl({
 interface CustomPropertiesDialogProps {
   openDialog: boolean;
   setOpenDialog: React.Dispatch<React.SetStateAction<boolean>>;
-  toast: ReturnType<typeof useToast>["toast"];
   setFramesFormPropsValueAction: React.Dispatch<
     React.SetStateAction<FramesFormPropsValue[]>
   >;
@@ -179,7 +175,6 @@ interface CustomPropertiesDialogProps {
 function CustomPropertiesDialog({
   openDialog,
   setOpenDialog,
-  toast,
   setFramesFormPropsValueAction,
   getNewCustomProps,
   setNewCustomProps,
@@ -193,13 +188,7 @@ function CustomPropertiesDialog({
       ...framesFormPropsValue,
     }));
 
-    toast({
-      variant: "success",
-      title: "Custom Properties Updated",
-      description:
-        "The custom properties will be applied everytime you create a new form.",
-      duration: 3000,
-    });
+    toast.success("Custom Properties Updated");
 
     setFramesFormPropsValueAction((prev) =>
       prev.map((item) => ({
@@ -256,13 +245,7 @@ function CustomPropertiesDialog({
                 }))
               );
 
-              toast({
-                variant: "success",
-                title: "Custom Properties Deleted",
-                description:
-                  "The custom properties will not be applied to new forms.",
-                duration: 3000,
-              });
+              toast.success("Custom Properties Deleted");
               setOpenDialog(false);
             }}
           >

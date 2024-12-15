@@ -4,9 +4,9 @@ import { useState } from "react";
 import { useDefaultIssueFormValues } from "@/model/client";
 import { IssuesFormPropsValue } from "@/model/issues-schema";
 import { Staff } from "@prisma/client";
+import { toast } from "sonner";
 
 import { hasPermission, scrollToCarousel } from "@/lib/utils";
-import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { CarouselApi } from "@/components/ui/carousel";
 import {
@@ -51,7 +51,6 @@ export default function IssuesButtonControl({
   setCarouselCurrentIndexAction,
   staff,
 }: IssuesButtonControlProps) {
-  const { toast } = useToast();
   const [openDialog, setOpenDialog] = useState(false);
   const [getNewCustomProps, setNewCustomProps] = useDefaultIssueFormValues();
 
@@ -152,7 +151,6 @@ export default function IssuesButtonControl({
       <CustomPropertiesDialog
         openDialog={openDialog}
         setOpenDialog={setOpenDialog}
-        toast={toast}
         setIssuesFormPropsValueAction={setIssuesFormPropsValueAction}
         getNewCustomProps={{
           ...getNewCustomProps,
@@ -167,7 +165,6 @@ export default function IssuesButtonControl({
 interface CustomPropertiesDialogProps {
   openDialog: boolean;
   setOpenDialog: React.Dispatch<React.SetStateAction<boolean>>;
-  toast: ReturnType<typeof useToast>["toast"];
   setIssuesFormPropsValueAction: React.Dispatch<
     React.SetStateAction<IssuesFormPropsValue[]>
   >;
@@ -180,7 +177,6 @@ interface CustomPropertiesDialogProps {
 function CustomPropertiesDialog({
   openDialog,
   setOpenDialog,
-  toast,
   setIssuesFormPropsValueAction,
   getNewCustomProps,
   setNewCustomProps,
@@ -194,13 +190,7 @@ function CustomPropertiesDialog({
       ...issuesFormPropsValue,
     }));
 
-    toast({
-      variant: "success",
-      title: "Custom Properties Updated",
-      description:
-        "The custom properties will be applied everytime you create a new form.",
-      duration: 3000,
-    });
+    toast.success("Custom Properties Updated");
 
     setIssuesFormPropsValueAction((prev) =>
       prev.map((item) => ({
@@ -263,13 +253,7 @@ function CustomPropertiesDialog({
                 }))
               );
 
-              toast({
-                variant: "success",
-                title: "Custom Properties Deleted",
-                description:
-                  "The custom properties will not be applied to new forms.",
-                duration: 3000,
-              });
+              toast.success("Custom Properties Deleted");
               setOpenDialog(false);
             }}
           >

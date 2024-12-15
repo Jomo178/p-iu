@@ -37,7 +37,7 @@ export default function Navbar({
       <div className="flex">
         {sidebarToggle}
         <ProfileAvatar
-          src="https://api.dicebear.com/9.x/adventurer/svg?seed=Jade"
+          src="/images/iu.png"
           alt="IU"
           name="IU"
           size="md"

@@ -6,7 +6,7 @@ import { prisma } from "@/lib/database";
 import { getCurrentStaff, getCurrentUser } from "@/lib/session";
 
 import { getCurrentEvent } from "./events/_action";
-import { CustomIdFile, utapi } from "./uploadthing";
+import { utapi } from "./uploadthing";
 
 export async function UploadIssues(
   issue: IssuesFormPropsValue
@@ -31,22 +31,9 @@ export async function UploadIssues(
     };
   }
 
-  //Generate custom Issue image name based on the issue name and act
-  const issueImage =
-    "Issue-" +
-    issue.name.replace(/\s/g, "-") +
-    "-" +
-    issue.act.replace(/\s/g, "-") +
-    ".png";
-
   const response = await utapi.uploadFiles(issue.image);
-  // new CustomIdFile([issue.image], issueImage, {
-  //   type: "image/png",
-  //   customId: currentEvent.name.replace(/\s/g, "-") + "-" + issueImage,
-  // })
 
   if (response.error?.code || !response.data) {
-    console.error(response.error);
     return {
       message:
         "was not uploaded to the server. An error occurred while uploading the image.",
@@ -98,5 +85,11 @@ export async function checkDuplicateIssuesCode(codes: string[]) {
     },
   });
 
-  return [...issues, ...pendingIssues].map((issue) => issue.code);
+  const duplicateCodes = codes
+    .filter((code, index) => codes.indexOf(code) !== index)
+    .map((code) => ({ code }));
+
+  return [...issues, ...pendingIssues, ...duplicateCodes].map(
+    (issue) => issue.code
+  );
 }
