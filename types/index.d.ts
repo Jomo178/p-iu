@@ -13,8 +13,6 @@ import {
   RejectedIssuesWithRelation,
 } from "./prisma";
 
-type NonEmptyArray<T> = [T, ...T[]];
-
 export type NavigationItem = {
   title: string;
   href: string;

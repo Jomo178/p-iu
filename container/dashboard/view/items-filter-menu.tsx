@@ -1,19 +1,11 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
-import {
-  IssueFilterPropsValue,
-  IssueFilterSchema,
-} from "@/model/issues-schema";
+import { useEffect, useState } from "react";
+import { IssueFilterSchema } from "@/model/issues-schema";
 import { getAllEvents } from "@/server/events/_action";
 import { getCachedStaffDiscordProfiles } from "@/server/staff/_action";
-import { Filter, X } from "lucide-react";
-import {
-  createParser,
-  parseAsJson,
-  parseAsStringLiteral,
-  useQueryState,
-} from "nuqs";
+import { X } from "lucide-react";
+import { useQueryState } from "nuqs";
 
 import { UserProfile } from "@/types/next-auth";
 import { EventsWithRelation } from "@/types/prisma";
@@ -32,6 +24,7 @@ import {
 import { Icons } from "@/components/ui/icons";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   MultiSelect,
   Select,
@@ -120,7 +113,7 @@ export default function ItemsFilterMenu({
 
   return (
     <div className="container">
-      <div className="space-x-1 space-y-4 border-b-4 border-dashed py-2 md:p-4">
+      <div className="space-x-2 space-y-4 border-b-4 border-dashed py-2 md:p-4">
         {sortBy && (
           <FilterButton
             name="Sorted By"
@@ -191,7 +184,7 @@ export default function ItemsFilterMenu({
         <Button
           size="sm"
           variant="ghost"
-          className="!mt-0"
+          className="!mt-0.5"
           onClick={() => setFilterOpen((prev) => !prev)}
         >
           <Icons.filter size={16} />
@@ -206,170 +199,172 @@ export default function ItemsFilterMenu({
               Filter issues based on the following criteria
             </CredenzaDescription>
           </CredenzaHeader>
-          <CredenzaBody className="col-span-3 grid content-start space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="sortBy">Issue Contains</Label>
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                {containsFields.map((key) => {
-                  if (key == "eventId") return null;
-                  if (key == "rarity") {
-                    return (
-                      <div className="md:col-span-2" key={key}>
-                        <Label htmlFor={key}>{toUpperCase(key)}</Label>
-                        <MultiSelect
-                          description="Select Rarities"
-                          options={rarityOptions}
-                          defaultValue={
-                            filtersUi?.rarity
-                              ?.map((value: string) =>
-                                rarityOptions.find(
-                                  (option) => option.value === value
+          <CredenzaBody className="col-span-3 grid h-full content-start space-y-4">
+            <ScrollArea className="max-h-80 md:!max-h-full">
+              <div className="space-y-2">
+                <Label htmlFor="sortBy">Issue Contains</Label>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  {containsFields.map((key) => {
+                    if (key == "eventId") return null;
+                    if (key == "rarity") {
+                      return (
+                        <div className="md:col-span-2" key={key}>
+                          <Label htmlFor={key}>{toUpperCase(key)}</Label>
+                          <MultiSelect
+                            description="Select Rarities"
+                            options={rarityOptions}
+                            defaultValue={
+                              filtersUi?.rarity
+                                ?.map((value: string) =>
+                                  rarityOptions.find(
+                                    (option) => option.value === value
+                                  )
                                 )
-                              )
-                              .filter(
-                                (option: undefined) => option !== undefined
-                              ) ?? []
-                          }
-                          onValueChange={(option) => {
-                            setFiltersUi((prev: any) => {
-                              const currentRarity = prev?.rarity ?? [];
-                              let rarity;
+                                .filter(
+                                  (option: undefined) => option !== undefined
+                                ) ?? []
+                            }
+                            onValueChange={(option) => {
+                              setFiltersUi((prev: any) => {
+                                const currentRarity = prev?.rarity ?? [];
+                                let rarity;
 
-                              if (currentRarity.includes(option.value)) {
-                                rarity = currentRarity.filter(
-                                  (value: any) => value !== option.value
-                                );
-                              } else {
-                                rarity = [...currentRarity, option.value];
-                              }
+                                if (currentRarity.includes(option.value)) {
+                                  rarity = currentRarity.filter(
+                                    (value: any) => value !== option.value
+                                  );
+                                } else {
+                                  rarity = [...currentRarity, option.value];
+                                }
 
-                              return { ...prev, rarity };
-                            });
-                          }}
-                        />
-                      </div>
-                    );
-                  } else
-                    return (
-                      <div className="space-y-2" key={key}>
-                        <Label htmlFor={key}>{toUpperCase(key)}</Label>
-                        <Input
-                          id={key}
-                          value={filtersUi?.[key] ?? ""}
-                          onChange={(e) =>
-                            handleFilterChange(key, e.target.value)
-                          }
-                          placeholder={`Issue Contains ${toUpperCase(key)}`}
-                        />
-                      </div>
-                    );
-                })}
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="sortBy">Issue Filter</Label>
-              {userFields.map((key) => (
-                <div className="space-y-2" key={key}>
-                  <Label htmlFor={key}>{toUpperCase(key)}</Label>
-                  <MultiSelect
-                    description={`Select ${toUpperCase(key)}`}
-                    options={staffProfiles.map((profile) => ({
-                      value: profile.id,
-                      label: profile.username,
-                      avatarUrl: profile.avatar ?? "/avatar.png",
-                    }))}
-                    defaultValue={
-                      filtersUi?.[key]
-                        ?.map((value: any) => {
-                          const profile = staffProfiles.find(
-                            (profile) => profile.id === value
-                          );
-                          return profile
-                            ? {
-                                value: profile.id,
-                                label: profile.username,
-                                avatarUrl: profile.avatar ?? "/avatar.png",
-                              }
-                            : undefined;
-                        })
-                        .filter((option: any) => option !== undefined) ?? []
-                    }
-                    onValueChange={(option) => {
-                      setFiltersUi((prev: any) => {
-                        const current = prev?.[key] ?? [];
-                        let users;
-
-                        if (current.includes(option.value)) {
-                          users = current.filter(
-                            (value: any) => value !== option.value
-                          );
-                        } else {
-                          users = [...current, option.value];
-                        }
-                        return { ...prev, [key]: users };
-                      });
-                    }}
-                  />
-                </div>
-              ))}
-              <Label>Events</Label>
-              <MultiSelect
-                description={`Select Events`}
-                options={eventsOptions}
-                defaultValue={filters?.eventId
-                  ?.map((value) =>
-                    eventsOptions.find((option) => option.value === value)
-                  )
-                  .filter((option) => option !== undefined)}
-                onValueChange={(option) => {
-                  setFiltersUi((prev: any) => {
-                    const currentEvents = prev?.eventId ?? [];
-                    let events;
-
-                    if (currentEvents.includes(option.value)) {
-                      events = currentEvents.filter(
-                        (value: any) => value !== option.value
+                                return { ...prev, rarity };
+                              });
+                            }}
+                          />
+                        </div>
                       );
-                    } else {
-                      events = [...currentEvents, option.value];
-                    }
-
-                    return { ...prev, eventId: events };
-                  });
-                }}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="sortBy">Sort by</Label>
-              <div className="flex space-x-2">
-                <Select
-                  value={sortByUI as any}
-                  onValueChange={(value) => setSortByUI(value as any)}
-                >
-                  <SelectTrigger id="sortBy">
-                    <SelectValue placeholder="Select sort field" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {sortByFields.map((key: string) => (
-                      <SelectItem value={key} key={key}>
-                        {toUpperCase(key)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    setSortOrderUI((prev: string) =>
-                      prev === "asc" ? "desc" : "asc"
-                    )
-                  }
-                >
-                  {sortOrderUI === "asc" ? "↑ Ascending" : "↓ Descending"}
-                </Button>
+                    } else
+                      return (
+                        <div className="space-y-2" key={key}>
+                          <Label htmlFor={key}>{toUpperCase(key)}</Label>
+                          <Input
+                            id={key}
+                            value={filtersUi?.[key] ?? ""}
+                            onChange={(e) =>
+                              handleFilterChange(key, e.target.value)
+                            }
+                            placeholder={`Issue Contains ${toUpperCase(key)}`}
+                          />
+                        </div>
+                      );
+                  })}
+                </div>
               </div>
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="sortBy">Issue Filter</Label>
+                {userFields.map((key) => (
+                  <div className="space-y-2" key={key}>
+                    <Label htmlFor={key}>{toUpperCase(key)}</Label>
+                    <MultiSelect
+                      description={`Select ${toUpperCase(key)}`}
+                      options={staffProfiles.map((profile) => ({
+                        value: profile.id,
+                        label: profile.username,
+                        avatarUrl: profile.avatar ?? "/avatar.png",
+                      }))}
+                      defaultValue={
+                        filtersUi?.[key]
+                          ?.map((value: any) => {
+                            const profile = staffProfiles.find(
+                              (profile) => profile.id === value
+                            );
+                            return profile
+                              ? {
+                                  value: profile.id,
+                                  label: profile.username,
+                                  avatarUrl: profile.avatar ?? "/avatar.png",
+                                }
+                              : undefined;
+                          })
+                          .filter((option: any) => option !== undefined) ?? []
+                      }
+                      onValueChange={(option) => {
+                        setFiltersUi((prev: any) => {
+                          const current = prev?.[key] ?? [];
+                          let users;
+
+                          if (current.includes(option.value)) {
+                            users = current.filter(
+                              (value: any) => value !== option.value
+                            );
+                          } else {
+                            users = [...current, option.value];
+                          }
+                          return { ...prev, [key]: users };
+                        });
+                      }}
+                    />
+                  </div>
+                ))}
+                <Label>Events</Label>
+                <MultiSelect
+                  description={`Select Events`}
+                  options={eventsOptions}
+                  defaultValue={filters?.eventId
+                    ?.map((value) =>
+                      eventsOptions.find((option) => option.value === value)
+                    )
+                    .filter((option) => option !== undefined)}
+                  onValueChange={(option) => {
+                    setFiltersUi((prev: any) => {
+                      const currentEvents = prev?.eventId ?? [];
+                      let events;
+
+                      if (currentEvents.includes(option.value)) {
+                        events = currentEvents.filter(
+                          (value: any) => value !== option.value
+                        );
+                      } else {
+                        events = [...currentEvents, option.value];
+                      }
+
+                      return { ...prev, eventId: events };
+                    });
+                  }}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="sortBy">Sort by</Label>
+                <div className="flex space-x-2">
+                  <Select
+                    value={sortByUI as any}
+                    onValueChange={(value) => setSortByUI(value as any)}
+                  >
+                    <SelectTrigger id="sortBy">
+                      <SelectValue placeholder="Select sort field" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {sortByFields.map((key: string) => (
+                        <SelectItem value={key} key={key}>
+                          {toUpperCase(key)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      setSortOrderUI((prev: string) =>
+                        prev === "asc" ? "desc" : "asc"
+                      )
+                    }
+                  >
+                    {sortOrderUI === "asc" ? "↑ Ascending" : "↓ Descending"}
+                  </Button>
+                </div>
+              </div>
+            </ScrollArea>
           </CredenzaBody>
           <CredenzaFooter>
             <Button variant="outline" onClick={() => setFilterOpen(false)}>

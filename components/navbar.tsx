@@ -44,7 +44,7 @@ export default function Navbar({
           className="~mr-4/6"
         />
 
-        {navigationItems?.length ? (
+        {/* {navigationItems?.length ? (
           <nav className="hidden items-center gap-4 text-base font-medium leading-none md:flex lg:gap-6">
             {navigationItems.map((item) => (
               <Link
@@ -62,7 +62,7 @@ export default function Navbar({
               </Link>
             ))}
           </nav>
-        ) : null}
+        ) : null} */}
       </div>
 
       {user?.global_name ? (

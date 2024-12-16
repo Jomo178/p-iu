@@ -106,7 +106,7 @@ export default function ViewAllItems({ viewType, staff }: ViewAllItemsProps) {
   useEffect(() => {
     if (viewTypeData.fetchCount === 0 && inView && !noData) {
       fetchData(20);
-    } else {
+    } else if (!noData) {
       fetchData();
     }
   }, [inView, filters, sortBy, sortOrder]);

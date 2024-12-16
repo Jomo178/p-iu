@@ -12,9 +12,7 @@ import { cn, formatBytes } from "@/lib/utils";
 import { useControllableState } from "@/hooks/use-controllable-state";
 import { useToast } from "@/hooks/use-toast";
 
-import { Button } from "./button";
 import { Progress } from "./progress";
-import { ScrollArea } from "./scroll-area";
 import { Typography } from "./typography";
 
 interface FileUploaderProps extends React.HTMLAttributes<HTMLDivElement> {

@@ -50,7 +50,7 @@ export function constructWhereConditions(
     staff
       .filter((staff) => discordIds.includes(staff.discordId))
       .map((staff) => staff.id);
-  console.log(filters.approvedBy, staff);
+
   const where = {
     ...(filters.createdBy
       ? { createdById: { in: getIdsByDiscordIds(filters.createdBy) } }
@@ -58,9 +58,7 @@ export function constructWhereConditions(
     ...(filters.rarity
       ? { rarity: { in: filters.rarity.map((value) => Number(value)) } }
       : {}),
-    ...(filters.eventId
-      ? { eventId: { in: getIdsByDiscordIds(filters.eventId) } }
-      : {}),
+    ...(filters.eventId ? { eventId: { in: filters.eventId } } : {}),
     ...(filters.approvedBy
       ? { approvedById: { in: getIdsByDiscordIds(filters.approvedBy) } }
       : {}),
