@@ -15,10 +15,11 @@ import { getCurrentStaff } from "@/lib/session";
 
 export async function generateStaticParams() {
   const itemsTypeArray = Object.values(EventType).map((type) => ({ id: type }));
-
+  const test = "test";
   return [...itemsTypeArray, ...issuesViewPortType, ...framesViewPortType].map(
     (type) => ({
       type: type.id,
+      test,
     })
   );
 }
@@ -26,7 +27,7 @@ export async function generateStaticParams() {
 export default async function Page({
   params,
 }: {
-  params: Promise<{ type: string }>;
+  params: Promise<{ type: string; test: string }>;
 }) {
   const type = (await params).type as IssuesViewType | `${EventType}`;
   const staff = await getCurrentStaff();

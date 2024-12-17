@@ -72,7 +72,7 @@ export default function ViewAllItems({ viewType, staff }: ViewAllItemsProps) {
   const isAllSelected =
     viewTypeData.selectedItems.length == viewTypeData.data.length;
 
-  const fetchData = async (customFetchCount: number = 10) => {
+  const fetchData = async () => {
     if (loading) return;
     setLoading(true);
     let staffs = null;
@@ -83,7 +83,7 @@ export default function ViewAllItems({ viewType, staff }: ViewAllItemsProps) {
 
     const data = await viewTypeData.fetchFunction(
       viewTypeData.fetchCount,
-      customFetchCount,
+      10,
       constructWhereConditions(filters, staffs == null ? staffInfo : staffs),
       constructOrderByConditions(sortBy, sortOrder)
     );
@@ -98,15 +98,13 @@ export default function ViewAllItems({ viewType, staff }: ViewAllItemsProps) {
     setViewTypeData({
       ...viewTypeData,
       data: viewTypeData.data.concat(data) as any[],
-      fetchCount: viewTypeData.fetchCount + customFetchCount,
+      fetchCount: viewTypeData.fetchCount + data.length,
     });
     setLoading(false);
   };
 
   useEffect(() => {
-    if (viewTypeData.fetchCount === 0 && inView && !noData) {
-      fetchData(20);
-    } else if (!noData) {
+    if (inView && !noData) {
       fetchData();
     }
   }, [inView, filters, sortBy, sortOrder]);
