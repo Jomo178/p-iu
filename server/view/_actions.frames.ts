@@ -1,8 +1,8 @@
 "use server";
 
-import { FramesFormPropsValue } from "@/model/frames-schema";
 import { EditIssueProps, FramesViewType, IssuesViewType } from "@/types";
 
+import { FramesFormPropsValue } from "@/config/items-add";
 import { prisma } from "@/lib/database";
 import { getCurrentStaff, getCurrentUser } from "@/lib/session";
 

@@ -2,6 +2,9 @@ import { Staff } from "@prisma/client";
 import NextAuth, { DefaultSession } from "next-auth";
 
 declare module "next-auth" {
+  /**
+   * Returned by `useSession`, `getSession` and received as a prop on the `SessionProvider` React Context
+   */
   interface Session {
     user: {
       id?: string;
@@ -24,4 +27,8 @@ export type UserProfile = {
   username: string;
   discriminator: string;
   avatar: string | null;
+};
+
+export type NonNullableFields<T> = {
+  [K in keyof T]-?: NonNullable<T[K]>;
 };
