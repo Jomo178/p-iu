@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/tooltip";
 
 import DeleteItemsDialog from "./delete-items";
-import { usehandleApprovePendingItems } from "./issues";
+import { usehandleApprovePendingItems } from "./handlers";
 import { RejectionsDialog } from "./view-item-card";
 
 interface DynamicButtonIslandProps {

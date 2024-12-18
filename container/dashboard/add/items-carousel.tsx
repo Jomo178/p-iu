@@ -1,11 +1,14 @@
 "use client";
 
-import { use, useEffect, useId, useState } from "react";
-import { useDefaultIssueFormValues } from "@/model/client";
-import { IssuesFormPropsValue } from "@/model/issues-schema";
-import { Staff } from "@prisma/client";
+import { useEffect, useState } from "react";
+import { EventType, Staff } from "@prisma/client";
 
-import { generateIssueCode } from "@/lib/utils";
+import {
+  generateFrameCode,
+  generateIssueCode,
+  ItemsFormPropsValue,
+  useDefaultItemsFormValues,
+} from "@/config/items-add";
 import {
   Carousel,
   CarouselApi,
@@ -15,25 +18,28 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 
-import IssuesButtonControl from "./issues-button-control";
-import IssuesForm from "./issues-form";
+import ItemsButtonControl from "./items-button-control";
+import ItemsForm from "./items-form";
 
-interface IssuesCarouselProps {
+interface ItemsCarouselProps {
   eventReleaseDate: Date;
   staff: Staff;
+  itemType: `${EventType}`;
 }
 
-export default function IssuesCarousel({
+export default function ItemsCarousel({
   eventReleaseDate,
   staff,
-}: IssuesCarouselProps) {
+  itemType,
+}: ItemsCarouselProps) {
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
   const [count, setCount] = useState(0);
-  const [defaultFormValues, setDefaultFormValues] = useDefaultIssueFormValues();
+  const [defaultFormValues, setDefaultFormValues] =
+    useDefaultItemsFormValues(itemType);
 
   const [issuesFormPropsValue, setIssuesFormPropsValue] = useState<
-    IssuesFormPropsValue[]
+    ItemsFormPropsValue[]
   >([{ ...defaultFormValues, errors: [], releaseDate: eventReleaseDate }]);
 
   useEffect(() => {
@@ -49,10 +55,11 @@ export default function IssuesCarousel({
 
   return (
     <>
-      <IssuesButtonControl
+      <ItemsButtonControl
+        itemType={itemType}
         eventReleaseDate={eventReleaseDate}
-        issuesFormPropsValue={issuesFormPropsValue}
-        setIssuesFormPropsValueAction={setIssuesFormPropsValue}
+        itmesFormPropsValue={issuesFormPropsValue as any}
+        setItemsFormPropsValueAction={setIssuesFormPropsValue as any}
         carouselApi={api}
         carouselCount={count}
         setCarouselCountAction={setCount}
@@ -63,19 +70,27 @@ export default function IssuesCarousel({
         <CarouselContent>
           {issuesFormPropsValue?.map((issuesForm, index) => (
             <CarouselItem key={issuesForm.id}>
-              <IssuesForm
+              <ItemsForm
                 index={index}
                 defaultValues={issuesForm}
-                onFormChangeAction={(index, value: IssuesFormPropsValue) =>
+                itemType={itemType}
+                onFormChangeAction={(index, value: any) =>
                   setIssuesFormPropsValue((prev) => {
                     const newData = [...prev];
                     if (!value.codeDuplicate) {
-                      value.code = generateIssueCode(
-                        value.name,
-                        value.act,
-                        value.group,
-                        value.rarity
-                      );
+                      if (itemType === "issues") {
+                        value.code = generateIssueCode(
+                          value.name,
+                          value.act,
+                          value.group,
+                          value.rarity
+                        );
+                      } else {
+                        value.code = generateFrameCode(
+                          value.name,
+                          value.rarity
+                        );
+                      }
                     }
                     newData[index] = value;
                     return newData;

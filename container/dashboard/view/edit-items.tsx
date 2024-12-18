@@ -1,12 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { FramesFormPropsValue } from "@/model/frames-schema";
 import { FramesViewPort, IssuesViewPort } from "@/types";
-import { FrameRarity } from "@prisma/client";
+import { EventType, FrameRarity, Frames, Issues } from "@prisma/client";
 
-import { cn, generateFrameCode, urlToFile } from "@/lib/utils";
-import { useMediaQuery } from "@/hooks/use-media-query";
+import {
+  generateFrameCode,
+  generateIssueCode,
+  ItemsFormPropsValue,
+} from "@/config/items-add";
+import { toUpperCase, urlToFile } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Credenza,
@@ -19,73 +22,64 @@ import {
 } from "@/components/ui/credenza";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-import FramesForm from "../add/frames/frames-form";
-import { usehandleApprovePendingItems } from "./issues";
+import ItemsForm from "../add/items-form";
+import { usehandleApprovePendingItems } from "./handlers";
 
-interface EditFramesDialogProps {
-  frame: {
-    id: string;
-    name: string;
-    rarity: FrameRarity;
-    code: string;
-    image: string;
-  };
+interface EditItemsDialogProps {
+  itemType: `${EventType}`;
+  item: Issues | Frames;
   openDialog: boolean;
   setOpenDialogAction: React.Dispatch<React.SetStateAction<boolean>>;
-  viewPortType: FramesViewPort;
+  viewPortType: IssuesViewPort;
   setViewTypeDataAction?: React.Dispatch<
-    React.SetStateAction<FramesViewPort | IssuesViewPort>
+    React.SetStateAction<IssuesViewPort | FramesViewPort>
   >;
 }
 
-export default function EditFramesDialog({
-  frame,
+export default function EditItemsDialog({
+  itemType,
+  item,
   openDialog,
   setOpenDialogAction,
   viewPortType,
   setViewTypeDataAction,
-}: EditFramesDialogProps) {
-  const isDesktop = useMediaQuery();
+}: EditItemsDialogProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const defaultValues = {
-    ...frame,
+    ...item,
     codeDuplicate: false,
     releaseDate: new Date(),
     image: new File([], "filename"),
-    imageLink: frame.image,
+    imageLink: item.image,
     changedImage: false,
     errors: [],
   };
-  const [frameData, setFrameData] = useState<
-    FramesFormPropsValue & { imageLink: string; changedImage: boolean }
+  const itemName = itemType === "issues" ? "issue" : "frame";
+  const [itemData, setItemData] = useState<
+    ItemsFormPropsValue & { imageLink: string; changedImage: boolean }
   >(defaultValues);
-
   const { handleEditItems } = usehandleApprovePendingItems(
-    true,
+    false,
     setViewTypeDataAction
   );
 
   useEffect(() => {
     const fetchImage = async () => {
-      if (frame.image && openDialog && frameData.image.size === 0) {
-        const file = await urlToFile(
-          frame.image,
-          "card-image.png",
-          "image/png"
-        );
+      if (item.image && openDialog && itemData.image.size === 0) {
+        const file = await urlToFile(item.image, "item-image.png", "image/png");
 
-        setFrameData((prev) => ({ ...prev, image: file }));
+        setItemData((prev) => ({ ...prev, image: file }));
         setImageLoaded(true);
       }
     };
 
     fetchImage();
-  }, [frame.image, openDialog]);
+  }, [item.image, openDialog]);
 
   const handleEdit = async () => {
     await handleEditItems({
       viewPortId: viewPortType.id,
-      issue: frameData,
+      issue: itemData,
     });
 
     setOpenDialogAction(false);
@@ -98,41 +92,30 @@ export default function EditFramesDialog({
         onOpenChange={() => {
           setOpenDialogAction(false);
           setImageLoaded(false);
-          setFrameData(defaultValues);
+          setItemData(defaultValues);
         }}
       >
         <CredenzaContent className="sm:max-w-[600px]">
           <CredenzaHeader>
-            <CredenzaTitle>Edit Pending Frame</CredenzaTitle>
+            <CredenzaTitle>Edit Pending {toUpperCase(itemName)}</CredenzaTitle>
             <CredenzaDescription>
-              Edit the pending frame details.
+              Edit the pending {itemName} details.
             </CredenzaDescription>
           </CredenzaHeader>
 
-          <CredenzaBody className={cn(!isDesktop && "h-72")}>
-            {!isDesktop ? (
-              <ScrollArea
-                className={cn(
-                  !isDesktop ? "h-60 w-full text-center" : "invisible"
-                )}
-              >
-                {imageLoaded ? (
-                  <EditFrom frameData={frameData} setFrameData={setFrameData} />
-                ) : (
-                  <p>Loading image...</p>
-                )}
-              </ScrollArea>
-            ) : (
-              <>
-                {imageLoaded ? (
-                  <EditFrom frameData={frameData} setFrameData={setFrameData} />
-                ) : (
-                  <p>Loading image...</p>
-                )}
-              </>
-            )}
+          <CredenzaBody className="col-span-3 grid h-full content-start space-y-4">
+            <ScrollArea className="max-h-80 w-full md:!max-h-full">
+              {imageLoaded ? (
+                <EditFrom
+                  itemType={itemType}
+                  itemData={itemData}
+                  setItemDataAction={setItemData}
+                />
+              ) : (
+                <p>Loading image...</p>
+              )}
+            </ScrollArea>
           </CredenzaBody>
-
           <CredenzaFooter className="flex flex-row justify-center">
             <Button
               onClick={() => setOpenDialogAction(false)}
@@ -149,24 +132,38 @@ export default function EditFramesDialog({
 }
 
 interface EditFromProps {
-  frameData: FramesFormPropsValue;
-  setFrameData: React.Dispatch<
+  itemType: `${EventType}`;
+  itemData: ItemsFormPropsValue;
+  setItemDataAction: React.Dispatch<
     React.SetStateAction<
-      FramesFormPropsValue & { imageLink: string; changedImage: boolean }
+      ItemsFormPropsValue & { imageLink: string; changedImage: boolean }
     >
   >;
 }
 
-function EditFrom({ frameData, setFrameData }: EditFromProps) {
+function EditFrom({ itemType, itemData, setItemDataAction }: EditFromProps) {
   return (
-    <FramesForm
+    <ItemsForm
       index={1}
+      itemType={itemType}
       hiddenFields={["releaseDate"]}
-      defaultValues={frameData}
+      defaultValues={itemData}
       onFormChangeAction={(_, value) => {
-        value.code = generateFrameCode(value.name, value.rarity);
+        if (itemType === "issues" && "act" in value) {
+          value.code = generateIssueCode(
+            value.name,
+            value.act,
+            value.group,
+            value.rarity
+          );
+        } else {
+          value.code = generateFrameCode(
+            value.name,
+            value.rarity as FrameRarity
+          );
+        }
 
-        setFrameData((prev) => {
+        setItemDataAction((prev) => {
           if (
             prev.image?.size !== value.image?.size &&
             prev.image?.name !== value.image?.name

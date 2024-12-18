@@ -42,7 +42,7 @@ import {
   sortByFields,
   userFields,
   UserFields,
-} from "./searchParams";
+} from "./handlers";
 
 let rarityOptions = Array.from({ length: 5 }).map((_, index) => ({
   label: `Rarity ${index + 1}`,

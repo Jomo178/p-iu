@@ -7,6 +7,7 @@ import { EventType, Staff } from "@prisma/client";
 import Balancer from "react-wrap-balancer";
 
 import { PendingIssuesWithRelation } from "@/types/prisma";
+import { framesViewPortType, issuesViewPortType } from "@/config/items-view";
 import { cn, toUpperCase } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -16,8 +17,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Typography } from "@/components/ui/typography";
 import { EmptyState } from "@/components/empty-state";
 
-import { framesViewPortType } from "./frames";
-import { issuesViewPortType } from "./issues";
 import ItemsInformationSidebar from "./items-information-sidebar";
 import ViewItemCard from "./view-item-card";
 import { SkeletonViewGroup, ViewItemSkeleton } from "./view-item-skeleton";

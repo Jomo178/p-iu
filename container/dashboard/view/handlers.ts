@@ -1,11 +1,11 @@
 import {
+  IssueFilterPropsValue,
+  IssueFilterSchema,
+} from "@/model/issues-schema";
+import {
   approvePendingIssues,
   deleteIssues,
   editIssue,
-  getPendingIssues,
-  getRejectedIssues,
-  getReleasedIssues,
-  getUpcomingIssues,
   rejectPendingIssues,
   resubmitRejectedIssues,
 } from "@/server/view/_actions-issues";
@@ -23,70 +23,10 @@ import {
   IssuesViewPort,
   IssuesViewType,
 } from "@/types";
+import { parseAsJson, parseAsStringLiteral } from "nuqs/server";
 import { toast } from "sonner";
 
-import {
-  FramesWithRelation,
-  IssuesWithRelation,
-  PendingIssuesWithRelation,
-} from "@/types/prisma";
-import { Icons } from "@/components/ui/icons";
-
-export const issuesViewPortType: IssuesViewPort[] = [
-  {
-    title: "Rejected Issues",
-    id: "rejected-issues",
-    description: "Issues that have been rejected.",
-    noteDescription: "Please edit the rejected issues and resubmit it.",
-    fetchCount: 0,
-    fetchFunction: (skip, amount, filter, orderBy) =>
-      getRejectedIssues(skip, amount, filter, orderBy),
-    data: [] as PendingIssuesWithRelation[],
-    selectedItems: [] as PendingIssuesWithRelation[],
-    disabled: false,
-    href: "/dashboard/view/rejected-issues",
-    Icon: Icons.rejected,
-  },
-  {
-    title: "Pending Issues",
-    id: "pending-issues",
-    description: "Issues that wait to be approved and be published.",
-    fetchCount: 0,
-    fetchFunction: (skip, amount, filter, orderBy) =>
-      getPendingIssues(skip, amount, filter, orderBy),
-    data: [] as PendingIssuesWithRelation[],
-    selectedItems: [] as PendingIssuesWithRelation[],
-    disabled: false,
-    href: "/dashboard/view/pending-issues",
-    Icon: Icons.pending,
-  },
-  {
-    title: "Upcoming Issues",
-    description: "Issues that will be released soon.",
-    id: "upcoming-issues",
-    fetchCount: 0,
-    fetchFunction: (skip, amount, filter, orderBy) =>
-      getUpcomingIssues(skip, amount, filter, orderBy),
-    data: [] as PendingIssuesWithRelation[],
-    selectedItems: [] as PendingIssuesWithRelation[],
-    disabled: false,
-    href: "/dashboard/view/upcoming-issues",
-    Icon: Icons.soon,
-  },
-  {
-    title: "Released Issues",
-    description: "Issues that are published and available to collect.",
-    id: "released-issues",
-    fetchCount: 0,
-    fetchFunction: (skip, amount, filter, orderBy) =>
-      getReleasedIssues(skip, amount, filter, orderBy),
-    data: [] as IssuesWithRelation[],
-    selectedItems: [] as IssuesWithRelation[],
-    disabled: false,
-    href: "/dashboard/view/released-issues",
-    Icon: Icons.addIssue,
-  },
-];
+import { PendingIssuesWithRelation } from "@/types/prisma";
 
 export function usehandleApprovePendingItems(
   isFrame: boolean,
@@ -262,5 +202,109 @@ export function usehandleApprovePendingItems(
     handleResubmitRejectedItems,
     handleEditItems,
     handleDeleteItems,
+  };
+}
+
+export const containsFields = [
+  "name",
+  "act",
+  "group",
+  "code",
+  "rarity",
+  "eventId",
+] as const;
+export type ContainsFields = (typeof containsFields)[number];
+export const dateFields = ["createdAt", "updatedAt", "approvedAt"] as const;
+export const userFields = [
+  "createdBy",
+  "approvedBy",
+  "rejectedBy",
+  "resubmittedBy",
+] as const;
+export type UserFields = (typeof userFields)[number];
+export const sortByFields = [...containsFields, ...dateFields] as const;
+export const sortOrderFields = ["asc", "desc"] as const;
+
+export const searchParams = {
+  filters: parseAsJson(IssueFilterSchema.parse).withOptions({
+    history: "push",
+  }),
+  sortBy: parseAsStringLiteral(sortByFields)
+    .withDefault("createdAt")
+    .withOptions({
+      history: "push",
+    }),
+  sortOrder: parseAsStringLiteral(sortOrderFields)
+    .withDefault("asc")
+    .withOptions({
+      history: "push",
+    }),
+};
+
+export function constructWhereConditions(
+  filters: IssueFilterPropsValue | null = {},
+  staff: { id: string; discordId: string }[] = []
+) {
+  if (!filters) return {};
+
+  const getIdsByDiscordIds = (discordIds: string[]) =>
+    staff
+      .filter((staff) => discordIds.includes(staff.discordId))
+      .map((staff) => staff.id);
+
+  const where = {
+    ...(filters.createdBy
+      ? { createdById: { in: getIdsByDiscordIds(filters.createdBy) } }
+      : {}),
+    ...(filters.rarity
+      ? { rarity: { in: filters.rarity.map((value) => Number(value)) } }
+      : {}),
+    ...(filters.eventId ? { eventId: { in: filters.eventId } } : {}),
+    ...(filters.approvedBy
+      ? { approvedById: { in: getIdsByDiscordIds(filters.approvedBy) } }
+      : {}),
+    ...(filters.rejectedBy || filters.resubmittedBy
+      ? {
+          rejections: {
+            some: {
+              ...(filters.rejectedBy
+                ? {
+                    rejectedById: {
+                      in: getIdsByDiscordIds(filters.rejectedBy),
+                    },
+                  }
+                : {}),
+              ...(filters.resubmittedBy
+                ? {
+                    resubmittedById: {
+                      in: getIdsByDiscordIds(filters.resubmittedBy),
+                    },
+                  }
+                : {}),
+            },
+          },
+        }
+      : {}),
+  };
+
+  const {
+    approvedBy,
+    rejectedBy,
+    resubmittedBy,
+    createdBy,
+    rarity,
+    eventId,
+    ...remainingProps
+  } = filters;
+
+  return { ...remainingProps, ...where };
+}
+
+export function constructOrderByConditions(
+  sortBy: string,
+  sortOrder: string
+): any {
+  return {
+    [sortBy]: sortOrder,
   };
 }

@@ -1,10 +1,9 @@
-import { framesViewPortType } from "@/container/dashboard/view/frames";
-import { issuesViewPortType } from "@/container/dashboard/view/issues";
 import { ViewDashboardType } from "@/types";
 
 import { Icons } from "@/components/ui/icons";
 
 import { dashboardActions } from "./dashboard";
+import { framesViewPortType, issuesViewPortType } from "./items-view";
 
 export const viewDashboard: ViewDashboardType[] = [
   {

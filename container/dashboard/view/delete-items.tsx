@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/credenza";
 import { PasswordInput } from "@/components/ui/input";
 
-import { usehandleApprovePendingItems } from "./issues";
+import { usehandleApprovePendingItems } from "./handlers";
 
 interface DeleteIssuesProps {
   issues: { id: string; name: string; image: string }[];

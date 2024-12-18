@@ -36,9 +36,8 @@ import {
 } from "@/components/ui/textarea";
 
 import DeleteItemsDialog from "./delete-items";
-import EditFramesDialog from "./edit-frame-items";
-import EditIssuesDialog from "./edit-issue-items";
-import { usehandleApprovePendingItems } from "./issues";
+import EditItemsDialog from "./edit-items";
+import { usehandleApprovePendingItems } from "./handlers";
 
 interface DivProps
   extends React.ButtonHTMLAttributes<HTMLDivElement>,
@@ -193,23 +192,15 @@ export default function ViewItemCard({
         pendingIssues={[issue]}
         handleRejectPendingItemsAction={handleRejectPendingItems}
       />
-      {isFrame ? (
-        <EditFramesDialog
-          openDialog={openEditDialog}
-          setOpenDialogAction={setOpenEditDialog}
-          frame={issue as PendingFramesWithRelation}
-          viewPortType={viewPortType as FramesViewPort}
-          setViewTypeDataAction={setViewTypeDataAction}
-        />
-      ) : (
-        <EditIssuesDialog
-          openDialog={openEditDialog}
-          setOpenDialogAction={setOpenEditDialog}
-          issue={issue as PendingIssuesWithRelation}
-          viewPortType={viewPortType as IssuesViewPort}
-          setViewTypeDataAction={setViewTypeDataAction}
-        />
-      )}
+
+      <EditItemsDialog
+        itemType={isFrame ? "frames" : "issues"}
+        openDialog={openEditDialog}
+        setOpenDialogAction={setOpenEditDialog}
+        item={issue as any}
+        viewPortType={viewPortType as any}
+        setViewTypeDataAction={setViewTypeDataAction}
+      />
 
       <DeleteItemsDialog
         issues={[issue]}

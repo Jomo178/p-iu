@@ -1,6 +1,5 @@
 import Link from "next/link";
-import FramesCarousel from "@/container/dashboard/add/frames/frames-carousel";
-import IssuesCarousel from "@/container/dashboard/add/issues/issues-carousel";
+import ItemsCarousel from "@/container/dashboard/add/items-carousel";
 import { getCurrentEvent } from "@/server/events/_action";
 import { EventType } from "@prisma/client";
 
@@ -54,7 +53,8 @@ export default async function Page({
               <CardContent>
                 {item === "frames" ? (
                   frameEvent ? (
-                    <FramesCarousel
+                    <ItemsCarousel
+                      itemType="frames"
                       staff={staff.staff}
                       eventReleaseDate={frameEvent.start}
                     />
@@ -72,7 +72,8 @@ export default async function Page({
                     />
                   )
                 ) : issueEvent ? (
-                  <IssuesCarousel
+                  <ItemsCarousel
+                    itemType="issues"
                     staff={staff.staff}
                     eventReleaseDate={issueEvent.start}
                   />

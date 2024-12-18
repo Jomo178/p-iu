@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { getStaffIds } from "@/server/staff/_action";
 import {
   FramesViewPort,
@@ -9,14 +9,13 @@ import {
   IssuesViewType,
 } from "@/types";
 import { Staff } from "@prisma/client";
-import { isEmpty } from "lodash";
-import { parseAsStringLiteral, useQueryState } from "nuqs";
+import { useQueryState } from "nuqs";
 import { useInView } from "react-intersection-observer";
 import Balancer from "react-wrap-balancer";
 import { toast } from "sonner";
 
 import { PendingIssuesWithRelation } from "@/types/prisma";
-import { prisma } from "@/lib/database";
+import { framesViewPortType, issuesViewPortType } from "@/config/items-view";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Icons } from "@/components/ui/icons";
@@ -25,15 +24,13 @@ import { useSidebar } from "@/components/ui/sidebar";
 import { EmptyState } from "@/components/empty-state";
 
 import DynamicButtonIsland from "./dynamic-button-island";
-import { framesViewPortType } from "./frames";
-import { issuesViewPortType } from "./issues";
-import ItemsFilterMenu from "./items-filter-menu";
-import ItemsInformationSidebar from "./items-information-sidebar";
 import {
   constructOrderByConditions,
   constructWhereConditions,
   searchParams,
-} from "./searchParams";
+} from "./handlers";
+import ItemsFilterMenu from "./items-filter-menu";
+import ItemsInformationSidebar from "./items-information-sidebar";
 import ViewItemCard from "./view-item-card";
 import { ViewItemSkeleton } from "./view-item-skeleton";
 

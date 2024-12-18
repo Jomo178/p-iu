@@ -29,35 +29,6 @@ export function formatBytes(
   }`;
 }
 
-export function generateIssueCode(
-  name: string,
-  act: string,
-  group: string,
-  rarity: number
-) {
-  const firstLetter = name.charAt(0).toUpperCase();
-  const lastLetter = name.charAt(name.length - 1).toUpperCase();
-  const firstTwoActChars = act
-    .replace(/\s+/g, "")
-    .substring(0, 2)
-    .toUpperCase();
-  const firstTwoGroupChars = group
-    .replace(/\s+/g, "")
-    .substring(0, 2)
-    .toUpperCase();
-  const rarityCode = rarity.toString().toUpperCase();
-
-  const code = `${firstLetter}${lastLetter}${firstTwoActChars}${firstTwoGroupChars}${rarityCode}`;
-  return code;
-}
-
-export function generateFrameCode(
-  name: string,
-  rarity: "Common" | "Rare" | "Special"
-) {
-  return name + rarity;
-}
-
 export function scrollToCarousel(api: CarouselApi, index: number) {
   setTimeout(() => {
     if (api) {

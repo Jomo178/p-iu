@@ -1,5 +1,3 @@
-import { framesViewPortType } from "@/container/dashboard/view/frames";
-import { issuesViewPortType } from "@/container/dashboard/view/issues";
 import ViewAllItems from "@/container/dashboard/view/view-all-items";
 import ViewItemsGroupPreview from "@/container/dashboard/view/view-items-group-preview";
 import { getCachedStaffDiscordProfiles } from "@/server/staff/_action";
@@ -11,15 +9,15 @@ import {
   QueryClient,
 } from "@tanstack/react-query";
 
+import { framesViewPortType, issuesViewPortType } from "@/config/items-view";
 import { getCurrentStaff } from "@/lib/session";
 
 export async function generateStaticParams() {
   const itemsTypeArray = Object.values(EventType).map((type) => ({ id: type }));
-  const test = "test";
+
   return [...itemsTypeArray, ...issuesViewPortType, ...framesViewPortType].map(
     (type) => ({
       type: type.id,
-      test,
     })
   );
 }
