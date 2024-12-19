@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { EventType } from "@prisma/client";
 import { useForm } from "react-hook-form";
@@ -60,6 +62,22 @@ export default function ItemsForm({
     resolver: zodResolver(itemType === "frames" ? framesSchema : issuesSchema),
     defaultValues,
   });
+
+  useEffect(() => {
+    if (defaultValues.code) {
+      form.setValue(
+        "code",
+        defaultValues.code.length > 1
+          ? defaultValues.code
+          : isNaN(parseInt(defaultValues.code))
+            ? defaultValues.code
+            : ""
+      );
+    }
+
+    if (defaultValues.codeDuplicate)
+      form.setValue("codeDuplicate", defaultValues.codeDuplicate);
+  }, [defaultValues]);
 
   const isFieldHidden = (fieldName: IssuesFormPropsValueKeys) =>
     hiddenFields.includes(fieldName);
