@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { FramesViewPort, IssuesViewPort } from "@/types";
+import { FramesViewPort, IssuesViewPort, ItemsViewPortType } from "@/types";
+import { EventType } from "@prisma/client";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -19,25 +20,25 @@ import { usehandleApprovePendingItems } from "./handlers";
 
 interface DeleteIssuesProps {
   issues: { id: string; name: string; image: string }[];
-  isFrame: boolean;
+  itemType: `${EventType}`;
   openDialog: boolean;
   setOpenDialogAction: React.Dispatch<React.SetStateAction<boolean>>;
   setViewTypeDataAction?: React.Dispatch<
-    React.SetStateAction<IssuesViewPort | FramesViewPort>
+    React.SetStateAction<ItemsViewPortType>
   >;
-  viewPortType: IssuesViewPort | FramesViewPort;
+  viewPortType: ItemsViewPortType;
 }
 
 export default function DeleteItemsDialog({
   issues,
-  isFrame,
+  itemType,
   openDialog,
   setOpenDialogAction,
   setViewTypeDataAction,
   viewPortType,
 }: DeleteIssuesProps) {
   const { handleDeleteItems } = usehandleApprovePendingItems(
-    isFrame,
+    itemType,
     setViewTypeDataAction
   );
   const [password, setPassword] = useState("");

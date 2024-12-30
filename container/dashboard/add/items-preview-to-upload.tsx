@@ -12,6 +12,7 @@ import {
   framesSchema,
   issuesSchema,
   ItemsFormPropsValue,
+  itemsSchema,
 } from "@/config/items-add";
 import { cn, scrollToCarousel, toUpperCase } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -68,14 +69,11 @@ export default function ItemsPreviewToUpload({
     }[]
   >([]);
 
-  const itemName = itemType == "issues" ? "issue" : "frame";
+  const itemName = itemType.slice(0, -1);
 
   const openPreview = async () => {
     const formErrors = itemsFormPropsValue.map((item, index) => {
-      const checkEmptyProps =
-        itemType === "issues"
-          ? issuesSchema.safeParse(item)
-          : framesSchema.safeParse(item);
+      const checkEmptyProps = itemsSchema[itemType].safeParse(item);
 
       return (
         checkEmptyProps.error?.issues.map((error) => ({
@@ -113,8 +111,10 @@ export default function ItemsPreviewToUpload({
 
     if (formErrors.some((errors) => errors.length > 0)) return;
 
+    if (itemType === "fonts") return setOpenSheet(true);
+
     const checkCodesPromise = checkDuplicateItemsCode(
-      itemsFormPropsValue.map((item) => item.code),
+      itemsFormPropsValue.map((item: any) => item.code),
       itemType
     );
 
@@ -127,7 +127,7 @@ export default function ItemsPreviewToUpload({
     const checkCodes = await checkCodesPromise;
 
     setItemsFormPropsValueAction((prev) => {
-      return prev.map((item, index) => {
+      return prev.map((item: any, index) => {
         if (!checkCodes.includes(item.code)) return item;
         return {
           ...item,
@@ -156,7 +156,7 @@ export default function ItemsPreviewToUpload({
               scrollToCarousel(
                 carouselApi,
                 itemsFormPropsValue.findIndex(
-                  (item) => item.code === checkCodes[i]
+                  (item: any) => item.code === checkCodes[i]
                 )
               ),
           },
@@ -204,24 +204,22 @@ export default function ItemsPreviewToUpload({
         : [{ ...defaultValues, id: Math.random().toString() }]
     );
 
-    setIsUploading(false);
     setOpenSheet(false);
+    setIsUploading(false);
   };
 
   return (
     <>
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant="outline" onClick={openPreview} disabled={disabled}>
-              <Icons.previewButton size={24} />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Upload Preview</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button variant="outline" onClick={openPreview} disabled={disabled}>
+            <Icons.previewButton size={24} />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>Upload Preview</p>
+        </TooltipContent>
+      </Tooltip>
       <ItemsUploadPreview
         itemType={itemType}
         itemsFormPropsValue={itemsFormPropsValue}

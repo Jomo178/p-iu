@@ -1,5 +1,5 @@
 import * as React from "react";
-import { EyeIcon, EyeOffIcon } from "lucide-react";
+import { EyeIcon, EyeOffIcon, Minus, Plus } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -158,6 +158,91 @@ const PasswordInput = React.forwardRef<HTMLInputElement, InputProps>(
 );
 PasswordInput.displayName = "PasswordInput";
 
+export interface InputNumberProps
+  extends React.InputHTMLAttributes<HTMLInputElement> {
+  value?: number;
+  min?: number;
+  max?: number;
+  step?: number;
+  onValueChange?: (value: number) => void;
+}
+
+const InputNumber = React.forwardRef<HTMLInputElement, InputNumberProps>(
+  (
+    { className, value, min = 0, max = 100, step = 1, onValueChange, ...props },
+    ref
+  ) => {
+    const [internalValue, setInternalValue] = React.useState<number>(
+      value ?? 0
+    );
+
+    React.useEffect(() => {
+      if (value !== undefined) {
+        setInternalValue(value);
+      }
+    }, [value]);
+
+    const handleIncrement = () => {
+      const newValue = Math.min(internalValue + step, max);
+      setInternalValue(newValue);
+      onValueChange?.(newValue);
+    };
+
+    const handleDecrement = () => {
+      const newValue = Math.max(internalValue - step, min);
+      setInternalValue(newValue);
+      onValueChange?.(newValue);
+    };
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      let newValue = e.target.value.replace(/^0+(?=\d)/, "");
+      newValue = Math.min(Math.max(Number(newValue), min), max).toString();
+      setInternalValue(Number(newValue));
+      onValueChange?.(Number(newValue));
+    };
+
+    return (
+      <div className={cn("flex max-w-xs items-center", className)}>
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          onClick={handleDecrement}
+          disabled={internalValue <= min}
+          className="rounded-r-none"
+          aria-label="Decrease value"
+        >
+          <Minus className="h-4 w-4" />
+        </Button>
+        <Input
+          type="number"
+          ref={ref}
+          value={internalValue}
+          onChange={handleChange}
+          min={min}
+          max={max}
+          step={step}
+          className="min-h-10 rounded-none border-x-0 text-center [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+          {...props}
+        />
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          onClick={handleIncrement}
+          disabled={internalValue >= max}
+          className="rounded-l-none"
+          aria-label="Increase value"
+        >
+          <Plus className="h-4 w-4" />
+        </Button>
+      </div>
+    );
+  }
+);
+
+InputNumber.displayName = "InputNumber";
+
 export {
   Input,
   FloatingInput,
@@ -165,4 +250,5 @@ export {
   FloatingLabelInput,
   InputField,
   PasswordInput,
+  InputNumber,
 };

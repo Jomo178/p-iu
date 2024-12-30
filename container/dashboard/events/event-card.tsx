@@ -182,7 +182,7 @@ function ReleaseEvent({
   setOpenDialogAction,
 }: ReleaseEventProps) {
   const [loading, setLoading] = useState(false);
-
+  console.log(event);
   return (
     <Credenza open={openDialog} onOpenChange={setOpenDialogAction}>
       <CredenzaContent className="md:max-w-md">
@@ -197,6 +197,7 @@ function ReleaseEvent({
             <p>Are you sure to release the Approved Items?</p>
             {event.type.map((type, index) => {
               const pendingName = ("pending" + toUpperCase(type)) as EventType;
+
               return (
                 <span key={index} className="text-xs text-muted-foreground">
                   {`${toUpperCase(type)}: ${event[type].length + event[pendingName].length}`}

@@ -80,10 +80,17 @@ export function ItemsCustomPropertiesDialog({
           onFormChangeAction={(index, value: any) => {
             setItemsFormPropsValue((prev) => {
               const newData = { ...prev } as any;
-              newData.rarity = value.rarity;
               if (itemType === "issues") {
                 newData.group = value.group;
                 newData.act = value.act;
+                newData.rarity = value.rarity;
+              } else if (itemType === "frames") {
+                newData.rarity = value.rarity;
+              } else {
+                newData.price = value.price;
+                newData.onMarket = value.onMarket;
+                newData.shortName = value.shortName;
+                newData.isBig = value.isBig;
               }
               return newData;
             });
@@ -94,21 +101,26 @@ export function ItemsCustomPropertiesDialog({
           <Button
             variant="destructive"
             onClick={() => {
-              const issuesObj = {
-                group: "",
-                act: "",
-                rarity: 1,
+              const itemsObj = {
+                issues: { group: "", act: "", rarity: 1 },
+                frames: { rarity: "Common" },
+                fonts: {
+                  price: 0,
+                  onMarket: false,
+                  shortName: "",
+                  isBig: false,
+                },
               };
 
               setNewCustomPropsAction({
                 ...getNewCustomProps,
-                ...(itemType === "issues" ? issuesObj : { rarity: "Common" }),
+                ...(itemsObj[itemType] as any),
               });
 
               setItemFormPropsValueAction((prev) =>
                 prev.map((item) => ({
                   ...item,
-                  ...(itemType === "issues" ? issuesObj : { rarity: "Common" }),
+                  ...(itemsObj[itemType] as any),
                   id: Math.random().toString(),
                 }))
               );

@@ -54,83 +54,75 @@ export default function ItemsButtonControl({
     <>
       <div className="mb-4 flex flex-col items-center justify-center gap-4">
         <div className="flex justify-center gap-4">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  disabled={carouselCount - 1 == 0}
-                  onClick={() => {
-                    setItemsFormPropsValueAction((prev) => {
-                      const indexToDelete =
-                        carouselApi?.selectedScrollSnap() ?? 0;
-                      const updatedData = prev.filter(
-                        (_, index) => index !== indexToDelete
-                      );
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                disabled={carouselCount - 1 == 0}
+                onClick={() => {
+                  setItemsFormPropsValueAction((prev) => {
+                    const indexToDelete =
+                      carouselApi?.selectedScrollSnap() ?? 0;
+                    const updatedData = prev.filter(
+                      (_, index) => index !== indexToDelete
+                    );
 
-                      const newIndex = Math.min(
-                        indexToDelete,
-                        updatedData.length - 1
-                      );
-                      setCarouselCountAction(updatedData.length);
-                      setCarouselCurrentIndexAction(
-                        newIndex == 0 ? 1 : newIndex
-                      );
-                      return updatedData;
-                    });
-                  }}
-                >
-                  <Icons.deleteButton size={24} />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Delete {toUpperCase(itemType)}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  disabled={carouselCount == 15}
-                  onClick={() => {
-                    setItemsFormPropsValueAction((prev: any) => [
-                      ...prev,
-                      {
-                        ...getNewCustomProps,
-                        id: Math.random().toString(),
-                        releaseDate: eventReleaseDate,
-                      },
-                    ]);
+                    const newIndex = Math.min(
+                      indexToDelete,
+                      updatedData.length - 1
+                    );
+                    setCarouselCountAction(updatedData.length);
+                    setCarouselCurrentIndexAction(newIndex == 0 ? 1 : newIndex);
+                    return updatedData;
+                  });
+                }}
+              >
+                <Icons.deleteButton size={24} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Delete {toUpperCase(itemType)}</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                disabled={carouselCount == 15}
+                onClick={() => {
+                  setItemsFormPropsValueAction((prev: any) => [
+                    ...prev,
+                    {
+                      ...getNewCustomProps,
+                      id: Math.random().toString(),
+                      releaseDate: eventReleaseDate,
+                    },
+                  ]);
 
-                    setCarouselCountAction(itmesFormPropsValue.length + 1);
-                    scrollToCarousel(carouselApi, itmesFormPropsValue.length);
-                  }}
-                >
-                  <Icons.addButton size={24} />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Add {toUpperCase(itemType)}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  onClick={() => setOpenDialog((prev) => !prev)}
-                >
-                  <Icons.customPropsButton className="h-6 w-6" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Custom Properties</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+                  setCarouselCountAction(itmesFormPropsValue.length + 1);
+                  scrollToCarousel(carouselApi, itmesFormPropsValue.length);
+                }}
+              >
+                <Icons.addButton size={24} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Add {toUpperCase(itemType)}</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                onClick={() => setOpenDialog((prev) => !prev)}
+              >
+                <Icons.customPropsButton className="h-6 w-6" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Custom Properties</p>
+            </TooltipContent>
+          </Tooltip>
           <ItemsPreviewToUpload
             itemType={itemType}
             carouselApi={carouselApi}
@@ -140,7 +132,7 @@ export default function ItemsButtonControl({
               ...(getNewCustomProps as any),
               releaseDate: eventReleaseDate,
             }}
-            disabled={hasPermission(staff, "create:issue")}
+            disabled={hasPermission(staff, `create:${itemType}`)}
           />
         </div>
       </div>
@@ -151,7 +143,7 @@ export default function ItemsButtonControl({
         itemType={itemType}
         setItemFormPropsValueAction={setItemsFormPropsValueAction as any}
         getNewCustomProps={{
-          ...getNewCustomProps,
+          ...(getNewCustomProps as any),
           releaseDate: eventReleaseDate,
         }}
         setNewCustomPropsAction={setNewCustomProps as any}

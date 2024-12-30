@@ -2,12 +2,17 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { FramesViewPort, IssuesViewPort } from "@/types";
+import {
+  FontsViewPort,
+  FramesViewPort,
+  IssuesViewPort,
+  ItemsViewPortType,
+} from "@/types";
 import { EventType, Staff } from "@prisma/client";
 import Balancer from "react-wrap-balancer";
 
 import { PendingIssuesWithRelation } from "@/types/prisma";
-import { framesViewPortType, issuesViewPortType } from "@/config/items-view";
+import { itemsViewPortType } from "@/config/items-view";
 import { cn, toUpperCase } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -33,12 +38,12 @@ export default function ViewItemsGroupPreview({
   const { open } = useSidebar();
   const [loading, setLoading] = useState(false);
   const [openSidebarInformation, setOpenSidebarInformation] = useState(false);
-  const [itemsGroup, setItemsGroup] = useState<IssuesViewPort | FramesViewPort>(
-    type === "frames" ? framesViewPortType[0] : issuesViewPortType[0]
+  const [itemsGroup, setItemsGroup] = useState<ItemsViewPortType>(
+    itemsViewPortType[type][0]
   );
-  const [itemsGroupData, setItemsGroupData] = useState<
-    (IssuesViewPort | FramesViewPort)[]
-  >(type === "frames" ? framesViewPortType : issuesViewPortType);
+  const [itemsGroupData, setItemsGroupData] = useState<ItemsViewPortType[]>(
+    itemsViewPortType[type]
+  );
 
   useEffect(() => {
     const fetchItems = async () => {
@@ -86,9 +91,6 @@ export default function ViewItemsGroupPreview({
                   </TabsTrigger>
                 </Link>
               ))}
-              <TabsTrigger value="fonts" className="w-full" disabled>
-                Fonts
-              </TabsTrigger>
             </TabsList>
           </div>
         </div>
@@ -159,12 +161,14 @@ export default function ViewItemsGroupPreview({
                             <ViewItemCard
                               key={issue.id}
                               staff={staff}
-                              isFrame={type === "frames"}
                               issue={issue}
+                              itemsType={type}
                               isSelected={itemsGroup.selectedItems
                                 .map((item) => item.id)
                                 .includes(issue.id)}
-                              viewPortType={viewPort}
+                              viewPortType={
+                                viewPort as IssuesViewPort | FramesViewPort
+                              }
                               setInformationSidebarAction={(open) => {
                                 if (
                                   itemsGroup.selectedItems
@@ -200,8 +204,8 @@ export default function ViewItemsGroupPreview({
       </Tabs>
       <ItemsInformationSidebar
         issues={itemsGroup.selectedItems as PendingIssuesWithRelation[]}
-        isFrames={type === "frames"}
         issueType={itemsGroup.title}
+        itemType={type}
         openSidebar={openSidebarInformation}
         setOpenSidebarAction={setOpenSidebarInformation}
       />

@@ -1,11 +1,12 @@
 "use server";
 
 import { EventType, FrameRarity } from "@prisma/client";
+import { put } from "@vercel/blob";
 
 import {
-  framesSchema,
-  issuesSchema,
+  FontsFormPropsValue,
   ItemsFormPropsValue,
+  itemsSchema,
 } from "@/config/items-add";
 import { prisma } from "@/lib/database";
 import { getCurrentStaff } from "@/lib/session";
@@ -15,14 +16,11 @@ import { utapi } from "../uploadthing";
 
 export async function UploadItems(
   itemType: `${EventType}`,
-  item: ItemsFormPropsValue
+  item: ItemsFormPropsValue | FontsFormPropsValue
 ): Promise<{ variant: "success" | "error"; message: string }> {
   const currentUser = await getCurrentStaff();
 
-  const parsedIssue =
-    itemType === "issues"
-      ? issuesSchema.safeParse(item)
-      : framesSchema.safeParse(item);
+  const parsedIssue = itemsSchema[itemType].safeParse(item);
 
   if (!parsedIssue.success) {
     return {
@@ -32,50 +30,85 @@ export async function UploadItems(
     };
   }
 
-  const currentEvent = await getCurrentEvent([itemType]);
+  const currentEvent = await getCurrentEvent(["issues"]);
   if (!currentEvent) {
     return {
       message: "was not uploaded to the server. No event is currently active.",
       variant: "error",
     };
   }
+  let response;
 
-  const response = await utapi.uploadFiles(item.image);
+  if (itemType === "issues" || itemType === "frames") {
+    response = await utapi.uploadFiles(item.image);
 
-  if (response.error?.code || !response.data) {
-    return {
-      message:
-        "was not uploaded to the server. An error occurred while uploading the image.",
-      variant: "error",
+    if (response.error?.code || !response.data) {
+      return {
+        message:
+          "was not uploaded to the server. An error occurred while uploading the image.",
+        variant: "error",
+      };
+    }
+  } else {
+    const blob = await put("fonts/" + item.image.name, item.image, {
+      access: "public",
+      contentType: "application/oft",
+    });
+
+    response = {
+      data: {
+        url: blob.url,
+      },
     };
   }
 
-  let createdPendingItem;
-
-  if (itemType === "issues" && "act" in item) {
-    createdPendingItem = await prisma.pendingIssues.create({
-      data: {
-        name: item.name,
-        act: item.act,
-        group: item.group,
-        code: item.code,
-        rarity: item.rarity,
-        image: response.data?.url,
-        createdById: currentUser.staff.id,
-        eventId: currentEvent.id,
-      },
-    });
-  } else {
-    createdPendingItem = await prisma.pendingFrames.create({
-      data: {
-        name: item.name,
-        code: item.code,
-        rarity: item.rarity as FrameRarity,
-        image: response.data?.url,
-        createdById: currentUser.staff.id,
-        eventId: currentEvent.id,
-      },
-    });
+  switch (itemType) {
+    case "issues":
+      if ("act" in item) {
+        await prisma.pendingIssues.create({
+          data: {
+            name: item.name,
+            act: item.act,
+            group: item.group,
+            code: item.code,
+            rarity: item.rarity,
+            image: response.data?.url,
+            createdById: currentUser.staff.id,
+            eventId: currentEvent.id,
+          },
+        });
+      }
+      break;
+    case "frames":
+      if ("code" in item) {
+        await prisma.pendingFrames.create({
+          data: {
+            name: item.name,
+            code: item.code,
+            rarity: item.rarity as FrameRarity,
+            image: response.data?.url,
+            createdById: currentUser.staff.id,
+            eventId: currentEvent.id,
+          },
+        });
+      }
+      break;
+    case "fonts":
+      if ("shortName" in item) {
+        await prisma.pendingFonts.create({
+          data: {
+            name: item.name,
+            short: item.shortName,
+            isBig: item.isBig,
+            onMarket: item.onMarket,
+            price: item.price,
+            filePath: response.data?.url,
+            createdById: currentUser.staff.id,
+            eventId: currentEvent.id,
+          },
+        });
+      }
+      break;
   }
 
   return {

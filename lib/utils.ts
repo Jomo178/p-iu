@@ -47,11 +47,15 @@ export const formatTimestamp = (date: Date) => {
   });
 };
 
-export function checkFileType(file: File) {
+export function checkFileType(
+  file: File,
+  allowedTypes: string[] = ["png", "jpg", "gif"]
+) {
   if (file?.name) {
     const fileType = file.name.split(".").pop();
-    if (fileType === "png" || fileType === "jpg" || fileType === "gif")
+    if (fileType && allowedTypes.includes(fileType)) {
       return true;
+    }
   }
   return false;
 }

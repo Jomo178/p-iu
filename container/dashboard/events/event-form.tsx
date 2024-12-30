@@ -34,7 +34,7 @@ interface EventFormProps {
       name: string;
       start: Date;
       end: Date;
-      type: ("issues" | "frames")[];
+      type: EventType[];
       customRarity: string;
     },
     any,

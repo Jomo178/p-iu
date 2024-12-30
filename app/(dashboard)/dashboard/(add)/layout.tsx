@@ -1,4 +1,3 @@
-import { notFound } from "next/navigation";
 import DashboardSidebar from "@/container/dashboard/sidebar-dashboard";
 
 import { getCurrentStaff, getCurrentUser } from "@/lib/session";

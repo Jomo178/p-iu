@@ -3,196 +3,130 @@ import {
   IssueFilterSchema,
 } from "@/model/issues-schema";
 import {
-  approvePendingIssues,
-  deleteIssues,
-  editIssue,
-  rejectPendingIssues,
-  resubmitRejectedIssues,
-} from "@/server/view/_actions-issues";
-import {
-  approvePendingFrames,
-  deleteFrames,
-  editFrame,
-  rejectFramesIssues,
-  resubmitRejectedFrames,
-} from "@/server/view/_actions.frames";
-import {
-  EditIssueProps,
-  FramesViewPort,
-  FramesViewType,
-  IssuesViewPort,
-  IssuesViewType,
-} from "@/types";
+  approveItems,
+  deleteItems,
+  editItems,
+  rejectItems,
+  resubmitRejectedItems,
+} from "@/server/view/set-action";
+import { EditIssueProps, ItemsViewPortType, ViewPortType } from "@/types";
+import { EventType } from "@prisma/client";
 import { parseAsJson, parseAsStringLiteral } from "nuqs/server";
 import { toast } from "sonner";
 
-import { PendingIssuesWithRelation } from "@/types/prisma";
+import { toUpperCase } from "@/lib/utils";
 
 export function usehandleApprovePendingItems(
-  isFrame: boolean,
+  itemType: `${EventType}`,
   setViewTypeDataAction?: React.Dispatch<
-    React.SetStateAction<IssuesViewPort | FramesViewPort>
+    React.SetStateAction<ItemsViewPortType>
   >
 ) {
-  const handleApprovePendingItems = async (
-    issuesIds: [string, ...string[]]
-  ) => {
-    const { promise, title, error } = isFrame
-      ? {
-          promise: approvePendingFrames,
-          title: "Approving Frames...",
-          error: "Frames were not approved. You are not logged in.",
-        }
-      : {
-          promise: approvePendingIssues,
-          title: "Approving Issues...",
-          error: "Issues were not approved. You are not logged in.",
-        };
+  const tableName = {
+    issues: "pendingIssues",
+    frames: "pendingFrames",
+    fonts: "pendingFonts",
+  } as const;
 
-    toast.promise(promise(issuesIds), {
-      loading: title,
+  const handleApprovePendingItems = async (itemsIds: string[]) => {
+    toast.promise(approveItems(itemsIds, tableName[itemType]), {
+      loading: `Approving ${toUpperCase(itemType)}...`,
       success(data) {
         if (setViewTypeDataAction) {
           setViewTypeDataAction((prev) => ({
             ...prev,
             data: prev.data.filter(
-              (issue) => !issuesIds.includes(issue.id)
+              (item) => !itemsIds.includes(item.id)
             ) as any[],
             selectedItems: [],
           }));
         }
         return data.message;
       },
-      error: error,
+      error: `Failed to approve ${toUpperCase(itemType)}.`,
     });
   };
 
   const handleRejectPendingItems = async (
-    issuesIds: [string, ...string[]],
+    itemsIds: string[],
     reason: string
   ) => {
-    const { promise, title, error } = isFrame
-      ? {
-          promise: rejectFramesIssues,
-          title: "Rejecting Frames...",
-          error: "Frames were not rejected. You are not logged in.",
-        }
-      : {
-          promise: rejectPendingIssues,
-          title: "Rejecting Issues...",
-          error: "Issues were not rejected. You are not logged in.",
-        };
-
-    toast.promise(promise(issuesIds, reason), {
-      loading: title,
+    toast.promise(rejectItems(itemsIds, tableName[itemType], reason), {
+      loading: `Rejecting ${toUpperCase(itemType)}...`,
       success(data) {
         if (setViewTypeDataAction) {
           setViewTypeDataAction((prev) => ({
             ...prev,
             data: prev.data.filter(
-              (issue) => !issuesIds.includes(issue.id)
+              (item) => !itemsIds.includes(item.id)
             ) as any[],
             selectedItems: [],
           }));
         }
         return data.message;
       },
-      error: error,
+      error: `Failed to reject ${toUpperCase(itemType)}.`,
     });
   };
 
-  const handleResubmitRejectedItems = async (
-    issuesIds: [string, ...string[]]
-  ) => {
-    const { promise, title, error } = isFrame
-      ? {
-          promise: resubmitRejectedFrames,
-          title: "Resubmitting Frames...",
-          error: "Frames were not resubmitted. You are not logged in.",
-        }
-      : {
-          promise: resubmitRejectedIssues,
-          title: "Resubmitting Issues...",
-          error: "Issues were not resubmitted. You are not logged in.",
-        };
-
-    toast.promise(promise(issuesIds), {
-      loading: title,
+  const handleResubmitRejectedItems = async (itemsIds: string[]) => {
+    toast.promise(resubmitRejectedItems(itemsIds, tableName[itemType]), {
+      loading: `Resubmitting ${toUpperCase(itemType)}...`,
       success(data) {
         if (setViewTypeDataAction) {
           setViewTypeDataAction((prev) => ({
             ...prev,
             data: prev.data.filter(
-              (issue) => !issuesIds.includes(issue.id)
+              (item) => !itemsIds.includes(item.id)
             ) as any[],
             selectedItems: [],
           }));
         }
         return data.message;
       },
-      error: error,
+      error: `Failed to resubmit ${toUpperCase(itemType)}.`,
     });
   };
 
   const handleEditItems = async ({ viewPortId, issue }: EditIssueProps) => {
-    const { promise, title } = isFrame
-      ? {
-          promise: editFrame,
-          title: "Editing Frame...",
+    toast.promise(editItems({ viewPortId, issue }), {
+      loading: `Editing ${itemType}...`,
+      success({ item, message }) {
+        if (setViewTypeDataAction && issue) {
+          setViewTypeDataAction((prev) => ({
+            ...prev,
+            data: prev.data.map((items) =>
+              items.id === item?.id ? item : items
+            ) as any[],
+            selectedItems: [],
+          }));
         }
-      : {
-          promise: editIssue,
-          title: "Editing Issue...",
-        };
-
-    toast.promise(
-      promise({ viewPortId, issue }) as Promise<{
-        message: string;
-        issue: PendingIssuesWithRelation;
-      }>,
-      {
-        loading: title,
-        success({ issue, message }) {
-          if (setViewTypeDataAction && issue) {
-            setViewTypeDataAction((prev) => ({
-              ...prev,
-              data: prev.data.map((issueType) =>
-                issueType.id === issue.id ? issue : issueType
-              ) as any[],
-              selectedItems: [],
-            }));
-          }
-          return message;
-        },
-        error: `Failed to edit ${isFrame ? "frame" : "issue"}.`,
-      }
-    );
+        return message;
+      },
+      error: `Failed to edit ${itemType}.`,
+    });
   };
 
   const handleDeleteItems = async (
-    viewTypeId: IssuesViewType | FramesViewType,
-    issues: { id: string; image: string }[],
+    viewTypeId: ViewPortType,
+    items: { id: string; image: string }[],
     password: string
   ) => {
-    const { promise, title } = isFrame
-      ? { promise: deleteFrames, title: "Deleting Frames..." }
-      : { promise: deleteIssues, title: "Deleting Issues..." };
-
-    toast.promise(promise(viewTypeId, issues, password), {
-      loading: title,
+    toast.promise(deleteItems(viewTypeId, items, password), {
+      loading: "Deleting...",
       success(data) {
         if (setViewTypeDataAction) {
           setViewTypeDataAction((prev) => ({
             ...prev,
             data: prev.data.filter(
-              (issue) => !issues.map((issue) => issue.id).includes(issue.id)
+              (prevData) => !items.map((item) => item.id).includes(prevData.id)
             ) as any[],
             selectedItems: [],
           }));
         }
         return data.message;
       },
-      error: `${isFrame ? "Frames" : "Issues"} were not deleted. Incorrect password.`,
+      error: `Items were not deleted. Incorrect password.`,
     });
   };
 

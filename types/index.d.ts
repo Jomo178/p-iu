@@ -6,8 +6,10 @@ import { Issues, PendingIssues } from "@prisma/client";
 import { Icons } from "@/components/ui/icons";
 
 import {
+  FontsWithRelation,
   FramesWithRelation,
   IssuesWithRelation,
+  PendingFontsWithRelation,
   PendingFramesWithRelation,
   PendingIssuesWithRelation,
   RejectedIssuesWithRelation,
@@ -37,30 +39,6 @@ export interface ViewDashboardType {
   items: DashboradActionsType[];
 }
 
-export type IssuesViewType =
-  | "released-issues"
-  | "pending-issues"
-  | "rejected-issues"
-  | "upcoming-issues";
-
-export interface IssuesViewPort {
-  title: string;
-  id: IssuesViewType;
-  description: string;
-  noteDescription?: string;
-  fetchCount: number;
-  fetchFunction: (
-    skip: number,
-    amount: number,
-    filter: any,
-    orderBy: any
-  ) => Promise<IssuesWithRelation[] | PendingIssuesWithRelation[]>;
-  data: IssuesWithRelation[] | PendingIssuesWithRelation[];
-  selectedItems: IssuesWithRelation[] | PendingIssuesWithRelation[];
-  disabled: boolean;
-  href: `/dashboard/view/${IssuesViewType}`;
-  Icon: FC<{ className: string }>;
-}
 export interface EditIssueProps {
   viewPortId: IssuesViewType | FramesViewType;
   issue: (IssuesFormPropsValue | FramesFormPropsValue) & {
@@ -69,18 +47,42 @@ export interface EditIssueProps {
   };
 }
 
+export interface itemsInterface {
+  title: string;
+  description: string;
+  noteDescription?: string;
+  fetchCount: number;
+  Icon: FC<{ className: string }>;
+  disabled: boolean;
+}
+
+export type IssuesViewType =
+  | "released-issues"
+  | "pending-issues"
+  | "rejected-issues"
+  | "upcoming-issues";
+
+export interface IssuesViewPort extends itemsInterface {
+  id: IssuesViewType;
+  fetchFunction: (
+    skip: number,
+    amount: number,
+    filter: any,
+    orderBy: any
+  ) => Promise<IssuesWithRelation[] | PendingIssuesWithRelation[]>;
+  data: IssuesWithRelation[] | PendingIssuesWithRelation[];
+  selectedItems: IssuesWithRelation[] | PendingIssuesWithRelation[];
+  href: `/dashboard/view/${IssuesViewType}`;
+}
+
 export type FramesViewType =
   | "released-frames"
   | "pending-frames"
   | "rejected-frames"
   | "upcoming-frames";
 
-export interface FramesViewPort {
-  title: string;
+export interface FramesViewPort extends itemsInterface {
   id: FramesViewType;
-  description: string;
-  noteDescription?: string;
-  fetchCount: number;
   fetchFunction: (
     skip: number,
     amount: number,
@@ -89,7 +91,27 @@ export interface FramesViewPort {
   ) => Promise<FramesWithRelation[] | PendingFramesWithRelation[]>;
   data: FramesWithRelation[] | PendingFramesWithRelation[];
   selectedItems: FramesWithRelation[] | PendingFramesWithRelation[];
-  disabled: boolean;
   href: `/dashboard/view/${FramesViewType}`;
-  Icon: FC<{ className: string }>;
 }
+
+export type FontsViewType =
+  | "released-fonts"
+  | "pending-fonts"
+  | "rejected-fonts"
+  | "upcoming-fonts";
+
+export interface FontsViewPort extends itemsInterface {
+  id: FontsViewType;
+  fetchFunction: (
+    skip: number,
+    amount: number,
+    filter: any,
+    orderBy: any
+  ) => Promise<FontsWithRelation[] | PendingFontsWithRelation[]>;
+  data: FontsWithRelation[] | PendingFontsWithRelation[];
+  selectedItems: FontsWithRelation[] | PendingFontsWithRelation[];
+  href: `/dashboard/view/${FontsViewType}`;
+}
+
+export type ViewPortType = IssuesViewType | FramesViewType | FontsViewType;
+export type ItemsViewPortType = IssuesViewPort | FramesViewPort | FontsViewPort;

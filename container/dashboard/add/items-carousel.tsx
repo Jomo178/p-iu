@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { EventType, Staff } from "@prisma/client";
 
 import {
+  FontsFormPropsValue,
   generateFrameCode,
   generateIssueCode,
   ItemsFormPropsValue,
@@ -38,9 +39,9 @@ export default function ItemsCarousel({
   const [defaultFormValues, setDefaultFormValues] =
     useDefaultItemsFormValues(itemType);
 
-  const [issuesFormPropsValue, setIssuesFormPropsValue] = useState<
-    ItemsFormPropsValue[]
-  >([{ ...defaultFormValues, errors: [], releaseDate: eventReleaseDate }]);
+  const [issuesFormPropsValue, setIssuesFormPropsValue] = useState<any[]>([
+    { ...defaultFormValues, errors: [], releaseDate: eventReleaseDate },
+  ]);
 
   useEffect(() => {
     if (!api) return;
@@ -104,7 +105,7 @@ export default function ItemsCarousel({
         <CarouselNext />
       </Carousel>
       <div className="py-2 text-center text-sm text-muted-foreground">
-        Issue {current} of {count}
+        {itemType} {current} of {count}
       </div>
     </>
   );

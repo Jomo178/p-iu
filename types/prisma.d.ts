@@ -41,6 +41,7 @@ type EventsWithRelation = Prisma.EventsGetPayload<{
     createdBy: true;
     issues: true;
     frames: true;
+    fonts: true;
     pendingFrames: {
       where: {
         rejections: {
@@ -51,6 +52,15 @@ type EventsWithRelation = Prisma.EventsGetPayload<{
       };
     };
     pendingIssues: {
+      where: {
+        rejections: {
+          every: {
+            resubmitted: true;
+          };
+        };
+      };
+    };
+    pendingFonts: {
       where: {
         rejections: {
           every: {
@@ -77,6 +87,34 @@ type PendingFramesWithRelation = Prisma.PendingFramesGetPayload<{
 }>;
 
 type FramesWithRelation = Prisma.FramesGetPayload<{
+  include: {
+    createdBy: true;
+    approvedBy: true;
+    event: true;
+    rejections: {
+      include: {
+        rejectedBy: true;
+        resubmittedBy: true;
+      };
+    };
+  };
+}>;
+
+type FontsWithRelation = Prisma.FontsGetPayload<{
+  include: {
+    createdBy: true;
+    approvedBy: true;
+    event: true;
+    rejections: {
+      include: {
+        rejectedBy: true;
+        resubmittedBy: true;
+      };
+    };
+  };
+}>;
+
+type PendingFontsWithRelation = Prisma.FontsGetPayload<{
   include: {
     createdBy: true;
     approvedBy: true;

@@ -7,15 +7,17 @@ import {
   FramesViewType,
   IssuesViewPort,
   IssuesViewType,
+  ItemsViewPortType,
+  ViewPortType,
 } from "@/types";
-import { Staff } from "@prisma/client";
+import { EventType, Staff } from "@prisma/client";
 import { useQueryState } from "nuqs";
 import { useInView } from "react-intersection-observer";
 import Balancer from "react-wrap-balancer";
 import { toast } from "sonner";
 
 import { PendingIssuesWithRelation } from "@/types/prisma";
-import { framesViewPortType, issuesViewPortType } from "@/config/items-view";
+import { itemsViewPortType } from "@/config/items-view";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Icons } from "@/components/ui/icons";
@@ -35,22 +37,21 @@ import ViewItemCard from "./view-item-card";
 import { ViewItemSkeleton } from "./view-item-skeleton";
 
 interface ViewAllItemsProps {
-  viewType: IssuesViewType | FramesViewType;
+  viewType: ViewPortType;
   staff: Staff;
 }
 
 export default function ViewAllItems({ viewType, staff }: ViewAllItemsProps) {
   const { open } = useSidebar();
-  let findType = viewType.includes("frames")
-    ? framesViewPortType.find((viewPort) => viewPort.id === viewType)
-    : issuesViewPortType.find((viewPort) => viewPort.id === viewType);
+  const itemType = viewType.split("-")[1] as EventType;
+  let findType = itemsViewPortType[itemType].find(
+    (viewPort) => viewPort.id === viewType
+  );
 
   if (!findType) return null;
 
   const [scrollTrigger, inView] = useInView({ initialInView: true });
-  const [viewTypeData, setViewTypeData] = useState<
-    IssuesViewPort | FramesViewPort
-  >(findType);
+  const [viewTypeData, setViewTypeData] = useState<ItemsViewPortType>(findType);
   const [selectActive, setSelectActive] = useState(false);
   const [loading, setLoading] = useState(false);
   const [noData, setNoData] = useState(false);
@@ -194,7 +195,7 @@ export default function ViewAllItems({ viewType, staff }: ViewAllItemsProps) {
                     )}
                     staff={staff}
                     issue={issue}
-                    isFrame={viewType.includes("frames")}
+                    itemsType={itemType}
                     isSelected={isIssueSelected}
                     onClick={() => {
                       if (!selectActive) {
@@ -232,7 +233,7 @@ export default function ViewAllItems({ viewType, staff }: ViewAllItemsProps) {
 
             <ItemsInformationSidebar
               issues={viewTypeData.selectedItems as PendingIssuesWithRelation[]}
-              isFrames={viewType.includes("frames")}
+              itemType={viewType as any}
               issueType={findType.title}
               openSidebar={openSidebarInformation}
               setOpenSidebarAction={setOpenSidebarInformation}
@@ -262,6 +263,7 @@ export default function ViewAllItems({ viewType, staff }: ViewAllItemsProps) {
             setViewTypeDataAction={setViewTypeData}
             setOpenSidebarAction={setOpenSidebarInformation}
             staff={staff}
+            itemType={itemType}
           />
         </>
       )}

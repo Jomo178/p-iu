@@ -1,13 +1,18 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import Image from "next/image";
 import { EventType } from "@prisma/client";
 
-import { ItemsFormPropsValue } from "@/config/items-add";
+import {
+  FontsFormPropsValue,
+  FramesFormPropsValue,
+  IssuesFormPropsValue,
+  ItemsFormPropsValue,
+} from "@/config/items-add";
 import { toUpperCase } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Icons } from "@/components/ui/icons";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -45,9 +50,18 @@ export function ItemsUploadPreview({
         </SheetHeader>
 
         <div className="grid h-[80vh] grid-cols-1 gap-4 overflow-y-auto sm:grid-cols-2 lg:grid-cols-4">
-          {itemsFormPropsValue.map((item, index) => (
-            <CardPreview item={item} itemType={itemType} key={item.id} />
-          ))}
+          {itemsFormPropsValue.map((item, index) => {
+            if (itemType === "fonts") {
+              return <FontPreview font={item as any} key={index} />;
+            }
+            return (
+              <CardPreview
+                item={item as IssuesFormPropsValue}
+                itemType={itemType}
+                key={item.id}
+              />
+            );
+          })}
           <div className="flex flex-row sm:col-span-2 md:col-span-4 md:justify-end">
             <Button
               variant="expandIcon"
@@ -67,7 +81,7 @@ export function ItemsUploadPreview({
 
 interface CardPreviewProps {
   itemType: `${EventType}`;
-  item: ItemsFormPropsValue;
+  item: IssuesFormPropsValue | FramesFormPropsValue;
 }
 
 function CardPreview({ itemType, item }: CardPreviewProps) {
@@ -160,5 +174,66 @@ function TextInformation({
         {description}
       </Typography>
     </div>
+  );
+}
+
+interface FontPreviewProps {
+  font: FontsFormPropsValue;
+}
+
+function FontPreview({ font }: FontPreviewProps) {
+  const handleFontPreview = () => {
+    if (!font.image || font.name == "") return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const fontFace = new FontFace(font.name, `url(${reader.result})`);
+      fontFace.load().then((loadedFont) => {
+        document.fonts.add(loadedFont);
+      });
+    };
+    reader.readAsDataURL(font.image);
+  };
+
+  useEffect(() => {
+    handleFontPreview();
+  }, [font.image]);
+  return (
+    <Card
+      className="mx-auto mb-10 flex w-full max-w-xs items-center border-0 sm:flex-col"
+      key={font.name}
+    >
+      <CardContent className="flex aspect-auto items-center justify-center p-0">
+        <div
+          style={{
+            fontFamily: font.name,
+            fontSize: "24px",
+            marginTop: "10px",
+          }}
+        >
+          {font.name}
+        </div>
+      </CardContent>
+      <Separator className="mx-auto my-4 hidden max-w-[50%] sm:block" />
+      <CardHeader className="w-full p-0 text-center">
+        <div className="mx-[25%] flex min-h-full max-w-[50%] flex-row">
+          <Separator
+            orientation="vertical"
+            className="hidden w-[2px] sm:block"
+          />
+          <div className="sm:flex-1">
+            <TextInformation title="Short" description={font.shortName} />
+            <TextInformation
+              title="Price"
+              description={font.price.toString()}
+            />
+            <TextInformation
+              title="Market"
+              description={font.onMarket.toString()}
+            />
+            <TextInformation title="Big" description={font.isBig.toString()} />
+          </div>
+        </div>
+      </CardHeader>
+    </Card>
   );
 }

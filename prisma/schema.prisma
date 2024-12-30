@@ -75,26 +75,31 @@ model VerificationToken {
 }
 
 model Staff {
-  id                    String          @id @default(auto()) @map("_id") @db.ObjectId
-  discordId             String          @unique
-  role                  Role
-  create                Permission[]    @default([])
-  edit                  Permission[]    @default([])
-  delete                Permission[]    @default([])
-  handle                Permission[]    @default([])
-  createdAt             DateTime        @default(now())
-  updatedAt             DateTime        @updatedAt
+  id        String       @id @default(auto()) @map("_id") @db.ObjectId
+  discordId String       @unique
+  role      Role
+  create    Permission[] @default([])
+  edit      Permission[] @default([])
+  delete    Permission[] @default([])
+  handle    Permission[] @default([])
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
   createdPendingIssues  PendingIssues[] @relation("PendingIssuesCreatedBy")
   approvedPendingIssues PendingIssues[] @relation("PendingIssuesApprovedBy")
-  rejections            Rejections[]    @relation("RejectionsRejectedBy")
-  rejectedResubmissions Rejections[]    @relation("RejectionsResubmittedBy")
   createdPendingFrames  PendingFrames[] @relation("PendingFramesCreatedBy")
   approvedPendingFrames PendingFrames[] @relation("PendingFramesApprovedBy")
-  Events                Events[]        @relation("EventsCreatedBy")
+  createdPendingFonts   PendingFonts[]  @relation("PendingFontsCreatedBy")
+  approvedPendingFonts  PendingFonts[]  @relation("PendingFontsApprovedBy")
+  rejectedResubmissions Rejections[]    @relation("RejectionsResubmittedBy")
+  rejections            Rejections[]    @relation("RejectionsRejectedBy")
+  events                Events[]        @relation("EventsCreatedBy")
   createdIssues         Issues[]        @relation("IssuesCreatedBy")
   approvedIssues        Issues[]        @relation("IssuesApprovedBy")
   createdFrames         Frames[]        @relation("FramesCreatedBy")
   approvedFrames        Frames[]        @relation("FramesApprovedBy")
+  createdFonts          Fonts[]         @relation("FontsCreatedBy")
+  approvedFonts         Fonts[]         @relation("FontsApprovedBy")
 
   @@map("staff")
 }
@@ -109,8 +114,9 @@ enum Role {
 
 enum Permission {
   staff
-  frame
-  issue
+  frames
+  issues
+  fonts
   event
 }
 
@@ -212,21 +218,70 @@ enum FrameRarity {
   Special
 }
 
+model Fonts {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  price        Int
+  onMarket     Boolean
+  isBig        Boolean
+  short        String
+  filePath     String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  createdById  String   @db.ObjectId
+  approvedById String   @db.ObjectId
+  approvedAt   DateTime
+  eventId      String   @db.ObjectId
+
+  rejections Rejections[] @relation("RejectionsFont")
+  event      Events       @relation(fields: [eventId], references: [id], name: "FontsEvent")
+  createdBy  Staff        @relation(fields: [createdById], references: [id], name: "FontsCreatedBy")
+  approvedBy Staff        @relation(fields: [approvedById], references: [id], name: "FontsApprovedBy")
+
+  @@map("fonts")
+}
+
+model PendingFonts {
+  id           String    @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  price        Int
+  onMarket     Boolean
+  isBig        Boolean
+  short        String
+  filePath     String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  eventId      String    @db.ObjectId
+  createdById  String    @db.ObjectId
+  approvedById String?   @db.ObjectId
+  approvedAt   DateTime?
+
+  rejections Rejections[] @relation("RejectionsPendingFont")
+  event      Events       @relation(fields: [eventId], references: [id], name: "PendingFontsEvent")
+  createdBy  Staff        @relation(fields: [createdById], references: [id], name: "PendingFontsCreatedBy")
+  approvedBy Staff?       @relation(fields: [approvedById], references: [id], name: "PendingFontsApprovedBy")
+
+  @@map("pendingfonts")
+}
+
 model Events {
-  id            String          @id @default(auto()) @map("_id") @db.ObjectId
-  type          EventType[]
-  name          String          @unique
-  start         DateTime
-  end           DateTime
-  customRarity  String?
-  createdById   String          @db.ObjectId
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
+  id           String      @id @default(auto()) @map("_id") @db.ObjectId
+  type         EventType[]
+  name         String      @unique
+  start        DateTime
+  end          DateTime
+  customRarity String?
+  createdById  String      @db.ObjectId
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
   createdBy     Staff           @relation(fields: [createdById], references: [id], name: "EventsCreatedBy")
-  pendingIssues PendingIssues[] @relation("PendingIssuesEvent")
-  pendingFrames PendingFrames[] @relation("PendingFramesEvent")
   issues        Issues[]        @relation("IssuesEvent")
+  pendingIssues PendingIssues[] @relation("PendingIssuesEvent")
   frames        Frames[]        @relation("FramesEvent")
+  pendingFrames PendingFrames[] @relation("PendingFramesEvent")
+  fonts         Fonts[]         @relation("FontsEvent")
+  pendingFonts  PendingFonts[]  @relation("PendingFontsEvent")
 
   @@map("events")
 }
@@ -234,6 +289,7 @@ model Events {
 enum EventType {
   issues
   frames
+  fonts
 }
 
 model Rejections {
@@ -245,17 +301,21 @@ model Rejections {
   resubmitted     Boolean   @default(false)
   resubmittedAt   DateTime?
   resubmittedById String?   @db.ObjectId
-  pendingIssuesId String?   @db.ObjectId
   issuesId        String?   @db.ObjectId
+  pendingIssuesId String?   @db.ObjectId
   framesId        String?   @db.ObjectId
   pendingFramesId String?   @db.ObjectId
+  fontsId         String?   @db.ObjectId
+  pendingFontsId  String?   @db.ObjectId
 
   rejectedBy    Staff          @relation(fields: [rejectedById], references: [id], name: "RejectionsRejectedBy")
   resubmittedBy Staff?         @relation(fields: [resubmittedById], references: [id], name: "RejectionsResubmittedBy")
-  pendingIssues PendingIssues? @relation(fields: [pendingIssuesId], references: [id], name: "RejectionsPendingIssue")
-  pendingFrames PendingFrames? @relation(fields: [pendingFramesId], references: [id], name: "RejectionsPendingFrame")
   issues        Issues?        @relation(fields: [issuesId], references: [id], name: "RejectionsIssue")
+  pendingIssues PendingIssues? @relation(fields: [pendingIssuesId], references: [id], name: "RejectionsPendingIssue")
   frames        Frames?        @relation(fields: [framesId], references: [id], name: "RejectionsFrame")
+  pendingFrames PendingFrames? @relation(fields: [pendingFramesId], references: [id], name: "RejectionsPendingFrame")
+  fonts         Fonts?         @relation(fields: [fontsId], references: [id], name: "RejectionsFont")
+  pendingFonts  PendingFonts?  @relation(fields: [pendingFontsId], references: [id], name: "RejectionsPendingFont")
 
   @@map("rejections")
 }

@@ -3,7 +3,11 @@ import { ViewDashboardType } from "@/types";
 import { Icons } from "@/components/ui/icons";
 
 import { dashboardActions } from "./dashboard";
-import { framesViewPortType, issuesViewPortType } from "./items-view";
+import {
+  fontsViewPortType,
+  framesViewPortType,
+  issuesViewPortType,
+} from "./items-view";
 
 export const viewDashboard: ViewDashboardType[] = [
   {
@@ -19,6 +23,13 @@ export const viewDashboard: ViewDashboardType[] = [
     href: "/dashboard/view/frames",
     isActive: true,
     items: framesViewPortType,
+  },
+  {
+    title: "Fonts",
+    Icon: Icons.editPen,
+    href: "/dashboard/view/fonts",
+    isActive: true,
+    items: fontsViewPortType,
   },
   {
     title: "Manage",

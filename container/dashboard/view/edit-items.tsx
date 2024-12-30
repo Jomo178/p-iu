@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { FramesViewPort, IssuesViewPort } from "@/types";
+import { IssuesViewPort, ItemsViewPortType } from "@/types";
 import { EventType, FrameRarity, Frames, Issues } from "@prisma/client";
 
 import {
@@ -32,7 +32,7 @@ interface EditItemsDialogProps {
   setOpenDialogAction: React.Dispatch<React.SetStateAction<boolean>>;
   viewPortType: IssuesViewPort;
   setViewTypeDataAction?: React.Dispatch<
-    React.SetStateAction<IssuesViewPort | FramesViewPort>
+    React.SetStateAction<ItemsViewPortType>
   >;
 }
 
@@ -59,7 +59,7 @@ export default function EditItemsDialog({
     ItemsFormPropsValue & { imageLink: string; changedImage: boolean }
   >(defaultValues);
   const { handleEditItems } = usehandleApprovePendingItems(
-    false,
+    itemType,
     setViewTypeDataAction
   );
 
@@ -156,7 +156,7 @@ function EditFrom({ itemType, itemData, setItemDataAction }: EditFromProps) {
             value.group,
             value.rarity
           );
-        } else {
+        } else if (itemType === "frames" && "rarity" in value) {
           value.code = generateFrameCode(
             value.name,
             value.rarity as FrameRarity

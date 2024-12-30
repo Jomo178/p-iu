@@ -2,6 +2,7 @@
 
 import { UserProfile } from "@/types/next-auth";
 import {
+  PendingFontsWithRelation,
   PendingFramesWithRelation,
   PendingIssuesWithRelation,
 } from "@/types/prisma";
@@ -11,7 +12,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
 interface ItemsHistoryProps {
-  issue: PendingIssuesWithRelation | PendingFramesWithRelation;
+  issue:
+    | PendingIssuesWithRelation
+    | PendingFramesWithRelation
+    | PendingFontsWithRelation;
   data: UserProfile[] | undefined;
 }
 
@@ -62,7 +66,10 @@ export default function ItemsHistory({ issue, data }: ItemsHistoryProps) {
     });
   }
 
-  if (!issue.approvedBy) {
+  if (
+    !issue.approvedBy &&
+    !historyProcess.some((event) => event.title === "Waiting for resubmission")
+  ) {
     historyProcess.push({
       title: "Waiting for approval",
       timestamp: issue.createdAt,

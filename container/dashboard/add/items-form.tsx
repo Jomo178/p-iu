@@ -1,16 +1,16 @@
 "use client";
 
 import { useEffect } from "react";
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { EventType } from "@prisma/client";
 import { useForm } from "react-hook-form";
 
 import {
-  framesSchema,
+  FontsFormPropsValue,
   IssuesFormPropsValueKeys,
-  issuesSchema,
   ItemsFormPropsValue,
+  ItemsSchema,
+  itemsSchema,
 } from "@/config/items-add";
 import { DatetimePicker } from "@/components/ui/date-time-picker";
 import { FileUploader } from "@/components/ui/file-uploader-primitive";
@@ -23,7 +23,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Icons } from "@/components/ui/icons";
-import { FloatingLabelInput } from "@/components/ui/input";
+import { FloatingLabelInput, Input, InputNumber } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -34,6 +34,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
 import {
   Tooltip,
   TooltipContent,
@@ -42,11 +43,14 @@ import {
 } from "@/components/ui/tooltip";
 import { Typography } from "@/components/ui/typography";
 
-interface ItemsFormProps<T> {
+interface ItemsFormProps {
   index: number;
   itemType: `${EventType}`;
   defaultValues: ItemsFormPropsValue;
-  onFormChangeAction: (index: number, value: ItemsFormPropsValue) => void;
+  onFormChangeAction: (
+    index: number,
+    value: ItemsFormPropsValue | FontsFormPropsValue
+  ) => void;
   hiddenFields?: IssuesFormPropsValueKeys[];
 }
 
@@ -54,17 +58,16 @@ export default function ItemsForm({
   index,
   itemType,
   defaultValues,
-
   onFormChangeAction,
   hiddenFields = [],
-}: ItemsFormProps<ItemsFormPropsValue>) {
-  const form = useForm<ItemsFormPropsValue>({
-    resolver: zodResolver(itemType === "frames" ? framesSchema : issuesSchema),
+}: ItemsFormProps) {
+  const form = useForm<ItemsSchema[typeof itemType]>({
+    resolver: zodResolver(itemsSchema[itemType]),
     defaultValues,
   });
 
   useEffect(() => {
-    if (defaultValues.code) {
+    if ("code" in defaultValues && defaultValues.code) {
       form.setValue(
         "code",
         defaultValues.code.length > 1
@@ -75,14 +78,13 @@ export default function ItemsForm({
       );
     }
 
-    if (defaultValues.codeDuplicate)
+    if ("codeDuplicate" in defaultValues && defaultValues.codeDuplicate)
       form.setValue("codeDuplicate", defaultValues.codeDuplicate);
   }, [defaultValues]);
 
-  const isFieldHidden = (fieldName: IssuesFormPropsValueKeys) =>
-    hiddenFields.includes(fieldName);
+  const isFieldHidden = (fieldName: any) => hiddenFields.includes(fieldName);
 
-  const getFieldError = (fieldName: IssuesFormPropsValueKeys) =>
+  const getFieldError = (fieldName: any) =>
     defaultValues.errors?.find((error) => error?.path === fieldName)?.message ??
     "";
 
@@ -94,7 +96,7 @@ export default function ItemsForm({
       >
         <div className="ml-auto mr-auto h-full max-w-fit">
           <div className="flex h-full w-72 flex-col items-center gap-6">
-            {itemType === "issues" ? (
+            {itemType === "issues" && (
               <>
                 {!isFieldHidden("name") && (
                   <FormField
@@ -201,7 +203,10 @@ export default function ItemsForm({
                             {...field}
                             id="code"
                             label="Issue Code"
-                            disabled={!defaultValues.codeDuplicate}
+                            disabled={
+                              "codeDuplicate" in defaultValues &&
+                              !defaultValues.codeDuplicate
+                            }
                           />
                         </FormControl>
                         <FormMessage>{getFieldError("code")}</FormMessage>
@@ -291,9 +296,9 @@ export default function ItemsForm({
                           <FormControl>
                             <FileUploader
                               value={
-                                form.getValues().image?.name &&
-                                form.getValues().image.name !== "filename"
-                                  ? [form.getValues().image]
+                                form.getValues("image")?.name &&
+                                form.getValues("image").name !== "filename"
+                                  ? [form.getValues("image")]
                                   : []
                               }
                               previewHeight={150}
@@ -311,7 +316,8 @@ export default function ItemsForm({
                   </>
                 )}
               </>
-            ) : (
+            )}
+            {itemType === "frames" && (
               <>
                 {!isFieldHidden("name") && (
                   <FormField
@@ -440,7 +446,10 @@ export default function ItemsForm({
                             {...field}
                             id="code"
                             label="Frame Code"
-                            disabled={!defaultValues.codeDuplicate}
+                            disabled={
+                              "codeDuplicate" in defaultValues &&
+                              !defaultValues.codeDuplicate
+                            }
                           />
                         </FormControl>
                         <FormMessage>{getFieldError("code")}</FormMessage>
@@ -460,13 +469,173 @@ export default function ItemsForm({
                           <FormControl>
                             <FileUploader
                               value={
-                                form.getValues().image?.name &&
-                                form.getValues().image.name !== "filename"
-                                  ? [form.getValues().image]
+                                form.getValues("image")?.name &&
+                                form.getValues("image").name !== "filename"
+                                  ? [form.getValues("image")]
                                   : []
                               }
                               previewHeight={150}
                               previewWidth={150}
+                              onValueChange={(value) => {
+                                form.setValue("image", value[0]);
+                                onFormChangeAction(index, form.getValues());
+                              }}
+                            />
+                          </FormControl>
+                          <FormMessage>{getFieldError("image")}</FormMessage>
+                        </FormItem>
+                      )}
+                    />
+                  </>
+                )}
+              </>
+            )}
+            {itemType === "fonts" && (
+              <>
+                {!isFieldHidden("name") && (
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem className="w-full">
+                        <FormLabel>Font General Information</FormLabel>
+                        <FormControl>
+                          <FloatingLabelInput
+                            {...field}
+                            id="name"
+                            label="Font Name"
+                          />
+                        </FormControl>
+                        <FormMessage>{getFieldError("name")}</FormMessage>
+                      </FormItem>
+                    )}
+                  />
+                )}
+                {!isFieldHidden("shortName") && (
+                  <FormField
+                    control={form.control}
+                    name="shortName"
+                    render={({ field }) => (
+                      <FormItem className="w-full">
+                        <FormControl>
+                          <FloatingLabelInput
+                            {...field}
+                            id="shorName"
+                            label="Short Name"
+                          />
+                        </FormControl>
+                        <FormMessage>{getFieldError("shortName")}</FormMessage>
+                      </FormItem>
+                    )}
+                  />
+                )}
+                {!isFieldHidden("price") && (
+                  <FormField
+                    control={form.control}
+                    name="price"
+                    render={({ field }) => (
+                      <FormItem className="w-full">
+                        <FormLabel>Price</FormLabel>
+                        <FormControl>
+                          <InputNumber
+                            id="price"
+                            min={1}
+                            value={form.getValues("price")}
+                            max={99999}
+                            step={100}
+                            onValueChange={(value) => {
+                              form.setValue("price", value);
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage>{getFieldError("price")}</FormMessage>
+                      </FormItem>
+                    )}
+                  />
+                )}
+                {!isFieldHidden("onMarket") && (
+                  <FormField
+                    control={form.control}
+                    name="onMarket"
+                    render={({ field }) => (
+                      <FormItem className="w-full">
+                        <FormLabel className="flex items-center gap-4">
+                          <p>On Market</p>
+                          <Switch
+                            id="onMarket"
+                            checked={form.getValues("onMarket")}
+                            onCheckedChange={(value) => {
+                              form.setValue("onMarket", value);
+                            }}
+                          />
+                        </FormLabel>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+                {!isFieldHidden("isBig") && (
+                  <FormField
+                    control={form.control}
+                    name="isBig"
+                    render={({ field }) => (
+                      <FormItem className="w-full">
+                        <FormLabel className="flex items-center gap-4">
+                          <p>Is Big</p>
+                          <Switch
+                            id="isBig"
+                            checked={form.getValues("isBig")}
+                            onCheckedChange={(value) => {
+                              form.setValue("isBig", value);
+                            }}
+                          />
+                        </FormLabel>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+                {!isFieldHidden("releaseDate") && (
+                  <FormField
+                    control={form.control}
+                    name="releaseDate"
+                    render={({ field }) => (
+                      <FormItem className="w-full">
+                        <FormLabel>Release Date</FormLabel>
+                        <FormControl>
+                          <DatetimePicker
+                            disabled
+                            value={field.value}
+                            action={() => {}}
+                          />
+                        </FormControl>
+                        <FormMessage>
+                          {getFieldError("releaseDate")}
+                        </FormMessage>
+                      </FormItem>
+                    )}
+                  />
+                )}
+                {!isFieldHidden("image") && (
+                  <>
+                    <Separator className="my-1" />
+                    <FormField
+                      control={form.control}
+                      name="image"
+                      render={() => (
+                        <FormItem className="w-full">
+                          <FormLabel>Font File</FormLabel>
+                          <FormControl>
+                            <FileUploader
+                              accept={{ ".ttf": [] }}
+                              value={
+                                form.getValues("image")?.name &&
+                                form.getValues("image").name !== "filename"
+                                  ? [form.getValues("image")]
+                                  : []
+                              }
+                              previewHeight={100}
+                              previewWidth={100}
                               onValueChange={(value) => {
                                 form.setValue("image", value[0]);
                                 onFormChangeAction(index, form.getValues());

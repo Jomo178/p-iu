@@ -48,6 +48,7 @@ export async function getAllEvents(type?: EventType[] | undefined) {
       createdBy: true,
       issues: true,
       frames: true,
+      fonts: true,
       pendingFrames: {
         where: {
           rejections: {
@@ -58,6 +59,15 @@ export async function getAllEvents(type?: EventType[] | undefined) {
         },
       },
       pendingIssues: {
+        where: {
+          rejections: {
+            every: {
+              resubmitted: true,
+            },
+          },
+        },
+      },
+      pendingFonts: {
         where: {
           rejections: {
             every: {
@@ -106,6 +116,7 @@ export async function createEvent(
       createdBy: true,
       issues: true,
       frames: true,
+      fonts: true,
       pendingFrames: {
         where: {
           rejections: {
@@ -116,6 +127,15 @@ export async function createEvent(
         },
       },
       pendingIssues: {
+        where: {
+          rejections: {
+            every: {
+              resubmitted: true,
+            },
+          },
+        },
+      },
+      pendingFonts: {
         where: {
           rejections: {
             every: {
@@ -151,6 +171,7 @@ export async function editEvent(
       createdBy: true,
       issues: true,
       frames: true,
+      fonts: true,
       pendingFrames: {
         where: {
           rejections: {
@@ -161,6 +182,15 @@ export async function editEvent(
         },
       },
       pendingIssues: {
+        where: {
+          rejections: {
+            every: {
+              resubmitted: true,
+            },
+          },
+        },
+      },
+      pendingFonts: {
         where: {
           rejections: {
             every: {

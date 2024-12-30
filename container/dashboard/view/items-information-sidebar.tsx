@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { getCachedStaffDiscordProfiles } from "@/server/staff/_action";
+import { EventType } from "@prisma/client";
 import { ScrollArea } from "@radix-ui/react-scroll-area";
 import { useQuery } from "@tanstack/react-query";
 
 import { UserProfile } from "@/types/next-auth";
 import {
+  PendingFontsWithRelation,
   PendingFramesWithRelation,
   PendingIssuesWithRelation,
 } from "@/types/prisma";
@@ -42,20 +44,22 @@ import ItemsHistory from "./items-history";
 interface ItemsInformationSidebarProps {
   issueType: string;
   issues: PendingIssuesWithRelation[] | PendingFramesWithRelation[];
-  isFrames: boolean | undefined;
+  itemType: `${EventType}`;
   openSidebar: boolean;
   setOpenSidebarAction: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export default function ItemsInformationSidebar({
   issueType,
+  itemType,
   issues,
-  isFrames = false,
   openSidebar,
   setOpenSidebarAction,
 }: ItemsInformationSidebarProps) {
   const isSelected = issues.length > 0 && openSidebar;
   const { isMobile } = useSidebar();
+
+  console.log(itemType, "itemType", issueType, "issueType");
 
   return (
     <>
@@ -71,10 +75,9 @@ export default function ItemsInformationSidebar({
         >
           <SidebarContent className="bg-background">
             <SelectedIssuesCarousel
+              itemType={itemType}
               issues={issues}
               issueType={issueType}
-              isMobile={isMobile}
-              isFrames={isFrames}
             />
           </SidebarContent>
         </Sidebar>
@@ -93,10 +96,9 @@ export default function ItemsInformationSidebar({
           </DrawerHeader>
           <ScrollArea className="overflow-auto break-all p-4">
             <SelectedIssuesCarousel
+              itemType={itemType}
               issues={issues}
               issueType={issueType}
-              isMobile={isMobile}
-              isFrames={isFrames}
             />
             <ScrollBar orientation="horizontal" />
           </ScrollArea>
@@ -109,14 +111,15 @@ export default function ItemsInformationSidebar({
 function SelectedIssuesCarousel({
   issues,
   issueType,
-  isFrames,
-  isMobile,
+  itemType,
   className,
 }: {
-  issues: PendingIssuesWithRelation[] | PendingFramesWithRelation[];
+  issues:
+    | PendingIssuesWithRelation[]
+    | PendingFramesWithRelation[]
+    | PendingFontsWithRelation[];
   issueType: string;
-  isFrames: boolean;
-  isMobile: boolean;
+  itemType: `${EventType}`;
   className?: string;
 }) {
   const { data } = useQuery({
@@ -137,20 +140,25 @@ function SelectedIssuesCarousel({
       <CarouselContent className={cn(className)}>
         {issues.map((issue, index) => (
           <CarouselItem key={index} className="items-center">
-            {isFrames ? (
+            {itemType.includes("frames") && (
               <FramesCardDetails
                 frame={issue as PendingFramesWithRelation}
                 issueType={issueType}
               />
-            ) : (
+            )}
+            {itemType.includes("issues") && (
               <IssueCardDetails
                 issue={issue as PendingIssuesWithRelation}
                 issueType={issueType}
               />
             )}
-
+            {itemType.includes("fonts") && (
+              <FontsCardDetails
+                font={issue as PendingFontsWithRelation}
+                issueType={issueType}
+              />
+            )}
             <IssueRejections issue={issue} data={data} />
-
             <ItemsHistory data={data} issue={issue} />
           </CarouselItem>
         ))}
@@ -249,11 +257,68 @@ function FramesCardDetails({
   );
 }
 
+function FontsCardDetails({
+  font,
+  issueType,
+}: {
+  font: PendingFontsWithRelation;
+  issueType: string;
+}) {
+  return (
+    <Card className="!w-full border-0">
+      <CardContent className="p-4">
+        <div className="mb-2 flex items-center justify-between pt-5">
+          <h2 className="text-lg font-semibold">
+            Current Font
+            <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold">
+              {font.name}
+            </code>
+          </h2>
+          <Badge className="text-white">{issueType}</Badge>
+        </div>
+        <div className="mt-8 grid grid-cols-2 gap-2 pb-10">
+          <div className="space-x-3">
+            <small className="text-sm font-medium leading-none">
+              Short Name:
+            </small>
+            <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold">
+              {font.short}
+            </code>
+          </div>
+          <div className="space-x-3">
+            <small className="text-sm font-medium leading-none">Price:</small>
+            <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold">
+              {font.price}
+            </code>
+          </div>
+          <div className="space-x-3">
+            <small className="text-sm font-medium leading-none">
+              On Market:
+            </small>
+            <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold">
+              {font.onMarket ? "Yes" : "No"}
+            </code>
+          </div>
+          <div className="space-x-3">
+            <small className="text-sm font-medium leading-none">Is Big:</small>
+            <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold">
+              {font.isBig ? "Yes" : "No"}
+            </code>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 function IssueRejections({
   issue,
   data,
 }: {
-  issue: PendingIssuesWithRelation | PendingFramesWithRelation;
+  issue:
+    | PendingIssuesWithRelation
+    | PendingFramesWithRelation
+    | PendingFontsWithRelation;
   data: UserProfile[] | undefined;
 }) {
   if (!issue.rejections.length) return null;

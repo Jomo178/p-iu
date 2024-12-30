@@ -20,6 +20,14 @@ export const dashboardActions: DashboradActionsType[] = [
     disabled: false,
   },
   {
+    href: "/dashboard/add/fonts",
+    Icon: Icons.editPen,
+    title: "New Fonts",
+    description:
+      "Create and add new fonts to your team's database effortlessly.",
+    disabled: false,
+  },
+  {
     href: "/dashboard/view/issues",
     Icon: Icons.editPen,
     title: "Manage Issues",
@@ -33,6 +41,14 @@ export const dashboardActions: DashboradActionsType[] = [
     title: "Manage Frames",
     description:
       "Modify frames details, update information, or remove frames from the database.",
+    disabled: false,
+  },
+  {
+    href: "/dashboard/view/fonts",
+    Icon: Icons.editPen,
+    title: "Manage Fonts",
+    description:
+      "Modify fonts details, update information, or remove fonts from the database.",
     disabled: false,
   },
   {

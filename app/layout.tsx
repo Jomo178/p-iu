@@ -9,6 +9,7 @@ import { Toaster } from "sonner";
 
 import { cn } from "@/lib/utils";
 import { TailwindIndicator } from "@/components/ui/tailwind-indicator";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 const fontSans = FontSans({
   subsets: ["latin"],
@@ -100,7 +101,9 @@ export default function RootLayout({
         )}
       >
         <div className="flex min-h-screen flex-col">
-          <main className="flex-1">{children}</main>
+          <main className="flex-1">
+            <TooltipProvider>{children}</TooltipProvider>
+          </main>
           <Toaster
             richColors
             toastOptions={{
