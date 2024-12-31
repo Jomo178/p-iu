@@ -7,8 +7,8 @@ import { getCachedStaffDiscordProfiles } from "@/server/staff/_action";
 import { X } from "lucide-react";
 import { useQueryState } from "nuqs";
 
+import { EventsWithRelation } from "@/types/items-relation";
 import { UserProfile } from "@/types/next-auth";
-import { EventsWithRelation } from "@/types/prisma";
 import { cn, toUpperCase } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

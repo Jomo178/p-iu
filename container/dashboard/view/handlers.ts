@@ -9,17 +9,21 @@ import {
   rejectItems,
   resubmitRejectedItems,
 } from "@/server/view/set-action";
-import { EditIssueProps, ItemsViewPortType, ViewPortType } from "@/types";
-import { EventType } from "@prisma/client";
 import { parseAsJson, parseAsStringLiteral } from "nuqs/server";
 import { toast } from "sonner";
 
+import {
+  EditItemsProps,
+  ItemListingView,
+  ItemsNameType,
+  ItemStatusViewType,
+} from "@/types/items";
 import { toUpperCase } from "@/lib/utils";
 
-export function usehandleApprovePendingItems(
-  itemType: `${EventType}`,
+export function usehandleApprovePendingItems<T extends ItemsNameType>(
+  itemNameType: T,
   setViewTypeDataAction?: React.Dispatch<
-    React.SetStateAction<ItemsViewPortType>
+    React.SetStateAction<ItemListingView<T>>
   >
 ) {
   const tableName = {
@@ -29,21 +33,19 @@ export function usehandleApprovePendingItems(
   } as const;
 
   const handleApprovePendingItems = async (itemsIds: string[]) => {
-    toast.promise(approveItems(itemsIds, tableName[itemType]), {
-      loading: `Approving ${toUpperCase(itemType)}...`,
+    toast.promise(approveItems(itemsIds, tableName[itemNameType]), {
+      loading: `Approving ${toUpperCase(itemNameType)}...`,
       success(data) {
         if (setViewTypeDataAction) {
           setViewTypeDataAction((prev) => ({
             ...prev,
-            data: prev.data.filter(
-              (item) => !itemsIds.includes(item.id)
-            ) as any[],
+            data: prev.data.filter((item) => !itemsIds.includes(item.id)),
             selectedItems: [],
           }));
         }
         return data.message;
       },
-      error: `Failed to approve ${toUpperCase(itemType)}.`,
+      error: `Failed to approve ${toUpperCase(itemNameType)}.`,
     });
   };
 
@@ -51,68 +53,67 @@ export function usehandleApprovePendingItems(
     itemsIds: string[],
     reason: string
   ) => {
-    toast.promise(rejectItems(itemsIds, tableName[itemType], reason), {
-      loading: `Rejecting ${toUpperCase(itemType)}...`,
+    toast.promise(rejectItems(itemsIds, tableName[itemNameType], reason), {
+      loading: `Rejecting ${toUpperCase(itemNameType)}...`,
       success(data) {
         if (setViewTypeDataAction) {
           setViewTypeDataAction((prev) => ({
             ...prev,
-            data: prev.data.filter(
-              (item) => !itemsIds.includes(item.id)
-            ) as any[],
+            data: prev.data.filter((item) => !itemsIds.includes(item.id)),
             selectedItems: [],
           }));
         }
         return data.message;
       },
-      error: `Failed to reject ${toUpperCase(itemType)}.`,
+      error: `Failed to reject ${toUpperCase(itemNameType)}.`,
     });
   };
 
   const handleResubmitRejectedItems = async (itemsIds: string[]) => {
-    toast.promise(resubmitRejectedItems(itemsIds, tableName[itemType]), {
-      loading: `Resubmitting ${toUpperCase(itemType)}...`,
+    toast.promise(resubmitRejectedItems(itemsIds, tableName[itemNameType]), {
+      loading: `Resubmitting ${toUpperCase(itemNameType)}...`,
       success(data) {
         if (setViewTypeDataAction) {
           setViewTypeDataAction((prev) => ({
             ...prev,
-            data: prev.data.filter(
-              (item) => !itemsIds.includes(item.id)
-            ) as any[],
+            data: prev.data.filter((item) => !itemsIds.includes(item.id)),
             selectedItems: [],
           }));
         }
         return data.message;
       },
-      error: `Failed to resubmit ${toUpperCase(itemType)}.`,
+      error: `Failed to resubmit ${toUpperCase(itemNameType)}.`,
     });
   };
 
-  const handleEditItems = async ({ viewPortId, issue }: EditIssueProps) => {
-    toast.promise(editItems({ viewPortId, issue }), {
-      loading: `Editing ${itemType}...`,
-      success({ item, message }) {
-        if (setViewTypeDataAction && issue) {
+  const handleEditItems = async ({
+    itemsViewPortId,
+    item,
+  }: EditItemsProps<T>) => {
+    toast.promise(editItems({ itemsViewPortId, item }), {
+      loading: `Editing ${itemNameType}...`,
+      success({ editedItem, message }) {
+        if (setViewTypeDataAction && editedItem) {
           setViewTypeDataAction((prev) => ({
             ...prev,
             data: prev.data.map((items) =>
-              items.id === item?.id ? item : items
-            ) as any[],
+              items.id === editedItem?.id ? editedItem : items
+            ),
             selectedItems: [],
           }));
         }
         return message;
       },
-      error: `Failed to edit ${itemType}.`,
+      error: `Failed to edit ${itemNameType}.`,
     });
   };
 
   const handleDeleteItems = async (
-    viewTypeId: ViewPortType,
+    itemsViewPortId: ItemStatusViewType<T>,
     items: { id: string; image: string }[],
     password: string
   ) => {
-    toast.promise(deleteItems(viewTypeId, items, password), {
+    toast.promise(deleteItems(itemsViewPortId, items, password), {
       loading: "Deleting...",
       success(data) {
         if (setViewTypeDataAction) {
@@ -120,7 +121,7 @@ export function usehandleApprovePendingItems(
             ...prev,
             data: prev.data.filter(
               (prevData) => !items.map((item) => item.id).includes(prevData.id)
-            ) as any[],
+            ),
             selectedItems: [],
           }));
         }

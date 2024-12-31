@@ -2,14 +2,8 @@
 
 import { useEffect, useMemo } from "react";
 import Image from "next/image";
-import { EventType } from "@prisma/client";
 
-import {
-  FontsFormPropsValue,
-  FramesFormPropsValue,
-  IssuesFormPropsValue,
-  ItemsFormPropsValue,
-} from "@/config/items-add";
+import { ItemSchemaValue, ItemsNameType } from "@/types/items";
 import { toUpperCase } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -24,40 +18,45 @@ import {
 } from "@/components/ui/sheet";
 import { Typography } from "@/components/ui/typography";
 
-interface ItemsUploadPreviewProps {
-  itemType: `${EventType}`;
-  itemsFormPropsValue: ItemsFormPropsValue[];
+interface ItemsUploadPreviewProps<T extends ItemsNameType> {
+  itemNameType: T;
+  itemsFormPropsValue: ItemSchemaValue<T>[];
+  onSubmitAction: () => void;
   openSheet: boolean;
   setOpenSheetAction: React.Dispatch<React.SetStateAction<boolean>>;
-  onSubmitAction: () => void;
 }
 
-export function ItemsUploadPreview({
-  itemType,
+export function ItemsUploadPreview<T extends ItemsNameType>({
+  itemNameType,
   itemsFormPropsValue,
+  onSubmitAction,
   openSheet,
   setOpenSheetAction,
-  onSubmitAction,
-}: ItemsUploadPreviewProps) {
+}: ItemsUploadPreviewProps<T>) {
   return (
     <Sheet open={openSheet} onOpenChange={setOpenSheetAction}>
       <SheetContent className="!w-full p-4 sm:max-w-none">
         <SheetHeader className="border-b-2 pb-4">
-          <SheetTitle>All {toUpperCase(itemType)} Preview</SheetTitle>
+          <SheetTitle>All {toUpperCase(itemNameType)} Preview</SheetTitle>
           <SheetDescription>
-            Scroll through all the {itemType} to review their details.
+            Scroll through all the {itemNameType} to review their details.
           </SheetDescription>
         </SheetHeader>
 
         <div className="grid h-[80vh] grid-cols-1 gap-4 overflow-y-auto sm:grid-cols-2 lg:grid-cols-4">
           {itemsFormPropsValue.map((item, index) => {
-            if (itemType === "fonts") {
-              return <FontPreview font={item as any} key={index} />;
+            if (itemNameType === "fonts") {
+              return (
+                <FontPreview
+                  font={item as ItemSchemaValue<"fonts">}
+                  key={index}
+                />
+              );
             }
             return (
               <CardPreview
-                item={item as IssuesFormPropsValue}
-                itemType={itemType}
+                item={item as ItemSchemaValue<"issues" | "frames">}
+                itemNameType={itemNameType}
                 key={item.id}
               />
             );
@@ -70,7 +69,7 @@ export function ItemsUploadPreview({
               Icon={Icons.upload}
               iconPlacement="right"
             >
-              Upload {toUpperCase(itemType)}
+              Upload {toUpperCase(itemNameType)}
             </Button>
           </div>
         </div>
@@ -80,11 +79,11 @@ export function ItemsUploadPreview({
 }
 
 interface CardPreviewProps {
-  itemType: `${EventType}`;
-  item: IssuesFormPropsValue | FramesFormPropsValue;
+  itemNameType: ItemsNameType;
+  item: ItemSchemaValue<"issues" | "frames">;
 }
 
-function CardPreview({ itemType, item }: CardPreviewProps) {
+function CardPreview({ itemNameType, item }: CardPreviewProps) {
   const imageUrl = useMemo(() => {
     if (item.image && Object.keys(item.image).length > 0) {
       return URL.createObjectURL(item.image);
@@ -124,7 +123,7 @@ function CardPreview({ itemType, item }: CardPreviewProps) {
               <TextInformation title="Act" description={item.act} />
             )}
             <TextInformation title="Code" description={item.code} />
-            {"rarity" in item && itemType === "issues" && (
+            {"rarity" in item && itemNameType === "issues" && (
               <div className="flex items-center justify-between">
                 <Separator className="hidden h-[2px] w-4 sm:block" />
                 <Typography variant="small" className="text-left">
@@ -141,7 +140,7 @@ function CardPreview({ itemType, item }: CardPreviewProps) {
                 </Typography>
               </div>
             )}
-            {"rarity" in item && itemType === "frames" && (
+            {"rarity" in item && itemNameType === "frames" && (
               <TextInformation
                 title="Rarity"
                 description={item.rarity as string}
@@ -178,7 +177,7 @@ function TextInformation({
 }
 
 interface FontPreviewProps {
-  font: FontsFormPropsValue;
+  font: ItemSchemaValue<"fonts">;
 }
 
 function FontPreview({ font }: FontPreviewProps) {

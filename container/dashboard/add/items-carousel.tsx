@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { EventType, Staff } from "@prisma/client";
+import { Staff } from "@prisma/client";
 
+import { ItemSchemaValue, ItemsNameType } from "@/types/items";
 import {
-  FontsFormPropsValue,
   generateFrameCode,
   generateIssueCode,
-  ItemsFormPropsValue,
+  itemsSchema,
   useDefaultItemsFormValues,
 } from "@/config/items-add";
 import {
@@ -22,26 +22,25 @@ import {
 import ItemsButtonControl from "./items-button-control";
 import ItemsForm from "./items-form";
 
-interface ItemsCarouselProps {
+interface ItemsCarouselProps<T extends ItemsNameType> {
+  itemNameType: T;
+  currentStaff: Staff;
   eventReleaseDate: Date;
-  staff: Staff;
-  itemType: `${EventType}`;
 }
 
-export default function ItemsCarousel({
+export default function ItemsCarousel<T extends ItemsNameType>({
+  itemNameType,
+  currentStaff,
   eventReleaseDate,
-  staff,
-  itemType,
-}: ItemsCarouselProps) {
+}: ItemsCarouselProps<T>) {
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
   const [count, setCount] = useState(0);
   const [defaultFormValues, setDefaultFormValues] =
-    useDefaultItemsFormValues(itemType);
-
-  const [issuesFormPropsValue, setIssuesFormPropsValue] = useState<any[]>([
-    { ...defaultFormValues, errors: [], releaseDate: eventReleaseDate },
-  ]);
+    useDefaultItemsFormValues(itemNameType);
+  const [itemsFormPropsValue, setItemsFormPropsValue] = useState<
+    ItemSchemaValue<T>[]
+  >([{ ...defaultFormValues, errors: [], releaseDate: eventReleaseDate }]);
 
   useEffect(() => {
     if (!api) return;
@@ -57,36 +56,39 @@ export default function ItemsCarousel({
   return (
     <>
       <ItemsButtonControl
-        itemType={itemType}
+        itemNameType={itemNameType}
         eventReleaseDate={eventReleaseDate}
-        itmesFormPropsValue={issuesFormPropsValue as any}
-        setItemsFormPropsValueAction={setIssuesFormPropsValue as any}
+        itmesFormPropsValue={itemsFormPropsValue}
+        setItemsFormPropsValueAction={setItemsFormPropsValue}
         carouselApi={api}
         carouselCount={count}
         setCarouselCountAction={setCount}
         setCarouselCurrentIndexAction={setCurrent}
-        staff={staff}
+        currentStaff={currentStaff}
       />
       <Carousel setApi={setApi} className="w-full !max-w-xs sm:!max-w-sm">
         <CarouselContent>
-          {issuesFormPropsValue?.map((issuesForm, index) => (
-            <CarouselItem key={issuesForm.id}>
+          {itemsFormPropsValue?.map((itemsForm, index) => (
+            <CarouselItem key={itemsForm.id}>
               <ItemsForm
+                itemNameType={itemNameType}
                 index={index}
-                defaultValues={issuesForm}
-                itemType={itemType}
-                onFormChangeAction={(index, value: any) =>
-                  setIssuesFormPropsValue((prev) => {
+                defaultValues={itemsForm}
+                onFormChangeAction={(index, value) =>
+                  setItemsFormPropsValue((prev) => {
                     const newData = [...prev];
-                    if (!value.codeDuplicate) {
-                      if (itemType === "issues") {
+                    if ("codeDuplicate" in value && !value.codeDuplicate) {
+                      if (itemNameType === "issues" && "act" in value) {
                         value.code = generateIssueCode(
                           value.name,
                           value.act,
                           value.group,
                           value.rarity
                         );
-                      } else {
+                      } else if (
+                        itemNameType === "frames" &&
+                        typeof value.rarity === "string"
+                      ) {
                         value.code = generateFrameCode(
                           value.name,
                           value.rarity
@@ -105,7 +107,7 @@ export default function ItemsCarousel({
         <CarouselNext />
       </Carousel>
       <div className="py-2 text-center text-sm text-muted-foreground">
-        {itemType} {current} of {count}
+        {itemNameType} {current} of {count}
       </div>
     </>
   );

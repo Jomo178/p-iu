@@ -3,12 +3,11 @@
 import { Dispatch, SetStateAction, useState } from "react";
 import { editEvent } from "@/server/events/_action";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Staff } from "@prisma/client";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
-import { EventsWithRelation } from "@/types/prisma";
+import { EventsWithRelation } from "@/types/items-relation";
 import { Button } from "@/components/ui/button";
 import {
   Credenza,

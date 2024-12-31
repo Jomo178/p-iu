@@ -13,7 +13,7 @@ export const dashboardActions: DashboradActionsType[] = [
   },
   {
     href: "/dashboard/add/frames",
-    Icon: Icons.frames,
+    Icon: Icons.addFrame,
     title: "New Frames",
     description:
       "Create and add new frames to your team's database effortlessly.",
@@ -21,7 +21,7 @@ export const dashboardActions: DashboradActionsType[] = [
   },
   {
     href: "/dashboard/add/fonts",
-    Icon: Icons.editPen,
+    Icon: Icons.addFont,
     title: "New Fonts",
     description:
       "Create and add new fonts to your team's database effortlessly.",
@@ -29,7 +29,7 @@ export const dashboardActions: DashboradActionsType[] = [
   },
   {
     href: "/dashboard/view/issues",
-    Icon: Icons.editPen,
+    Icon: Icons.previewButton,
     title: "Manage Issues",
     description:
       "Modify issues details, update information, or remove issues from the database.",
@@ -45,7 +45,7 @@ export const dashboardActions: DashboradActionsType[] = [
   },
   {
     href: "/dashboard/view/fonts",
-    Icon: Icons.editPen,
+    Icon: Icons.manageFont,
     title: "Manage Fonts",
     description:
       "Modify fonts details, update information, or remove fonts from the database.",

@@ -3,7 +3,7 @@ import {
   StaffMemberDetails,
 } from "@/container/dashboard/staff/staff-columns";
 import { getCachedStaffDiscordProfiles } from "@/server/staff/_action";
-import { Role } from "@prisma/client";
+import { StaffRole } from "@prisma/client";
 
 import { prisma } from "@/lib/database";
 import { getCurrentStaff } from "@/lib/session";
@@ -36,7 +36,7 @@ export default async function Staff({}: StaffProps) {
     })
   );
 
-  const roleOrder = Object.values(Role);
+  const roleOrder = Object.values(StaffRole);
   data.sort((a, b) => roleOrder.indexOf(a.role) - roleOrder.indexOf(b.role));
 
   return (

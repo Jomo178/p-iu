@@ -5,15 +5,10 @@ import {
   checkDuplicateItemsCode,
   UploadItems,
 } from "@/server/add/upload-items";
-import { EventType } from "@prisma/client";
 import { toast } from "sonner";
 
-import {
-  framesSchema,
-  issuesSchema,
-  ItemsFormPropsValue,
-  itemsSchema,
-} from "@/config/items-add";
+import { ItemSchemaValue, ItemsNameType } from "@/types/items";
+import { itemsSchema } from "@/config/items-add";
 import { cn, scrollToCarousel, toUpperCase } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { CarouselApi } from "@/components/ui/carousel";
@@ -32,32 +27,31 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Typography } from "@/components/ui/typography";
 
 import { ItemsUploadPreview } from "./items-upload-preview";
 
-interface IssuesPreviewToUploadProps {
-  itemType: `${EventType}`;
-  carouselApi: CarouselApi;
-  itemsFormPropsValue: ItemsFormPropsValue[];
+interface ItemsPreviewToUploadProps<T extends ItemsNameType> {
+  itemNameType: T;
+  itemsFormPropsValue: ItemSchemaValue<T>[];
   setItemsFormPropsValueAction: React.Dispatch<
-    React.SetStateAction<ItemsFormPropsValue[]>
+    React.SetStateAction<ItemSchemaValue<T>[]>
   >;
-  defaultValues: ItemsFormPropsValue;
+  defaultValues: ItemSchemaValue<T>;
   disabled: boolean;
+  carouselApi: CarouselApi;
 }
 
-export default function ItemsPreviewToUpload({
-  itemType,
-  carouselApi,
+export default function ItemsPreviewToUpload<T extends ItemsNameType>({
+  itemNameType,
   itemsFormPropsValue,
   setItemsFormPropsValueAction,
   defaultValues,
   disabled,
-}: IssuesPreviewToUploadProps) {
+  carouselApi,
+}: ItemsPreviewToUploadProps<T>) {
   const [openSheet, setOpenSheet] = useState(false);
   const [openUpload, setOpenUpload] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -69,11 +63,11 @@ export default function ItemsPreviewToUpload({
     }[]
   >([]);
 
-  const itemName = itemType.slice(0, -1);
+  const itemName = itemNameType.slice(0, -1);
 
   const openPreview = async () => {
     const formErrors = itemsFormPropsValue.map((item, index) => {
-      const checkEmptyProps = itemsSchema[itemType].safeParse(item);
+      const checkEmptyProps = itemsSchema[itemNameType].safeParse(item);
 
       return (
         checkEmptyProps.error?.issues.map((error) => ({
@@ -111,11 +105,11 @@ export default function ItemsPreviewToUpload({
 
     if (formErrors.some((errors) => errors.length > 0)) return;
 
-    if (itemType === "fonts") return setOpenSheet(true);
+    if (itemNameType === "fonts") return setOpenSheet(true);
 
     const checkCodesPromise = checkDuplicateItemsCode(
       itemsFormPropsValue.map((item: any) => item.code),
-      itemType
+      itemNameType
     );
 
     toast.promise(checkCodesPromise, {
@@ -174,7 +168,7 @@ export default function ItemsPreviewToUpload({
     setIsUploading(true);
 
     const uploadPromises = itemsFormPropsValue.map((item, index) =>
-      UploadItems(itemType, item)
+      UploadItems(itemNameType, item)
         .then(({ message, variant }) => {
           setUploadingProgress(
             ((index + 1) / itemsFormPropsValue.length) * 100
@@ -221,7 +215,7 @@ export default function ItemsPreviewToUpload({
         </TooltipContent>
       </Tooltip>
       <ItemsUploadPreview
-        itemType={itemType}
+        itemNameType={itemNameType}
         itemsFormPropsValue={itemsFormPropsValue}
         openSheet={openSheet}
         setOpenSheetAction={setOpenSheet}
@@ -234,11 +228,11 @@ export default function ItemsPreviewToUpload({
           disableoutsideclick="true"
         >
           <CredenzaHeader>
-            <CredenzaTitle>Uploading {toUpperCase(itemType)}</CredenzaTitle>
+            <CredenzaTitle>Uploading {toUpperCase(itemNameType)}</CredenzaTitle>
             <CredenzaDescription>
               {isUploading
-                ? `Uploading the ${itemType}. Please wait until the process is complete.`
-                : `All ${itemType} have been uploaded successfully.`}
+                ? `Uploading the ${itemNameType}. Please wait until the process is complete.`
+                : `All ${itemNameType} have been uploaded successfully.`}
             </CredenzaDescription>
           </CredenzaHeader>
           <CredenzaBody className="my-4 flex flex-col items-center space-y-4">

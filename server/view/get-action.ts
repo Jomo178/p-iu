@@ -1,8 +1,6 @@
 "use server";
 
-import { ViewPortType } from "@/types";
-import { EventType } from "@prisma/client";
-import { del } from "@vercel/blob";
+import { PrismaEventTypes } from "@prisma/client";
 
 import {
   FontsWithRelation,
@@ -11,13 +9,10 @@ import {
   PendingFontsWithRelation,
   PendingFramesWithRelation,
   PendingIssuesWithRelation,
-} from "@/types/prisma";
+} from "@/types/items-relation";
 import { prisma } from "@/lib/database";
-import { getCurrentStaff } from "@/lib/session";
 
-import { utapi } from "../uploadthing";
-
-type ReleasedItemReturnType<T extends EventType> = T extends "issues"
+type ReleasedItemReturnType<T extends PrismaEventTypes> = T extends "issues"
   ? IssuesWithRelation[]
   : T extends "frames"
     ? FramesWithRelation[]
@@ -25,7 +20,7 @@ type ReleasedItemReturnType<T extends EventType> = T extends "issues"
       ? FontsWithRelation[]
       : never;
 
-type PendingItemReturnType<T extends EventType> = T extends "issues"
+type PendingItemReturnType<T extends PrismaEventTypes> = T extends "issues"
   ? PendingIssuesWithRelation[]
   : T extends "frames"
     ? PendingFramesWithRelation[]
@@ -33,7 +28,7 @@ type PendingItemReturnType<T extends EventType> = T extends "issues"
       ? PendingFontsWithRelation[]
       : never;
 
-export async function getPendingItems<T extends `${EventType}`>(
+export async function getPendingItems<T extends PrismaEventTypes>(
   itemType: T,
   skip: number,
   amount: number,
@@ -71,7 +66,7 @@ export async function getPendingItems<T extends `${EventType}`>(
   )) as PendingItemReturnType<T>;
 }
 
-export async function getRejectedItems<T extends `${EventType}`>(
+export async function getRejectedItems<T extends PrismaEventTypes>(
   itemType: T,
   skip: number,
   amount: number,
@@ -109,7 +104,7 @@ export async function getRejectedItems<T extends `${EventType}`>(
   )) as PendingItemReturnType<T>;
 }
 
-export async function getUpcomingItems<T extends `${EventType}`>(
+export async function getUpcomingItems<T extends PrismaEventTypes>(
   itemType: T,
   skip: number,
   amount: number,
@@ -147,7 +142,7 @@ export async function getUpcomingItems<T extends `${EventType}`>(
   )) as ReleasedItemReturnType<T>;
 }
 
-export async function getReleasedItems<T extends `${EventType}`>(
+export async function getReleasedItems<T extends PrismaEventTypes>(
   itemType: T,
   skip: number,
   amount: number,
@@ -180,7 +175,7 @@ export async function getReleasedItems<T extends `${EventType}`>(
   )) as ReleasedItemReturnType<T>;
 }
 
-async function ReleasedItemsSwitch(whereObj: any, itemType: EventType) {
+async function ReleasedItemsSwitch(whereObj: any, itemType: PrismaEventTypes) {
   switch (itemType) {
     case "issues":
       return await prisma.issues.findMany(whereObj);
@@ -191,7 +186,7 @@ async function ReleasedItemsSwitch(whereObj: any, itemType: EventType) {
   }
 }
 
-async function PendingItemsSwitch(whereObj: any, itemType: EventType) {
+async function PendingItemsSwitch(whereObj: any, itemType: PrismaEventTypes) {
   switch (itemType) {
     case "issues":
       return await prisma.pendingIssues.findMany(whereObj);

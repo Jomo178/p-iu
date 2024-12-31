@@ -1,17 +1,24 @@
 "use server";
 
-import { EditIssueProps, ViewPortType } from "@/types";
-import { del } from "@vercel/blob";
+import { FrameRarity, Prisma } from "@prisma/client";
+import { del, put } from "@vercel/blob";
 
-import { FramesFormPropsValue, IssuesFormPropsValue } from "@/config/items-add";
+import {
+  EditItemsProps,
+  ItemsNameType,
+  ItemsPendingType,
+  ItemStatusViewType,
+  ItemType,
+} from "@/types/items";
 import { prisma } from "@/lib/database";
 import { getCurrentStaff } from "@/lib/session";
+import { toUpperCase } from "@/lib/utils";
 
 import { utapi } from "../uploadthing";
 
 export async function approveItems(
   itemIds: string[],
-  tableName: "pendingFrames" | "pendingIssues" | "pendingFonts"
+  tableName: ItemsPendingType
 ) {
   const currentUser = await getCurrentStaff();
 
@@ -43,7 +50,7 @@ export async function approveItems(
 
 export async function rejectItems(
   itemIds: string[],
-  tableName: "pendingFrames" | "pendingIssues" | "pendingFonts",
+  tableName: ItemsPendingType,
   reason: string
 ) {
   const currentUser = await getCurrentStaff();
@@ -93,8 +100,8 @@ export async function resubmitRejectedItems(
   }
 }
 
-export async function deleteItems(
-  viewPortId: ViewPortType,
+export async function deleteItems<T extends ItemsNameType>(
+  itemsViewPortId: ItemStatusViewType<T>,
   items: { id: string; image: string }[],
   password: string
 ) {
@@ -105,7 +112,7 @@ export async function deleteItems(
     throw new Error("Items were not deleted. Incorrect password.");
   }
 
-  if (["issues", "frames"].includes(viewPortId)) {
+  if (["issues", "frames"].includes(itemsViewPortId)) {
     await utapi.deleteFiles(
       items
         .map((item) => item.image.split("/").pop())
@@ -121,12 +128,12 @@ export async function deleteItems(
     },
   };
 
-  if (viewPortId.includes("released")) {
-    if (viewPortId === "released-issues") {
+  if (itemsViewPortId.includes("released")) {
+    if (itemsViewPortId === "released-issues") {
       await prisma.issues.deleteMany({
         where: itemsIds,
       });
-    } else if (viewPortId === "released-frames") {
+    } else if (itemsViewPortId === "released-frames") {
       await prisma.frames.deleteMany({
         where: itemsIds,
       });
@@ -136,11 +143,11 @@ export async function deleteItems(
       });
     }
   } else {
-    if (viewPortId === "pending-issues") {
+    if (itemsViewPortId === "pending-issues") {
       await prisma.pendingIssues.deleteMany({
         where: itemsIds,
       });
-    } else if (viewPortId === "pending-frames") {
+    } else if (itemsViewPortId === "pending-frames") {
       await prisma.pendingFrames.deleteMany({
         where: itemsIds,
       });
@@ -156,53 +163,43 @@ export async function deleteItems(
   };
 }
 
-export async function editItems({ viewPortId, issue }: EditIssueProps) {
-  if (viewPortId.includes("issues")) {
-    return editIssue({ viewPortId, issue });
-  } else {
-    return editFrame({ viewPortId, issue });
-  }
-}
-
-export async function editIssue({ viewPortId, issue }: EditIssueProps) {
+export async function editItems<T extends ItemsNameType>({
+  itemsViewPortId,
+  item,
+}: EditItemsProps<T>) {
   const currentUser = await getCurrentStaff();
+  const items = itemsViewPortId.split("-")[1] as T;
 
-  issue = issue as IssuesFormPropsValue & {
-    imageLink: string;
-    changedImage: boolean;
-  };
+  if (item.changedImage) {
+    const deleteImage = await deleteItems(
+      itemsViewPortId,
+      [{ id: item.id, image: item.imageLink }],
+      "iu-delete-items"
+    );
 
-  if (issue.changedImage) {
-    const deleteImage = await utapi.deleteFiles([
-      issue.imageLink.split("/").pop()!,
-    ]);
+    if (!deleteImage.message) return { message: "Item was not Edited" };
+    if (itemsViewPortId.includes("fonts")) {
+      const blob = await put("fonts/" + item.name, item.image, {
+        access: "public",
+        contentType: "application/oft",
+      });
 
-    if (!deleteImage.success) {
-      throw new Error(
-        "Issue was not Edited. An error occurred while deleting the image."
-      );
+      item.imageLink = blob.url;
+    } else {
+      const response = await utapi.uploadFiles(item.image);
+
+      if (response.error?.code || !response.data) {
+        throw new Error(
+          "Issue was not Edited. An error occurred while uploading the image."
+        );
+      }
+
+      item.imageLink = response.data.url;
     }
-
-    const response = await utapi.uploadFiles(issue.image);
-
-    if (response.error?.code || !response.data) {
-      throw new Error(
-        "Issue was not Edited. An error occurred while uploading the image."
-      );
-    }
-
-    issue.imageLink = response.data.url;
   }
 
   let edited;
-  const data = {
-    name: issue.name,
-    group: issue.group,
-    act: issue.act,
-    rarity: issue.rarity,
-    code: issue.code,
-    image: issue.imageLink,
-  };
+  let data = {};
   const include = {
     createdBy: true,
     approvedBy: true,
@@ -214,23 +211,49 @@ export async function editIssue({ viewPortId, issue }: EditIssueProps) {
     },
   };
 
-  if (viewPortId === "released-issues") {
-    edited = await prisma.issues.update({
-      where: {
-        id: issue.id,
-      },
-      data,
-      include,
-    });
-
-    return {
-      message: "Issue was successfully Edited.",
-      issue: edited,
+  if (items == "issues" && "act" in item) {
+    const issueData: Prisma.IssuesUpdateInput = {
+      name: item.name,
+      group: item.group,
+      act: item.act,
+      rarity: item.rarity,
+      code: item.code,
+      image: item.imageLink,
     };
-  } else {
-    edited = await prisma.pendingIssues.update({
+    data = issueData;
+  } else if (items == "frames" && "code" in item) {
+    const frameData: Prisma.FramesUpdateInput = {
+      name: item.name,
+      rarity: item.rarity as FrameRarity,
+      code: item.code,
+      image: item.imageLink,
+    };
+    data = frameData;
+  } else if (items == "fonts" && "price" in item) {
+    const fontData: Prisma.FontsUpdateInput = {
+      name: item.name,
+      price: item.price,
+      short: item.shortName,
+      onMarket: item.onMarket,
+      isBig: item.isBig,
+      filePath: item.imageLink,
+    };
+    data = fontData;
+  }
+
+  if (itemsViewPortId.includes("released")) {
+    edited = await (prisma[items] as any).update({
       where: {
-        id: issue.id,
+        id: item.id,
+      },
+      data,
+      include,
+    });
+  } else {
+    const pendingItems = `pending${toUpperCase(items)}` as ItemsPendingType;
+    edited = await (prisma[pendingItems] as any).update({
+      where: {
+        id: item.id,
       },
       data,
       include,
@@ -238,79 +261,7 @@ export async function editIssue({ viewPortId, issue }: EditIssueProps) {
   }
 
   return {
-    message: "Issue was successfully Edited.",
-    item: edited,
-  };
-}
-
-export async function editFrame({ viewPortId, issue }: EditIssueProps) {
-  const currentUser = await getCurrentStaff();
-
-  const frame = issue as FramesFormPropsValue & {
-    imageLink: string;
-    changedImage: boolean;
-  };
-
-  if (frame.changedImage) {
-    const deleteImage = await utapi.deleteFiles([
-      frame.imageLink.split("/").pop()!,
-    ]);
-
-    if (!deleteImage.success) {
-      throw new Error(
-        "Frame was not Edited. An error occurred while deleting the image."
-      );
-    }
-
-    const response = await utapi.uploadFiles(frame.image);
-
-    if (response.error?.code || !response.data) {
-      throw new Error(
-        "Frame was not Edited. An error occurred while uploading the image."
-      );
-    }
-
-    frame.imageLink = response.data.url;
-  }
-
-  let edited;
-  let data = {
-    name: frame.name,
-    rarity: frame.rarity,
-    code: frame.code,
-    image: frame.imageLink,
-  };
-  let include = {
-    createdBy: true,
-    approvedBy: true,
-    rejections: {
-      include: {
-        rejectedBy: true,
-        resubmittedBy: true,
-      },
-    },
-  };
-
-  if (viewPortId === "released-frames") {
-    edited = await prisma.frames.update({
-      where: {
-        id: frame.id,
-      },
-      data,
-      include,
-    });
-  } else {
-    edited = await prisma.pendingFrames.update({
-      where: {
-        id: frame.id,
-      },
-      data,
-      include,
-    });
-  }
-
-  return {
-    message: "Frame was successfully Edited.",
-    item: edited,
+    message: `${items} edited successfully.`,
+    editedItem: edited as ItemType<T>[0] | ItemType<T>[1],
   };
 }

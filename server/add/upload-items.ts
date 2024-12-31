@@ -1,26 +1,23 @@
 "use server";
 
-import { EventType, FrameRarity } from "@prisma/client";
+import { FrameRarity, PrismaEventTypes } from "@prisma/client";
 import { put } from "@vercel/blob";
 
-import {
-  FontsFormPropsValue,
-  ItemsFormPropsValue,
-  itemsSchema,
-} from "@/config/items-add";
+import { ItemSchemaValue, ItemsNameType } from "@/types/items";
+import { itemsSchema } from "@/config/items-add";
 import { prisma } from "@/lib/database";
 import { getCurrentStaff } from "@/lib/session";
 
 import { getCurrentEvent } from "../events/_action";
 import { utapi } from "../uploadthing";
 
-export async function UploadItems(
-  itemType: `${EventType}`,
-  item: ItemsFormPropsValue | FontsFormPropsValue
+export async function UploadItems<T extends ItemsNameType>(
+  itemNameType: T,
+  item: ItemSchemaValue<T>
 ): Promise<{ variant: "success" | "error"; message: string }> {
   const currentUser = await getCurrentStaff();
 
-  const parsedIssue = itemsSchema[itemType].safeParse(item);
+  const parsedIssue = itemsSchema[itemNameType].safeParse(item);
 
   if (!parsedIssue.success) {
     return {
@@ -39,7 +36,7 @@ export async function UploadItems(
   }
   let response;
 
-  if (itemType === "issues" || itemType === "frames") {
+  if (itemNameType === "issues" || itemNameType === "frames") {
     response = await utapi.uploadFiles(item.image);
 
     if (response.error?.code || !response.data) {
@@ -62,7 +59,7 @@ export async function UploadItems(
     };
   }
 
-  switch (itemType) {
+  switch (itemNameType) {
     case "issues":
       if ("act" in item) {
         await prisma.pendingIssues.create({
@@ -119,7 +116,7 @@ export async function UploadItems(
 
 export async function checkDuplicateItemsCode(
   codes: string[],
-  itemType: `${EventType}`
+  itemType: PrismaEventTypes
 ) {
   let items = [];
   let pendingItems = [];

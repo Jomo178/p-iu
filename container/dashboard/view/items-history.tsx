@@ -1,29 +1,27 @@
 "use client";
 
+import { ItemsNameType, ItemType } from "@/types/items";
 import { UserProfile } from "@/types/next-auth";
-import {
-  PendingFontsWithRelation,
-  PendingFramesWithRelation,
-  PendingIssuesWithRelation,
-} from "@/types/prisma";
-import { cn, formatTimestamp } from "@/lib/utils";
+import { cn, formatTimestamp, toUpperCase } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
-interface ItemsHistoryProps {
-  issue:
-    | PendingIssuesWithRelation
-    | PendingFramesWithRelation
-    | PendingFontsWithRelation;
-  data: UserProfile[] | undefined;
+interface ItemsHistoryProps<T extends ItemsNameType> {
+  itemNameType: T;
+  item: ItemType<T>[1];
+  AllStaffInformation: UserProfile[] | undefined;
 }
 
-export default function ItemsHistory({ issue, data }: ItemsHistoryProps) {
+export default function ItemsHistory<T extends ItemsNameType>({
+  itemNameType,
+  item,
+  AllStaffInformation,
+}: ItemsHistoryProps<T>) {
   const getDataByDiscordId = (id: string) => {
     const defaultData = { username: "IU", avatar: "/images/iu.png" };
-    if (!data) return defaultData;
-    const info = data.find((member) => member.id === id);
+    if (!AllStaffInformation) return defaultData;
+    const info = AllStaffInformation.find((staff) => staff.id === id);
     if (!info) return defaultData;
     return info;
   };
@@ -31,14 +29,14 @@ export default function ItemsHistory({ issue, data }: ItemsHistoryProps) {
   const historyProcess = [
     {
       title: "Created",
-      timestamp: issue.createdAt,
-      userInfo: getDataByDiscordId(issue.createdBy.discordId),
+      timestamp: item.createdAt,
+      userInfo: getDataByDiscordId(item.createdBy.discordId),
       style: "",
     },
   ];
 
-  if (issue.rejections?.length > 0) {
-    issue.rejections.forEach((rejection) => {
+  if (item.rejections?.length > 0) {
+    item.rejections.forEach((rejection) => {
       historyProcess.push({
         title: "Rejected",
         timestamp: rejection.createdAt,
@@ -67,22 +65,22 @@ export default function ItemsHistory({ issue, data }: ItemsHistoryProps) {
   }
 
   if (
-    !issue.approvedBy &&
+    !item.approvedBy &&
     !historyProcess.some((event) => event.title === "Waiting for resubmission")
   ) {
     historyProcess.push({
       title: "Waiting for approval",
-      timestamp: issue.createdAt,
+      timestamp: item.createdAt,
       userInfo: getDataByDiscordId("IU"),
       style: "text-green-500",
     });
   }
 
-  if (issue.approvedBy) {
+  if (item.approvedBy) {
     historyProcess.push({
       title: "Approved",
-      timestamp: issue.approvedAt ?? new Date(),
-      userInfo: getDataByDiscordId(issue.approvedBy.discordId),
+      timestamp: item.approvedAt ?? new Date(),
+      userInfo: getDataByDiscordId(item.approvedBy.discordId),
       style: "text-green-500",
     });
   }
@@ -91,7 +89,9 @@ export default function ItemsHistory({ issue, data }: ItemsHistoryProps) {
     <Card className="h-[400px] w-full rounded-t-none border-0 border-t-2">
       <CardContent className="p-4">
         <div className="mb-2 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Issue History</h2>
+          <h2 className="text-lg font-semibold">
+            {toUpperCase(itemNameType.slice(0, -1))} History
+          </h2>
         </div>
         <div className="flex min-h-full pt-4">
           <Separator orientation="vertical" />

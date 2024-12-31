@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { EventType, Staff } from "@prisma/client";
+import { Staff } from "@prisma/client";
 
 import {
-  ItemsFormPropsValue,
-  useDefaultItemsFormValues,
-} from "@/config/items-add";
+  ItemFormPropsValue,
+  ItemSchemaValue,
+  ItemsNameType,
+} from "@/types/items";
+import { useDefaultItemsFormValues } from "@/config/items-add";
 import { hasPermission, scrollToCarousel, toUpperCase } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { CarouselApi } from "@/components/ui/carousel";
@@ -14,29 +16,28 @@ import { Icons } from "@/components/ui/icons";
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
 import { ItemsCustomPropertiesDialog } from "./items-custom-props";
 import ItemsPreviewToUpload from "./items-preview-to-upload";
 
-interface ItemsButtonControlProps {
-  itemType: `${EventType}`;
+interface ItemsButtonControlProps<T extends ItemsNameType> {
+  itemNameType: T;
   eventReleaseDate: Date;
-  itmesFormPropsValue: ItemsFormPropsValue[];
+  itmesFormPropsValue: ItemSchemaValue<T>[];
   setItemsFormPropsValueAction: React.Dispatch<
-    React.SetStateAction<ItemsFormPropsValue[]>
+    React.SetStateAction<ItemSchemaValue<T>[]>
   >;
   carouselApi: CarouselApi;
   carouselCount: number;
   setCarouselCountAction: React.Dispatch<React.SetStateAction<number>>;
   setCarouselCurrentIndexAction: React.Dispatch<React.SetStateAction<number>>;
-  staff: Staff;
+  currentStaff: Staff;
 }
 
-export default function ItemsButtonControl({
-  itemType,
+export default function ItemsButtonControl<T extends ItemsNameType>({
+  itemNameType,
   eventReleaseDate,
   itmesFormPropsValue,
   setItemsFormPropsValueAction,
@@ -44,11 +45,11 @@ export default function ItemsButtonControl({
   carouselCount,
   setCarouselCountAction,
   setCarouselCurrentIndexAction,
-  staff,
-}: ItemsButtonControlProps) {
+  currentStaff,
+}: ItemsButtonControlProps<T>) {
   const [openDialog, setOpenDialog] = useState(false);
   const [getNewCustomProps, setNewCustomProps] =
-    useDefaultItemsFormValues(itemType);
+    useDefaultItemsFormValues(itemNameType);
 
   return (
     <>
@@ -81,7 +82,7 @@ export default function ItemsButtonControl({
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              <p>Delete {toUpperCase(itemType)}</p>
+              <p>Delete {toUpperCase(itemNameType)}</p>
             </TooltipContent>
           </Tooltip>
           <Tooltip>
@@ -90,12 +91,13 @@ export default function ItemsButtonControl({
                 variant="outline"
                 disabled={carouselCount == 15}
                 onClick={() => {
-                  setItemsFormPropsValueAction((prev: any) => [
+                  setItemsFormPropsValueAction((prev) => [
                     ...prev,
                     {
                       ...getNewCustomProps,
                       id: Math.random().toString(),
                       releaseDate: eventReleaseDate,
+                      errors: [],
                     },
                   ]);
 
@@ -107,7 +109,7 @@ export default function ItemsButtonControl({
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              <p>Add {toUpperCase(itemType)}</p>
+              <p>Add {toUpperCase(itemNameType)}</p>
             </TooltipContent>
           </Tooltip>
           <Tooltip>
@@ -124,29 +126,32 @@ export default function ItemsButtonControl({
             </TooltipContent>
           </Tooltip>
           <ItemsPreviewToUpload
-            itemType={itemType}
-            carouselApi={carouselApi}
-            itemsFormPropsValue={itmesFormPropsValue as any}
-            setItemsFormPropsValueAction={setItemsFormPropsValueAction as any}
+            itemNameType={itemNameType}
+            itemsFormPropsValue={itmesFormPropsValue}
+            setItemsFormPropsValueAction={setItemsFormPropsValueAction}
             defaultValues={{
-              ...(getNewCustomProps as any),
+              ...getNewCustomProps,
               releaseDate: eventReleaseDate,
+              errors: [],
             }}
-            disabled={hasPermission(staff, `create:${itemType}`)}
+            disabled={hasPermission(currentStaff, `create:${itemNameType}`)}
+            carouselApi={carouselApi}
           />
         </div>
       </div>
 
       <ItemsCustomPropertiesDialog
+        itemNameType={itemNameType}
+        setItemFormPropsValueAction={setItemsFormPropsValueAction}
+        getNewCustomProps={
+          {
+            ...getNewCustomProps,
+            releaseDate: eventReleaseDate,
+          } as ItemFormPropsValue[T]
+        }
+        setNewCustomPropsAction={setNewCustomProps as ItemFormPropsValue[T]}
         openDialog={openDialog}
         setOpenDialogAction={setOpenDialog}
-        itemType={itemType}
-        setItemFormPropsValueAction={setItemsFormPropsValueAction as any}
-        getNewCustomProps={{
-          ...(getNewCustomProps as any),
-          releaseDate: eventReleaseDate,
-        }}
-        setNewCustomPropsAction={setNewCustomProps as any}
       />
     </>
   );

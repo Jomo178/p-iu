@@ -1,14 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import {
-  FramesViewPort,
-  IssuesViewPort,
-  IssuesViewType,
-  ItemsViewPortType,
-} from "@/types";
-import { EventType, Staff } from "@prisma/client";
+import { Staff } from "@prisma/client";
 
+import { ItemListingView, ItemsNameType } from "@/types/items";
 import { cn, hasPermission } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 import { Icons } from "@/components/ui/icons";
@@ -24,23 +19,21 @@ import DeleteItemsDialog from "./delete-items";
 import { usehandleApprovePendingItems } from "./handlers";
 import { RejectionsDialog } from "./view-item-card";
 
-interface DynamicButtonIslandProps {
-  viewTypeData: ItemsViewPortType;
-  setViewTypeDataAction: React.Dispatch<
-    React.SetStateAction<ItemsViewPortType>
-  >;
+interface DynamicButtonIslandProps<T extends ItemsNameType> {
+  itemNameType: T;
+  viewPort: ItemListingView<T>;
+  setViewPortAction: React.Dispatch<React.SetStateAction<ItemListingView<T>>>;
+  currentStaff: Staff;
   setOpenSidebarAction: React.Dispatch<React.SetStateAction<boolean>>;
-  staff: Staff;
-  itemType: `${EventType}`;
 }
 
-export default function DynamicButtonIsland({
-  viewTypeData,
-  setViewTypeDataAction,
+export default function DynamicButtonIsland<T extends ItemsNameType>({
+  itemNameType,
+  viewPort,
+  setViewPortAction,
+  currentStaff,
   setOpenSidebarAction,
-  staff,
-  itemType,
-}: DynamicButtonIslandProps) {
+}: DynamicButtonIslandProps<T>) {
   const [openIsland, setOpenIsland] = useState(false);
   const [openRejectDialog, setOpenRejectDialog] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
@@ -48,21 +41,18 @@ export default function DynamicButtonIsland({
     handleApprovePendingItems,
     handleRejectPendingItems,
     handleResubmitRejectedItems,
-  } = usehandleApprovePendingItems(itemType, setViewTypeDataAction);
+  } = usehandleApprovePendingItems(itemNameType, setViewPortAction);
 
-  const disableButton = viewTypeData.selectedItems.length == 0;
+  const disableButton = viewPort.selectedItems.length == 0;
 
-  const checkForAllowness =
-    viewTypeData.id.includes("rejected") || disableButton;
+  const checkForAllowness = viewPort.id.includes("rejected") || disableButton;
 
-  const issueCreatedByUser = viewTypeData.selectedItems.some(
-    (item) => item.createdBy.id === staff.id
+  const issueCreatedByUser = viewPort.selectedItems.some(
+    (item) => item.createdBy.id === currentStaff.id
   );
 
   const AllOrSelected =
-    viewTypeData.selectedItems.length == viewTypeData.data.length
-      ? "All"
-      : "Selected";
+    viewPort.selectedItems.length == viewPort.data.length ? "All" : "Selected";
   return (
     <div
       className={cn(
@@ -99,7 +89,7 @@ export default function DynamicButtonIsland({
               className={buttonVariants({ variant: "ghost" })}
               disabled={disableButton}
               onClick={() =>
-                setViewTypeDataAction((prev) => ({
+                setViewPortAction((prev) => ({
                   ...prev,
                   selectedItems: [],
                 }))
@@ -115,17 +105,12 @@ export default function DynamicButtonIsland({
           <Tooltip>
             <TooltipTrigger
               className={buttonVariants({ variant: "ghost" })}
-              disabled={
-                viewTypeData.selectedItems.length == viewTypeData.data.length
-              }
+              disabled={viewPort.selectedItems.length == viewPort.data.length}
               onClick={() =>
-                setViewTypeDataAction(
-                  (prev) =>
-                    ({
-                      ...prev,
-                      selectedItems: prev.data as typeof prev.selectedItems,
-                    }) as IssuesViewPort | FramesViewPort
-                )
+                setViewPortAction((prev) => ({
+                  ...prev,
+                  selectedItems: prev.data,
+                }))
               }
             >
               <Icons.select size={20} />
@@ -147,7 +132,7 @@ export default function DynamicButtonIsland({
               <p>Show Information</p>
             </TooltipContent>
           </Tooltip>
-          {viewTypeData.id.includes("pending") && (
+          {viewPort.id.includes("pending") && (
             <>
               <Separator orientation="vertical" className="h-6" />
               <Tooltip>
@@ -156,14 +141,12 @@ export default function DynamicButtonIsland({
                   disabled={
                     checkForAllowness ||
                     issueCreatedByUser ||
-                    hasPermission(staff, `handle:${itemType}`)
+                    hasPermission(currentStaff, `handle:${itemNameType}`)
                   }
                   onClick={() =>
                     handleApprovePendingItems([
-                      viewTypeData.selectedItems[0]?.id,
-                      ...viewTypeData.selectedItems
-                        .slice(1)
-                        .map((item) => item.id),
+                      viewPort.selectedItems[0]?.id,
+                      ...viewPort.selectedItems.slice(1).map((item) => item.id),
                     ])
                   }
                 >
@@ -180,7 +163,7 @@ export default function DynamicButtonIsland({
                   disabled={
                     checkForAllowness ||
                     issueCreatedByUser ||
-                    hasPermission(staff, `handle:${itemType}`)
+                    hasPermission(currentStaff, `handle:${itemNameType}`)
                   }
                   onClick={() => setOpenRejectDialog(true)}
                 >
@@ -192,21 +175,20 @@ export default function DynamicButtonIsland({
               </Tooltip>
             </>
           )}
-          {viewTypeData.id.includes("rejected") && (
+          {viewPort.id.includes("rejected") && (
             <>
               <Separator orientation="vertical" className="h-6" />
               <Tooltip>
                 <TooltipTrigger
                   className={buttonVariants({ variant: "ghost" })}
                   disabled={
-                    disableButton || hasPermission(staff, `handle:${itemType}`)
+                    disableButton ||
+                    hasPermission(currentStaff, `handle:${itemNameType}`)
                   }
                   onClick={() =>
                     handleResubmitRejectedItems([
-                      viewTypeData.selectedItems[0]?.id,
-                      ...viewTypeData.selectedItems
-                        .slice(1)
-                        .map((item) => item.id),
+                      viewPort.selectedItems[0]?.id,
+                      ...viewPort.selectedItems.slice(1).map((item) => item.id),
                     ])
                   }
                 >
@@ -223,7 +205,8 @@ export default function DynamicButtonIsland({
             <TooltipTrigger
               className={buttonVariants({ variant: "ghost" })}
               disabled={
-                disableButton || hasPermission(staff, `delete:${itemType}`)
+                disableButton ||
+                hasPermission(currentStaff, `delete:${itemNameType}`)
               }
               onClick={() => setOpenDeleteDialog(true)}
             >
@@ -236,22 +219,23 @@ export default function DynamicButtonIsland({
         </TooltipProvider>
       </div>
       <RejectionsDialog
-        openDialog={openRejectDialog}
-        setOpenDialogAction={setOpenRejectDialog}
-        handleRejectPendingItemsAction={handleRejectPendingItems}
-        pendingIssues={viewTypeData.selectedItems.map((item) => ({
+        itemNameType={itemNameType}
+        pendingItem={viewPort.selectedItems.map((item) => ({
           id: item.id,
           name: item.name,
         }))}
+        handleRejectPendingItemsAction={handleRejectPendingItems}
+        openDialog={openRejectDialog}
+        setOpenDialogAction={setOpenRejectDialog}
       />
 
       <DeleteItemsDialog
-        issues={viewTypeData.selectedItems as any}
-        itemType={itemType}
+        itemNameType={itemNameType}
+        items={viewPort.selectedItems}
+        setViewTypeDataAction={setViewPortAction}
+        viewPortType={viewPort}
         openDialog={openDeleteDialog}
         setOpenDialogAction={setOpenDeleteDialog}
-        setViewTypeDataAction={setViewTypeDataAction}
-        viewPortType={viewTypeData}
       />
     </div>
   );

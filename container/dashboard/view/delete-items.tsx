@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { FramesViewPort, IssuesViewPort, ItemsViewPortType } from "@/types";
-import { EventType } from "@prisma/client";
 
+import { ItemListingView, ItemsNameType, ItemType } from "@/types/items";
+import { toUpperCase } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Credenza,
@@ -18,27 +18,27 @@ import { PasswordInput } from "@/components/ui/input";
 
 import { usehandleApprovePendingItems } from "./handlers";
 
-interface DeleteIssuesProps {
-  issues: { id: string; name: string; image: string }[];
-  itemType: `${EventType}`;
+interface DeleteIssuesProps<T extends ItemsNameType> {
+  itemNameType: T;
+  items: ItemType<T>[0][] | ItemType<T>[1][];
+  viewPortType: ItemListingView<T>;
+  setViewTypeDataAction?: React.Dispatch<
+    React.SetStateAction<ItemListingView<T>>
+  >;
   openDialog: boolean;
   setOpenDialogAction: React.Dispatch<React.SetStateAction<boolean>>;
-  setViewTypeDataAction?: React.Dispatch<
-    React.SetStateAction<ItemsViewPortType>
-  >;
-  viewPortType: ItemsViewPortType;
 }
 
-export default function DeleteItemsDialog({
-  issues,
-  itemType,
+export default function DeleteItemsDialog<T extends ItemsNameType>({
+  itemNameType,
+  items,
+  viewPortType,
+  setViewTypeDataAction,
   openDialog,
   setOpenDialogAction,
-  setViewTypeDataAction,
-  viewPortType,
-}: DeleteIssuesProps) {
+}: DeleteIssuesProps<T>) {
   const { handleDeleteItems } = usehandleApprovePendingItems(
-    itemType,
+    itemNameType,
     setViewTypeDataAction
   );
   const [password, setPassword] = useState("");
@@ -49,7 +49,10 @@ export default function DeleteItemsDialog({
 
     const response = await handleDeleteItems(
       viewPortType.id,
-      issues.map((issue) => ({ id: issue.id, image: issue.image })),
+      items.map((item) => ({
+        id: item.id,
+        image: "image" in item ? item.image : item.filePath,
+      })),
       password
     );
 
@@ -60,9 +63,11 @@ export default function DeleteItemsDialog({
     <Credenza open={openDialog} onOpenChange={setOpenDialogAction}>
       <CredenzaContent className="sm:max-w-[600px]">
         <CredenzaHeader>
-          <CredenzaTitle>Delete Pending Issues</CredenzaTitle>
+          <CredenzaTitle>
+            Delete Pending {toUpperCase(itemNameType)}
+          </CredenzaTitle>
           <CredenzaDescription>
-            Are you sure you want to delete the following issues?
+            Are you sure you want to delete the following {itemNameType}?
           </CredenzaDescription>
         </CredenzaHeader>
 
@@ -79,11 +84,11 @@ export default function DeleteItemsDialog({
           />
           {error && <p className="mt-2 text-sm text-red-500">{error}</p>}
           <ul className="mt-4">
-            <li>Issues that will be deleted:</li>
+            <li>{toUpperCase(itemNameType)} that will be deleted:</li>
             <div className="flex gap-4">
-              {issues.map((issue) => (
-                <li key={issue.id}>
-                  <p>{issue.name}</p>
+              {items.map((item) => (
+                <li key={item.id}>
+                  <p>{item.name}</p>
                 </li>
               ))}
             </div>

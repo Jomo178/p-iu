@@ -2,16 +2,14 @@
 
 import { useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { EventType } from "@prisma/client";
 import { useForm } from "react-hook-form";
 
 import {
-  FontsFormPropsValue,
-  IssuesFormPropsValueKeys,
-  ItemsFormPropsValue,
-  ItemsSchema,
-  itemsSchema,
-} from "@/config/items-add";
+  ItemFormPropsValue,
+  ItemsFormPropsValueKeys,
+  ItemsNameType,
+} from "@/types/items";
+import { itemsSchema } from "@/config/items-add";
 import { DatetimePicker } from "@/components/ui/date-time-picker";
 import { FileUploader } from "@/components/ui/file-uploader-primitive";
 import {
@@ -23,7 +21,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Icons } from "@/components/ui/icons";
-import { FloatingLabelInput, Input, InputNumber } from "@/components/ui/input";
+import { FloatingLabelInput, InputNumber } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -43,26 +41,23 @@ import {
 } from "@/components/ui/tooltip";
 import { Typography } from "@/components/ui/typography";
 
-interface ItemsFormProps {
+interface ItemsFormProps<T extends ItemsNameType> {
   index: number;
-  itemType: `${EventType}`;
-  defaultValues: ItemsFormPropsValue;
-  onFormChangeAction: (
-    index: number,
-    value: ItemsFormPropsValue | FontsFormPropsValue
-  ) => void;
-  hiddenFields?: IssuesFormPropsValueKeys[];
+  itemNameType: ItemsNameType;
+  defaultValues: ItemFormPropsValue[T];
+  onFormChangeAction: (index: number, value: ItemFormPropsValue[T]) => void;
+  hiddenFields?: ItemsFormPropsValueKeys<T>[];
 }
 
-export default function ItemsForm({
+export default function ItemsForm<T extends ItemsNameType>({
   index,
-  itemType,
+  itemNameType,
   defaultValues,
   onFormChangeAction,
   hiddenFields = [],
-}: ItemsFormProps) {
-  const form = useForm<ItemsSchema[typeof itemType]>({
-    resolver: zodResolver(itemsSchema[itemType]),
+}: ItemsFormProps<T>) {
+  const form = useForm<ItemFormPropsValue[typeof itemNameType]>({
+    resolver: zodResolver(itemsSchema[itemNameType]),
     defaultValues,
   });
 
@@ -78,8 +73,9 @@ export default function ItemsForm({
       );
     }
 
-    if ("codeDuplicate" in defaultValues && defaultValues.codeDuplicate)
+    if ("codeDuplicate" in defaultValues && defaultValues.codeDuplicate) {
       form.setValue("codeDuplicate", defaultValues.codeDuplicate);
+    }
   }, [defaultValues]);
 
   const isFieldHidden = (fieldName: any) => hiddenFields.includes(fieldName);
@@ -91,12 +87,14 @@ export default function ItemsForm({
   return (
     <Form {...form}>
       <form
-        onChange={() => onFormChangeAction(index, form.getValues())}
+        onChange={() =>
+          onFormChangeAction(index, form.getValues() as ItemFormPropsValue[T])
+        }
         className="p-4"
       >
         <div className="ml-auto mr-auto h-full max-w-fit">
           <div className="flex h-full w-72 flex-col items-center gap-6">
-            {itemType === "issues" && (
+            {itemNameType === "issues" && (
               <>
                 {!isFieldHidden("name") && (
                   <FormField
@@ -305,7 +303,10 @@ export default function ItemsForm({
                               previewWidth={150}
                               onValueChange={(value) => {
                                 form.setValue("image", value[0]);
-                                onFormChangeAction(index, form.getValues());
+                                onFormChangeAction(
+                                  index,
+                                  form.getValues() as ItemFormPropsValue[T]
+                                );
                               }}
                             />
                           </FormControl>
@@ -317,7 +318,7 @@ export default function ItemsForm({
                 )}
               </>
             )}
-            {itemType === "frames" && (
+            {itemNameType === "frames" && (
               <>
                 {!isFieldHidden("name") && (
                   <FormField
@@ -478,7 +479,10 @@ export default function ItemsForm({
                               previewWidth={150}
                               onValueChange={(value) => {
                                 form.setValue("image", value[0]);
-                                onFormChangeAction(index, form.getValues());
+                                onFormChangeAction(
+                                  index,
+                                  form.getValues() as ItemFormPropsValue[T]
+                                );
                               }}
                             />
                           </FormControl>
@@ -490,7 +494,7 @@ export default function ItemsForm({
                 )}
               </>
             )}
-            {itemType === "fonts" && (
+            {itemNameType === "fonts" && (
               <>
                 {!isFieldHidden("name") && (
                   <FormField
@@ -638,7 +642,10 @@ export default function ItemsForm({
                               previewWidth={100}
                               onValueChange={(value) => {
                                 form.setValue("image", value[0]);
-                                onFormChangeAction(index, form.getValues());
+                                onFormChangeAction(
+                                  index,
+                                  form.getValues() as ItemFormPropsValue[T]
+                                );
                               }}
                             />
                           </FormControl>

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import ItemsCarousel from "@/container/dashboard/add/items-carousel";
 import { getCurrentEvent } from "@/server/events/_action";
-import { Events, EventType } from "@prisma/client";
+import { Events, PrismaEventTypes } from "@prisma/client";
 
 import { getCurrentStaff } from "@/lib/session";
 import { toUpperCase } from "@/lib/utils";
@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EmptyState } from "@/components/empty-state";
 
 export async function generateStaticParams() {
-  const types = Object.values(EventType);
+  const types = Object.values(PrismaEventTypes);
   return types.map((type) => ({
     type: type,
   }));
@@ -20,7 +20,7 @@ export async function generateStaticParams() {
 export default async function Page({
   params,
 }: {
-  params: Promise<{ type: EventType }>;
+  params: Promise<{ type: PrismaEventTypes }>;
 }) {
   const type = (await params).type;
   const issueEvent = await getCurrentEvent(["issues"]);
@@ -35,7 +35,7 @@ export default async function Page({
         className="py-6 sm:ml-auto sm:mr-auto sm:max-h-fit sm:min-w-[400px] sm:max-w-fit sm:px-6 md:p-11"
       >
         <TabsList className="grid w-full grid-cols-3">
-          {Object.values(EventType).map((item) => (
+          {Object.values(PrismaEventTypes).map((item) => (
             <Link
               href={`/dashboard/add/${item}`}
               key={item}
@@ -49,10 +49,10 @@ export default async function Page({
           ))}
         </TabsList>
 
-        {Object.values(EventType).map((item) => {
+        {Object.values(PrismaEventTypes).map((item) => {
           const itemName = item.slice(0, -1);
 
-          const events: { [key in EventType]?: Events | null } = {};
+          const events: { [key in PrismaEventTypes]?: Events | null } = {};
           events["issues"] = issueEvent;
           events["frames"] = frameEvent;
           events["fonts"] = fontEvent;
@@ -77,8 +77,8 @@ export default async function Page({
                     />
                   ) : (
                     <ItemsCarousel
-                      itemType={item}
-                      staff={staff.staff}
+                      itemNameType={item}
+                      currentStaff={staff.staff}
                       eventReleaseDate={events[item]?.start!}
                     />
                   )}

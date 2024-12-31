@@ -3,11 +3,7 @@ import { ViewDashboardType } from "@/types";
 import { Icons } from "@/components/ui/icons";
 
 import { dashboardActions } from "./dashboard";
-import {
-  fontsViewPortType,
-  framesViewPortType,
-  issuesViewPortType,
-} from "./items-view";
+import { generateItemsViewPort } from "./items-view";
 
 export const viewDashboard: ViewDashboardType[] = [
   {
@@ -15,21 +11,21 @@ export const viewDashboard: ViewDashboardType[] = [
     Icon: Icons.previewButton,
     href: "/dashboard/view/issues",
     isActive: true,
-    items: issuesViewPortType,
+    items: generateItemsViewPort("issues"),
   },
   {
     title: "Frames",
     Icon: Icons.frames,
     href: "/dashboard/view/frames",
     isActive: true,
-    items: framesViewPortType,
+    items: generateItemsViewPort("frames"),
   },
   {
     title: "Fonts",
-    Icon: Icons.editPen,
+    Icon: Icons.manageFont,
     href: "/dashboard/view/fonts",
     isActive: true,
-    items: fontsViewPortType,
+    items: generateItemsViewPort("fonts"),
   },
   {
     title: "Manage",

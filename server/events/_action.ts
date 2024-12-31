@@ -1,11 +1,11 @@
 "use server";
 
-import { Events, EventType, Prisma } from "@prisma/client";
+import { Events, Prisma, PrismaEventTypes } from "@prisma/client";
 
 import { prisma } from "@/lib/database";
-import { getCurrentStaff, getCurrentUser } from "@/lib/session";
+import { getCurrentStaff } from "@/lib/session";
 
-export async function getCurrentEvent(type: EventType[]) {
+export async function getCurrentEvent(type: PrismaEventTypes[]) {
   const futureEvent = await prisma.events.findFirst({
     where: {
       type: {
@@ -36,7 +36,7 @@ export async function getCurrentEvent(type: EventType[]) {
   return ongoingEvent;
 }
 
-export async function getAllEvents(type?: EventType[] | undefined) {
+export async function getAllEvents(type?: PrismaEventTypes[] | undefined) {
   const events = await prisma.events.findMany({
     where: {
       type: type ? { hasSome: type } : undefined,
@@ -83,7 +83,7 @@ export async function getAllEvents(type?: EventType[] | undefined) {
 }
 
 export async function getEvents<T extends Prisma.EventsSelect>(
-  type?: EventType[] | undefined,
+  type?: PrismaEventTypes[] | undefined,
   select?: T
 ): Promise<Prisma.EventsGetPayload<{ select: T }>[]> {
   const events = await prisma.events.findMany({

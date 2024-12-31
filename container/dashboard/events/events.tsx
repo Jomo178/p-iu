@@ -3,9 +3,8 @@
 import { useState } from "react";
 import { Staff } from "@prisma/client";
 
+import { EventsWithRelation } from "@/types/items-relation";
 import { UserProfile } from "@/types/next-auth";
-import { EventsWithRelation } from "@/types/prisma";
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
 import EventAdd from "./event-add";

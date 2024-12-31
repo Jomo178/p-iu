@@ -1,6 +1,6 @@
 "use client";
 
-import { Permission, Role, Staff } from "@prisma/client";
+import { AuthorizationType, Staff, StaffRole } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 
 import { UserProfile } from "@/types/next-auth";
@@ -49,7 +49,7 @@ export const columns: ColumnDef<StaffMemberDetails>[] = [
     ),
     cell: ({ row }) => toUpperCase(row.getValue("role")),
     sortingFn: (a, b) => {
-      const roleOrder = Object.values(Role);
+      const roleOrder = Object.values(StaffRole);
       return (
         roleOrder.indexOf(a.original.role) - roleOrder.indexOf(b.original.role)
       );
@@ -80,10 +80,10 @@ export const columns: ColumnDef<StaffMemberDetails>[] = [
       const PermissionBadges = ({
         permissions,
       }: {
-        permissions: Permission[];
+        permissions: AuthorizationType[];
       }) => {
         const permissionMap =
-          permissions.length == Object.keys(Permission).length
+          permissions.length == Object.keys(AuthorizationType).length
             ? ["All Actions"]
             : permissions;
 

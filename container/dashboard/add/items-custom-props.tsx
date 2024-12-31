@@ -1,10 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { EventType } from "@prisma/client";
 import { toast } from "sonner";
 
-import { ItemsFormPropsValue } from "@/config/items-add";
+import {
+  ItemFormPropsValue,
+  ItemSchemaValue,
+  ItemsFormPropsValueKeys,
+  ItemsNameType,
+} from "@/types/items";
 import { toUpperCase } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,29 +22,29 @@ import {
 
 import ItemsForm from "./items-form";
 
-interface ItemsCustomPropertiesDialogProps {
+interface ItemsCustomPropertiesDialogProps<T extends ItemsNameType> {
+  itemNameType: T;
+  setItemFormPropsValueAction: React.Dispatch<
+    React.SetStateAction<ItemSchemaValue<T>[]>
+  >;
+  getNewCustomProps: ItemFormPropsValue[T];
+  setNewCustomPropsAction: React.Dispatch<
+    React.SetStateAction<ItemSchemaValue<T>>
+  >;
   openDialog: boolean;
   setOpenDialogAction: React.Dispatch<React.SetStateAction<boolean>>;
-  itemType: `${EventType}`;
-  setItemFormPropsValueAction: React.Dispatch<
-    React.SetStateAction<ItemsFormPropsValue[]>
-  >;
-  getNewCustomProps: ItemsFormPropsValue;
-  setNewCustomPropsAction: React.Dispatch<
-    React.SetStateAction<ItemsFormPropsValue>
-  >;
 }
 
-export function ItemsCustomPropertiesDialog({
-  openDialog,
-  itemType,
-  setOpenDialogAction,
+export function ItemsCustomPropertiesDialog<T extends ItemsNameType>({
+  itemNameType,
   setItemFormPropsValueAction,
   getNewCustomProps,
   setNewCustomPropsAction,
-}: ItemsCustomPropertiesDialogProps) {
+  openDialog,
+  setOpenDialogAction,
+}: ItemsCustomPropertiesDialogProps<T>) {
   const [itemsFormPropsValue, setItemsFormPropsValue] =
-    useState<ItemsFormPropsValue>(getNewCustomProps);
+    useState<ItemSchemaValue<T>>(getNewCustomProps);
 
   const saveCustomProperties = () => {
     setNewCustomPropsAction((prev) => ({
@@ -66,27 +70,35 @@ export function ItemsCustomPropertiesDialog({
       <CredenzaContent className="sm:max-w-[600px]">
         <CredenzaHeader>
           <CredenzaTitle>
-            Customize {toUpperCase(itemType)} Details
+            Customize {toUpperCase(itemNameType)} Details
           </CredenzaTitle>
           <CredenzaDescription>
-            Update the details of your {itemType} here. Click Save when you're
-            done.
+            Update the details of your {itemNameType} here. Click Save when
+            you're done.
           </CredenzaDescription>
         </CredenzaHeader>
         <ItemsForm
           index={1}
-          itemType={itemType}
+          itemNameType={itemNameType}
           defaultValues={getNewCustomProps}
-          onFormChangeAction={(index, value: any) => {
+          onFormChangeAction={(index, value) => {
             setItemsFormPropsValue((prev) => {
-              const newData = { ...prev } as any;
-              if (itemType === "issues") {
+              const newData: ItemSchemaValue<T> = { ...prev };
+              if (
+                itemNameType === "issues" &&
+                "act" in value &&
+                "group" in newData
+              ) {
                 newData.group = value.group;
                 newData.act = value.act;
                 newData.rarity = value.rarity;
-              } else if (itemType === "frames") {
+              } else if (
+                itemNameType === "frames" &&
+                "rarity" in value &&
+                "rarity" in newData
+              ) {
                 newData.rarity = value.rarity;
-              } else {
+              } else if ("price" in value && "price" in newData) {
                 newData.price = value.price;
                 newData.onMarket = value.onMarket;
                 newData.shortName = value.shortName;
@@ -95,7 +107,14 @@ export function ItemsCustomPropertiesDialog({
               return newData;
             });
           }}
-          hiddenFields={["name", "code", "image", "releaseDate"]}
+          hiddenFields={
+            [
+              "name",
+              "code",
+              "image",
+              "releaseDate",
+            ] as ItemsFormPropsValueKeys<T>[]
+          }
         />
         <CredenzaFooter className="flex flex-row justify-center">
           <Button
@@ -114,13 +133,13 @@ export function ItemsCustomPropertiesDialog({
 
               setNewCustomPropsAction({
                 ...getNewCustomProps,
-                ...(itemsObj[itemType] as any),
+                ...itemsObj[itemNameType],
               });
 
               setItemFormPropsValueAction((prev) =>
                 prev.map((item) => ({
                   ...item,
-                  ...(itemsObj[itemType] as any),
+                  ...itemsObj[itemNameType],
                   id: Math.random().toString(),
                 }))
               );

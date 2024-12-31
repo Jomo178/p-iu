@@ -8,7 +8,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
-import { EventsWithRelation } from "@/types/prisma";
+import { EventsWithRelation } from "@/types/items-relation";
 import { hasPermission } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {

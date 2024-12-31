@@ -2,16 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { getCachedStaffDiscordProfiles } from "@/server/staff/_action";
-import { EventType } from "@prisma/client";
 import { ScrollArea } from "@radix-ui/react-scroll-area";
 import { useQuery } from "@tanstack/react-query";
 
+import { ItemsNameType, ItemStatusViewType, ItemType } from "@/types/items";
 import { UserProfile } from "@/types/next-auth";
-import {
-  PendingFontsWithRelation,
-  PendingFramesWithRelation,
-  PendingIssuesWithRelation,
-} from "@/types/prisma";
 import { cn, formatTimestamp, scrollToCarousel } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -41,30 +36,28 @@ import { Typography } from "@/components/ui/typography";
 
 import ItemsHistory from "./items-history";
 
-interface ItemsInformationSidebarProps {
-  issueType: string;
-  issues: PendingIssuesWithRelation[] | PendingFramesWithRelation[];
-  itemType: `${EventType}`;
+interface ItemsInformationSidebarProps<T extends ItemsNameType> {
+  itemNameType: T;
+  items: ItemType<T>[1][];
+  itemsViewPortId: ItemStatusViewType<T>;
   openSidebar: boolean;
   setOpenSidebarAction: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export default function ItemsInformationSidebar({
-  issueType,
-  itemType,
-  issues,
+export default function ItemsInformationSidebar<T extends ItemsNameType>({
+  itemNameType,
+  items,
+  itemsViewPortId,
   openSidebar,
   setOpenSidebarAction,
-}: ItemsInformationSidebarProps) {
-  const isSelected = issues.length > 0 && openSidebar;
+}: ItemsInformationSidebarProps<T>) {
+  const isSelected = items.length > 0 && openSidebar;
   const { isMobile } = useSidebar();
-
-  console.log(itemType, "itemType", issueType, "issueType");
 
   return (
     <>
       <SidebarProvider
-        name="issue-info"
+        name="item-info"
         className={cn("block", !isSelected && "hidden")}
       >
         <Sidebar
@@ -75,9 +68,9 @@ export default function ItemsInformationSidebar({
         >
           <SidebarContent className="bg-background">
             <SelectedIssuesCarousel
-              itemType={itemType}
-              issues={issues}
-              issueType={issueType}
+              itemNameType={itemNameType}
+              items={items}
+              itemsViewPortId={itemsViewPortId}
             />
           </SidebarContent>
         </Sidebar>
@@ -96,9 +89,9 @@ export default function ItemsInformationSidebar({
           </DrawerHeader>
           <ScrollArea className="overflow-auto break-all p-4">
             <SelectedIssuesCarousel
-              itemType={itemType}
-              issues={issues}
-              issueType={issueType}
+              itemNameType={itemNameType}
+              items={items}
+              itemsViewPortId={itemsViewPortId}
             />
             <ScrollBar orientation="horizontal" />
           </ScrollArea>
@@ -108,21 +101,20 @@ export default function ItemsInformationSidebar({
   );
 }
 
-function SelectedIssuesCarousel({
-  issues,
-  issueType,
-  itemType,
-  className,
-}: {
-  issues:
-    | PendingIssuesWithRelation[]
-    | PendingFramesWithRelation[]
-    | PendingFontsWithRelation[];
-  issueType: string;
-  itemType: `${EventType}`;
+interface SelectedIssuesCarouselProps<T extends ItemsNameType> {
+  itemNameType: T;
+  items: ItemType<T>[1][];
+  itemsViewPortId: ItemStatusViewType<T>;
   className?: string;
-}) {
-  const { data } = useQuery({
+}
+
+function SelectedIssuesCarousel<T extends ItemsNameType>({
+  itemNameType,
+  items,
+  itemsViewPortId,
+  className,
+}: SelectedIssuesCarouselProps<T>) {
+  const { data: AllStaffInformation } = useQuery({
     queryKey: ["staff-info"],
     queryFn: getCachedStaffDiscordProfiles,
     staleTime: Infinity,
@@ -132,34 +124,45 @@ function SelectedIssuesCarousel({
   const [api, setApi] = useState<CarouselApi>();
 
   useEffect(() => {
-    scrollToCarousel(api, issues.length);
-  }, [issues]);
+    scrollToCarousel(api, items.length);
+  }, [items]);
 
   return (
     <Carousel setApi={setApi} className="h-full w-full">
       <CarouselContent className={cn(className)}>
-        {issues.map((issue, index) => (
+        {items.map((item, index) => (
           <CarouselItem key={index} className="items-center">
-            {itemType.includes("frames") && (
+            {itemNameType.includes("frames") && (
               <FramesCardDetails
-                frame={issue as PendingFramesWithRelation}
-                issueType={issueType}
+                frame={item as ItemType<"frames">[1]}
+                itemsViewPortId={
+                  itemsViewPortId as ItemStatusViewType<"frames">
+                }
               />
             )}
-            {itemType.includes("issues") && (
+            {itemNameType.includes("issues") && (
               <IssueCardDetails
-                issue={issue as PendingIssuesWithRelation}
-                issueType={issueType}
+                issue={item as ItemType<"issues">[1]}
+                itemsViewPortId={
+                  itemsViewPortId as ItemStatusViewType<"issues">
+                }
               />
             )}
-            {itemType.includes("fonts") && (
+            {itemNameType.includes("fonts") && (
               <FontsCardDetails
-                font={issue as PendingFontsWithRelation}
-                issueType={issueType}
+                font={item as ItemType<"fonts">[1]}
+                itemsViewPortId={itemsViewPortId as ItemStatusViewType<"fonts">}
               />
             )}
-            <IssueRejections issue={issue} data={data} />
-            <ItemsHistory data={data} issue={issue} />
+            <ItemRejections
+              item={item}
+              AllStaffInformation={AllStaffInformation}
+            />
+            <ItemsHistory
+              itemNameType={itemNameType}
+              item={item}
+              AllStaffInformation={AllStaffInformation}
+            />
           </CarouselItem>
         ))}
       </CarouselContent>
@@ -169,10 +172,10 @@ function SelectedIssuesCarousel({
 
 function IssueCardDetails({
   issue,
-  issueType,
+  itemsViewPortId,
 }: {
-  issue: PendingIssuesWithRelation;
-  issueType: string;
+  issue: ItemType<"issues">[1];
+  itemsViewPortId: ItemStatusViewType<"issues">;
 }) {
   return (
     <Card className="!w-full border-0">
@@ -184,7 +187,7 @@ function IssueCardDetails({
               {issue.name}
             </code>
           </h2>
-          <Badge className="text-white">{issueType}</Badge>
+          <Badge className="text-white">{itemsViewPortId}</Badge>
         </div>
         <div className="mt-8 grid grid-cols-2 gap-2 pb-10">
           <div className="space-x-3">
@@ -221,10 +224,10 @@ function IssueCardDetails({
 
 function FramesCardDetails({
   frame,
-  issueType,
+  itemsViewPortId,
 }: {
-  frame: PendingFramesWithRelation;
-  issueType: string;
+  frame: ItemType<"frames">[1];
+  itemsViewPortId: ItemStatusViewType<"frames">;
 }) {
   return (
     <Card className="!w-full border-0">
@@ -236,7 +239,7 @@ function FramesCardDetails({
               {frame.name}
             </code>
           </h2>
-          <Badge className="text-white">{issueType}</Badge>
+          <Badge className="text-white">{itemsViewPortId}</Badge>
         </div>
         <div className="mt-8 grid grid-cols-2 gap-2 pb-10">
           <div className="space-x-3">
@@ -259,10 +262,10 @@ function FramesCardDetails({
 
 function FontsCardDetails({
   font,
-  issueType,
+  itemsViewPortId,
 }: {
-  font: PendingFontsWithRelation;
-  issueType: string;
+  font: ItemType<"fonts">[1];
+  itemsViewPortId: ItemStatusViewType<"fonts">;
 }) {
   return (
     <Card className="!w-full border-0">
@@ -274,7 +277,7 @@ function FontsCardDetails({
               {font.name}
             </code>
           </h2>
-          <Badge className="text-white">{issueType}</Badge>
+          <Badge className="text-white">{itemsViewPortId}</Badge>
         </div>
         <div className="mt-8 grid grid-cols-2 gap-2 pb-10">
           <div className="space-x-3">
@@ -311,26 +314,25 @@ function FontsCardDetails({
   );
 }
 
-function IssueRejections({
-  issue,
-  data,
-}: {
-  issue:
-    | PendingIssuesWithRelation
-    | PendingFramesWithRelation
-    | PendingFontsWithRelation;
-  data: UserProfile[] | undefined;
-}) {
-  if (!issue.rejections.length) return null;
+interface ItemRejectionsProps<T extends ItemsNameType> {
+  item: ItemType<T>[1];
+  AllStaffInformation: UserProfile[] | undefined;
+}
+
+function ItemRejections<T extends ItemsNameType>({
+  item,
+  AllStaffInformation,
+}: ItemRejectionsProps<T>) {
+  if (!item.rejections.length) return null;
 
   return (
     <Card className="!w-full rounded-t-none border-0 border-t-2">
       <CardTitle className="p-4 text-lg font-semibold">Rejections</CardTitle>
       <CardContent>
         <div className="grid grid-cols-2 gap-2 pb-10">
-          {issue.rejections.map((rejection, index) => {
-            const staff = data?.find(
-              (user) => user.id === rejection.rejectedBy.discordId
+          {item.rejections.map((rejection, index) => {
+            const staff = AllStaffInformation?.find(
+              (staff) => staff.id === rejection.rejectedBy.discordId
             );
             return (
               <div key={index} className="col-span-2 flex flex-col">

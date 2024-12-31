@@ -3,11 +3,12 @@
 import { Dispatch, SetStateAction, useState } from "react";
 import Image from "next/image";
 import { releaseEvent } from "@/server/events/_action";
-import { EventType, Staff } from "@prisma/client";
+import { Staff } from "@prisma/client";
 import { toast } from "sonner";
 
+import { ItemsNameType } from "@/types/items";
+import { EventsWithRelation } from "@/types/items-relation";
 import { UserProfile } from "@/types/next-auth";
-import { EventsWithRelation } from "@/types/prisma";
 import { cn, formatTimestamp, hasPermission, toUpperCase } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -95,7 +96,7 @@ export default function EventCard({
               <div>
                 {event.type.map((type, index) => {
                   const pendingName = ("pending" +
-                    toUpperCase(type)) as EventType;
+                    toUpperCase(type)) as ItemsNameType;
                   return (
                     <span key={index} className="text-xs text-muted-foreground">
                       {`${toUpperCase(type)}: ${event[type]?.length + event[pendingName]?.length}`}
@@ -196,7 +197,8 @@ function ReleaseEvent({
           <div>
             <p>Are you sure to release the Approved Items?</p>
             {event.type.map((type, index) => {
-              const pendingName = ("pending" + toUpperCase(type)) as EventType;
+              const pendingName = ("pending" +
+                toUpperCase(type)) as ItemsNameType;
 
               return (
                 <span key={index} className="text-xs text-muted-foreground">

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { EventType } from "@prisma/client";
+import { PrismaEventTypes } from "@prisma/client";
 import { UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 
@@ -24,7 +24,9 @@ export const formSchema = z.object({
   name: z.string().min(1, "Event name is required."),
   start: z.date(),
   end: z.date(),
-  type: z.array(z.nativeEnum(EventType)).min(1, "Event type is required."),
+  type: z
+    .array(z.nativeEnum(PrismaEventTypes))
+    .min(1, "Event type is required."),
   customRarity: z.string(),
 });
 
@@ -34,7 +36,7 @@ interface EventFormProps {
       name: string;
       start: Date;
       end: Date;
-      type: EventType[];
+      type: PrismaEventTypes[];
       customRarity: string;
     },
     any,
@@ -102,7 +104,7 @@ export function EventForm({ form }: EventFormProps) {
               <FormLabel>Event Type</FormLabel>
               <FormControl>
                 <MultiSelect
-                  options={Object.values(EventType).map((value) => ({
+                  options={Object.values(PrismaEventTypes).map((value) => ({
                     label: toUpperCase(value),
                     value,
                     icon: null,
@@ -114,7 +116,7 @@ export function EventForm({ form }: EventFormProps) {
                     icon: null,
                   }))}
                   onValueChange={(value) => {
-                    const selectedValue = value.value as EventType;
+                    const selectedValue = value.value as PrismaEventTypes;
                     const doesValueExist = form
                       .getValues("type")
                       .includes(selectedValue);

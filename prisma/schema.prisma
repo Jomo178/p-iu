@@ -75,15 +75,15 @@ model VerificationToken {
 }
 
 model Staff {
-  id        String       @id @default(auto()) @map("_id") @db.ObjectId
-  discordId String       @unique
-  role      Role
-  create    Permission[] @default([])
-  edit      Permission[] @default([])
-  delete    Permission[] @default([])
-  handle    Permission[] @default([])
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
+  id        String              @id @default(auto()) @map("_id") @db.ObjectId
+  discordId String              @unique
+  role      StaffRole
+  create    AuthorizationType[] @default([])
+  edit      AuthorizationType[] @default([])
+  delete    AuthorizationType[] @default([])
+  handle    AuthorizationType[] @default([])
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
 
   createdPendingIssues  PendingIssues[] @relation("PendingIssuesCreatedBy")
   approvedPendingIssues PendingIssues[] @relation("PendingIssuesApprovedBy")
@@ -104,7 +104,7 @@ model Staff {
   @@map("staff")
 }
 
-enum Role {
+enum StaffRole {
   developer
   headCardCreator
   cardCreator
@@ -112,7 +112,7 @@ enum Role {
   designer
 }
 
-enum Permission {
+enum AuthorizationType {
   staff
   frames
   issues
@@ -265,15 +265,15 @@ model PendingFonts {
 }
 
 model Events {
-  id           String      @id @default(auto()) @map("_id") @db.ObjectId
-  type         EventType[]
-  name         String      @unique
+  id           String             @id @default(auto()) @map("_id") @db.ObjectId
+  type         PrismaEventTypes[]
+  name         String             @unique
   start        DateTime
   end          DateTime
   customRarity String?
-  createdById  String      @db.ObjectId
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
+  createdById  String             @db.ObjectId
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
 
   createdBy     Staff           @relation(fields: [createdById], references: [id], name: "EventsCreatedBy")
   issues        Issues[]        @relation("IssuesEvent")
@@ -286,7 +286,7 @@ model Events {
   @@map("events")
 }
 
-enum EventType {
+enum PrismaEventTypes {
   issues
   frames
   fonts

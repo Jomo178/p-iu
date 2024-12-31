@@ -4,7 +4,7 @@ import { Fragment, useState } from "react";
 import { notFound } from "next/navigation";
 import { editStaffDetails } from "@/server/staff/_action";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Permission, Role, Staff } from "@prisma/client";
+import { AuthorizationType, Staff, StaffRole } from "@prisma/client";
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
 import { ColumnDef, Row } from "@tanstack/react-table";
 import { Check, ChevronsUpDown } from "lucide-react";
@@ -126,8 +126,8 @@ function EditStaffMemberDialog({
   setDataStateAction,
 }: EditStaffMemberProps) {
   const [loading, setLoading] = useState(false);
-  const roles = Object.values(Role);
-  const permissions = Object.values(Permission);
+  const roles = Object.values(StaffRole);
+  const permissions = Object.values(AuthorizationType);
 
   const permissionsTree: TreeNode[] = [
     {
@@ -170,11 +170,11 @@ function EditStaffMemberDialog({
 
   const formSchema = z.object({
     discordId: z.string().min(1),
-    role: z.nativeEnum(Role),
-    create: z.array(z.nativeEnum(Permission)).optional().default([]),
-    edit: z.array(z.nativeEnum(Permission)).optional().default([]),
-    delete: z.array(z.nativeEnum(Permission)).optional().default([]),
-    handle: z.array(z.nativeEnum(Permission)).optional().default([]),
+    role: z.nativeEnum(StaffRole),
+    create: z.array(z.nativeEnum(AuthorizationType)).optional().default([]),
+    edit: z.array(z.nativeEnum(AuthorizationType)).optional().default([]),
+    delete: z.array(z.nativeEnum(AuthorizationType)).optional().default([]),
+    handle: z.array(z.nativeEnum(AuthorizationType)).optional().default([]),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -320,7 +320,7 @@ function EditStaffMemberDialog({
                                 form.setValue(
                                   field.name,
                                   node?.children?.map(
-                                    (child) => child.id as Permission
+                                    (child) => child.id as AuthorizationType
                                   ) ?? []
                                 );
                               } else if (!checked && nodeId === node.id) {
@@ -339,7 +339,7 @@ function EditStaffMemberDialog({
                                   form
                                     .getValues(field.name)
                                     .filter(
-                                      (permission: Permission) =>
+                                      (permission: AuthorizationType) =>
                                         permission !== nodeId
                                     )
                                 );
@@ -375,7 +375,7 @@ export default function TreeCheckBox({
   onValueChanged,
 }: {
   initialTree: TreeNode;
-  onValueChanged?: (nodeId: Permission, checked: boolean) => void;
+  onValueChanged?: (nodeId: AuthorizationType, checked: boolean) => void;
 }) {
   const [open, setOpen] = useState(false);
   return (
@@ -429,7 +429,7 @@ export default function TreeCheckBox({
                   onCheckedChange();
                   if (onValueChanged) {
                     onValueChanged(
-                      node.id as Permission,
+                      node.id as AuthorizationType,
                       checked === "indeterminate" ? true : checked
                     );
                   }

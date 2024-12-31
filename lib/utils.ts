@@ -1,8 +1,8 @@
-import { Permission, Staff } from "@prisma/client";
+import { AuthorizationType, Staff } from "@prisma/client";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
-import { StaffAction } from "@/types/prisma";
+import { AuthorizationAction } from "@/types/items";
 import { CarouselApi } from "@/components/ui/carousel";
 
 export function cn(...inputs: ClassValue[]) {
@@ -93,11 +93,13 @@ export function toUpperCase(text: string) {
 
 export function hasPermission(
   staff: Staff,
-  resourceAccessPermission: `${StaffAction}:${Permission}`
+  resourceAccessPermission: `${AuthorizationAction}:${AuthorizationType}`
 ) {
-  const action = resourceAccessPermission.split(":")[0] as StaffAction;
+  const action = resourceAccessPermission.split(":")[0] as AuthorizationAction;
 
-  const permissionType = resourceAccessPermission.split(":")[1] as Permission;
+  const permissionType = resourceAccessPermission.split(
+    ":"
+  )[1] as AuthorizationType;
 
   return !staff[action].includes(permissionType);
 }

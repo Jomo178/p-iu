@@ -1,14 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { IssuesViewPort, ItemsViewPortType } from "@/types";
-import { EventType, FrameRarity, Frames, Issues } from "@prisma/client";
+import { FrameRarity } from "@prisma/client";
 
 import {
-  generateFrameCode,
-  generateIssueCode,
-  ItemsFormPropsValue,
-} from "@/config/items-add";
+  ItemListingView,
+  ItemSchemaValue,
+  ItemsNameType,
+  ItemType,
+} from "@/types/items";
+import { generateFrameCode, generateIssueCode } from "@/config/items-add";
 import { toUpperCase, urlToFile } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,48 +26,76 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import ItemsForm from "../add/items-form";
 import { usehandleApprovePendingItems } from "./handlers";
 
-interface EditItemsDialogProps {
-  itemType: `${EventType}`;
-  item: Issues | Frames;
+interface EditItemsDialogProps<T extends ItemsNameType> {
+  itemNameType: T;
+  item: ItemType<T>[0] | ItemType<T>[1];
+  viewPortType: ItemListingView<T>;
+  setViewTypeDataAction?: React.Dispatch<
+    React.SetStateAction<ItemListingView<T>>
+  >;
   openDialog: boolean;
   setOpenDialogAction: React.Dispatch<React.SetStateAction<boolean>>;
-  viewPortType: IssuesViewPort;
-  setViewTypeDataAction?: React.Dispatch<
-    React.SetStateAction<ItemsViewPortType>
-  >;
 }
 
-export default function EditItemsDialog({
-  itemType,
+export default function EditItemsDialog<T extends ItemsNameType>({
+  itemNameType,
   item,
   openDialog,
-  setOpenDialogAction,
   viewPortType,
   setViewTypeDataAction,
-}: EditItemsDialogProps) {
+  setOpenDialogAction,
+}: EditItemsDialogProps<T>) {
   const [imageLoaded, setImageLoaded] = useState(false);
-  const defaultValues = {
-    ...item,
-    codeDuplicate: false,
-    releaseDate: new Date(),
-    image: new File([], "filename"),
-    imageLink: item.image,
-    changedImage: false,
-    errors: [],
-  };
-  const itemName = itemType === "issues" ? "issue" : "frame";
+  let defaultValues;
+
+  if (itemNameType === "fonts") {
+    defaultValues = {
+      ...item,
+      codeDuplicate: false,
+      errors: [],
+    };
+  } else {
+    defaultValues = {
+      ...item,
+      codeDuplicate: false,
+      releaseDate: new Date(),
+      image: new File([], "filename"),
+      imageLink: "image" in item ? item.image : "",
+      changedImage: false,
+      errors: [],
+    };
+  }
+
   const [itemData, setItemData] = useState<
-    ItemsFormPropsValue & { imageLink: string; changedImage: boolean }
-  >(defaultValues);
+    ItemSchemaValue<T> & { imageLink: string; changedImage: boolean }
+  >(defaultValues as any);
   const { handleEditItems } = usehandleApprovePendingItems(
-    itemType,
+    itemNameType,
     setViewTypeDataAction
   );
 
   useEffect(() => {
     const fetchImage = async () => {
-      if (item.image && openDialog && itemData.image.size === 0) {
-        const file = await urlToFile(item.image, "item-image.png", "image/png");
+      if (
+        "image" in item &&
+        item.image &&
+        openDialog &&
+        itemData.image.size === 0
+      ) {
+        const file = await urlToFile(
+          item.image,
+          item.name + ".png",
+          "image/png"
+        );
+
+        setItemData((prev) => ({ ...prev, image: file }));
+        setImageLoaded(true);
+      } else if ("filePath" in item && item.filePath && openDialog) {
+        const file = await urlToFile(
+          item.filePath,
+          item.name + ".ttf",
+          "font/ttf"
+        );
 
         setItemData((prev) => ({ ...prev, image: file }));
         setImageLoaded(true);
@@ -74,12 +103,12 @@ export default function EditItemsDialog({
     };
 
     fetchImage();
-  }, [item.image, openDialog]);
+  }, [item, openDialog]);
 
   const handleEdit = async () => {
     await handleEditItems({
-      viewPortId: viewPortType.id,
-      issue: itemData,
+      itemsViewPortId: viewPortType.id,
+      item: itemData,
     });
 
     setOpenDialogAction(false);
@@ -92,14 +121,16 @@ export default function EditItemsDialog({
         onOpenChange={() => {
           setOpenDialogAction(false);
           setImageLoaded(false);
-          setItemData(defaultValues);
+          setItemData(defaultValues as any);
         }}
       >
         <CredenzaContent className="sm:max-w-[600px]">
           <CredenzaHeader>
-            <CredenzaTitle>Edit Pending {toUpperCase(itemName)}</CredenzaTitle>
+            <CredenzaTitle>
+              Edit Pending {toUpperCase(itemNameType.slice(0, -1))}
+            </CredenzaTitle>
             <CredenzaDescription>
-              Edit the pending {itemName} details.
+              Edit the pending {itemNameType.slice(0, -1)} details.
             </CredenzaDescription>
           </CredenzaHeader>
 
@@ -107,7 +138,7 @@ export default function EditItemsDialog({
             <ScrollArea className="max-h-80 w-full md:!max-h-full">
               {imageLoaded ? (
                 <EditFrom
-                  itemType={itemType}
+                  itemNameType={itemNameType}
                   itemData={itemData}
                   setItemDataAction={setItemData}
                 />
@@ -131,32 +162,36 @@ export default function EditItemsDialog({
   );
 }
 
-interface EditFromProps {
-  itemType: `${EventType}`;
-  itemData: ItemsFormPropsValue;
+interface EditFromProps<T extends ItemsNameType> {
+  itemNameType: T;
+  itemData: ItemSchemaValue<T>;
   setItemDataAction: React.Dispatch<
     React.SetStateAction<
-      ItemsFormPropsValue & { imageLink: string; changedImage: boolean }
+      ItemSchemaValue<T> & { imageLink: string; changedImage: boolean }
     >
   >;
 }
 
-function EditFrom({ itemType, itemData, setItemDataAction }: EditFromProps) {
+function EditFrom<T extends ItemsNameType>({
+  itemNameType,
+  itemData,
+  setItemDataAction,
+}: EditFromProps<T>) {
   return (
     <ItemsForm
       index={1}
-      itemType={itemType}
+      itemNameType={itemNameType}
       hiddenFields={["releaseDate"]}
       defaultValues={itemData}
       onFormChangeAction={(_, value) => {
-        if (itemType === "issues" && "act" in value) {
+        if (itemNameType === "issues" && "act" in value) {
           value.code = generateIssueCode(
             value.name,
             value.act,
             value.group,
             value.rarity
           );
-        } else if (itemType === "frames" && "rarity" in value) {
+        } else if (itemNameType === "frames" && "rarity" in value) {
           value.code = generateFrameCode(
             value.name,
             value.rarity as FrameRarity

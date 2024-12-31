@@ -2,16 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { ItemsViewPortType } from "@/types";
-import { EventType, FrameRarity, Staff } from "@prisma/client";
+import { Staff } from "@prisma/client";
 
-import {
-  FontsWithRelation,
-  IssuesWithRelation,
-  PendingFontsWithRelation,
-  PendingFramesWithRelation,
-  PendingIssuesWithRelation,
-} from "@/types/prisma";
+import { ItemListingView, ItemsNameType, ItemType } from "@/types/items";
 import { cn, hasPermission } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -41,78 +34,74 @@ import DeleteItemsDialog from "./delete-items";
 import EditItemsDialog from "./edit-items";
 import { usehandleApprovePendingItems } from "./handlers";
 
-interface DivProps
+interface DivProps<T extends ItemsNameType>
   extends React.ButtonHTMLAttributes<HTMLDivElement>,
-    ViewItemCardProps {}
+    ViewItemCardProps<T> {}
 
-interface ViewItemCardProps {
-  issue:
-    | PendingIssuesWithRelation
-    | IssuesWithRelation
-    | PendingFramesWithRelation
-    | PendingFontsWithRelation;
-  itemsType: `${EventType}`;
-  isSelected?: boolean;
+interface ViewItemCardProps<T extends ItemsNameType> {
+  itemNameType: T;
+  item: ItemType<T>[0] | ItemType<T>[1];
+  isItemSelected?: boolean;
   setViewTypeDataAction?: React.Dispatch<
-    React.SetStateAction<ItemsViewPortType>
+    React.SetStateAction<ItemListingView<T>>
   >;
-  viewPortType: ItemsViewPortType;
+  viewPortType: ItemListingView<T>;
   setInformationSidebarAction?: (open: boolean) => void;
-  staff: Staff;
+  currentStaff: Staff;
 }
 
-export default function ViewItemCard({
-  issue,
-  itemsType,
-  isSelected = false,
+export default function ViewItemCard<T extends ItemsNameType>({
+  itemNameType,
+  item,
+  isItemSelected = false,
   className,
   setViewTypeDataAction,
   setInformationSidebarAction,
   viewPortType,
-  staff,
+  currentStaff,
   ...props
-}: DivProps) {
+}: DivProps<T>) {
   const {
     handleApprovePendingItems,
     handleRejectPendingItems,
     handleResubmitRejectedItems,
-  } = usehandleApprovePendingItems(itemsType, setViewTypeDataAction);
+  } = usehandleApprovePendingItems(itemNameType, setViewTypeDataAction);
   const [openRejectDialog, setOpenRejectDialog] = useState(false);
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
 
-  const pendingRejections = issue.rejections.some(
+  const pendingRejections = item.rejections.some(
     (rejection) => !rejection.resubmitted
   );
 
   const disableButton =
-    (issue.createdBy && staff.id == issue.createdBy.id) ||
-    issue.approvedBy !== null ||
+    (item.createdBy && currentStaff.id == item.createdBy.id) ||
+    item.approvedBy !== null ||
     pendingRejections ||
-    hasPermission(staff, `handle:${itemsType}`);
+    hasPermission(currentStaff, `handle:${itemNameType}`);
 
   return (
     <div
       className={cn(
         "w-[200px] cursor-pointer rounded-md",
-        isSelected ? "scale-95" : "scale-100",
+        isItemSelected ? "scale-95" : "scale-100",
         className
       )}
       {...props}
     >
       <ContextMenu>
         <ContextMenuTrigger>
-          {"image" in issue ? (
-            <ViewItemImage {...issue} />
+          {"image" in item ? (
+            <ViewItemImage {...item} />
           ) : (
-            <ViewItemFontImage name={issue.name} filePath={issue.filePath!} />
+            <ViewItemFontImage {...item} />
           )}
         </ContextMenuTrigger>
         <ContextMenuContent className="w-40 cursor-pointer">
           {pendingRejections && (
             <ContextMenuItem
-              disabled={hasPermission(staff, `handle:${itemsType}`)}
-              onClick={() => handleResubmitRejectedItems([issue.id])}
+              disabled={hasPermission(currentStaff, `handle:${itemNameType}`)}
+              onClick={() => handleResubmitRejectedItems([item.id])}
             >
               Resubmit
               <ContextMenuShortcut>
@@ -122,7 +111,7 @@ export default function ViewItemCard({
           )}
           <ContextMenuItem
             disabled={disableButton}
-            onClick={() => handleApprovePendingItems([issue.id])}
+            onClick={() => handleApprovePendingItems([item.id])}
           >
             Approve
             <ContextMenuShortcut>
@@ -141,7 +130,7 @@ export default function ViewItemCard({
           <ContextMenuSeparator />
           <ContextMenuItem
             onClick={() => setOpenEditDialog(true)}
-            disabled={hasPermission(staff, `edit:${itemsType}`)}
+            disabled={hasPermission(currentStaff, `edit:${itemNameType}`)}
           >
             Edit
             <ContextMenuShortcut>
@@ -150,7 +139,7 @@ export default function ViewItemCard({
           </ContextMenuItem>
           <ContextMenuItem
             onClick={() => setOpenDeleteDialog(true)}
-            disabled={hasPermission(staff, `delete:${itemsType}`)}
+            disabled={hasPermission(currentStaff, `delete:${itemNameType}`)}
           >
             Delete
             <ContextMenuShortcut>
@@ -170,18 +159,18 @@ export default function ViewItemCard({
           </ContextMenuItem>
         </ContextMenuContent>
       </ContextMenu>
-      {itemsType === "frames" && (
-        <ViewFrameFooter {...(issue as PendingFramesWithRelation)} />
+      {itemNameType === "frames" && (
+        <ViewFrameFooter {...(item as ItemType<"frames">[1])} />
       )}
-      {itemsType === "issues" && (
-        <ViewIssueFooter {...(issue as PendingIssuesWithRelation)} />
+      {itemNameType === "issues" && (
+        <ViewIssueFooter {...(item as ItemType<"issues">[1])} />
       )}
-      {itemsType === "fonts" && (
-        <ViewFontFooter {...(issue as PendingFontsWithRelation)} />
+      {itemNameType === "fonts" && (
+        <ViewFontFooter {...(item as ItemType<"fonts">[1])} />
       )}
       <div
         className={`absolute -left-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full transition-all duration-200 ease-in-out ${
-          isSelected
+          isItemSelected
             ? "scale-100 bg-primary text-primary-foreground"
             : "scale-0 bg-background text-foreground"
         }`}
@@ -189,46 +178,35 @@ export default function ViewItemCard({
         <Icons.selected strokeWidth={7} className="h-4 w-4" />
       </div>
       <RejectionsDialog
+        itemNameType={itemNameType}
         openDialog={openRejectDialog}
         setOpenDialogAction={setOpenRejectDialog}
-        pendingIssues={[issue]}
+        pendingItem={[item]}
         handleRejectPendingItemsAction={handleRejectPendingItems}
       />
 
       <EditItemsDialog
-        itemType={itemsType}
+        itemNameType={itemNameType}
+        item={item}
+        viewPortType={viewPortType}
+        setViewTypeDataAction={setViewTypeDataAction}
         openDialog={openEditDialog}
         setOpenDialogAction={setOpenEditDialog}
-        item={issue as any}
-        viewPortType={viewPortType as any}
-        setViewTypeDataAction={setViewTypeDataAction}
       />
 
       <DeleteItemsDialog
-        issues={[
-          "filePath" in issue
-            ? ({
-                id: issue.id,
-                name: issue.name,
-                image: issue.filePath,
-              } as any)
-            : issue,
-        ]}
-        itemType={itemsType}
-        openDialog={openDeleteDialog}
-        setOpenDialogAction={setOpenDeleteDialog}
+        itemNameType={itemNameType}
+        items={[item]}
         viewPortType={viewPortType}
         setViewTypeDataAction={setViewTypeDataAction}
+        openDialog={openDeleteDialog}
+        setOpenDialogAction={setOpenDeleteDialog}
       />
     </div>
   );
 }
 
-export function ViewIssueFooter(issue: {
-  name: string;
-  group: string;
-  act: string;
-}) {
+export function ViewIssueFooter(issue: ItemType<"issues">[1]) {
   return (
     <div className="space-y-1 pl-5 pt-3 text-sm">
       <h3 className="font-medium leading-none">Name: {issue.name}</h3>
@@ -238,7 +216,7 @@ export function ViewIssueFooter(issue: {
   );
 }
 
-export function ViewFrameFooter(frame: { name: string; rarity: FrameRarity }) {
+export function ViewFrameFooter(frame: ItemType<"frames">[1]) {
   return (
     <div className="space-y-1 pl-5 pt-3 text-sm">
       <h3 className="font-medium leading-none">Name: {frame.name}</h3>
@@ -247,12 +225,7 @@ export function ViewFrameFooter(frame: { name: string; rarity: FrameRarity }) {
   );
 }
 
-export function ViewFontFooter(font: {
-  short: string;
-  price: number;
-  onMarket: boolean;
-  isBig: boolean;
-}) {
+export function ViewFontFooter(font: ItemType<"fonts">[1]) {
   return (
     <div className="space-y-1 text-sm">
       <h3 className="font-medium leading-none">Short Name: {font.short}</h3>
@@ -267,17 +240,13 @@ export function ViewFontFooter(font: {
   );
 }
 
-export function ViewItemImage(item: { name: string; image: string }) {
+export function ViewItemImage(
+  item: ItemType<"issues">[1] | ItemType<"frames">[1]
+) {
   return <Image src={item.image} alt={item.name} width={250} height={250} />;
 }
 
-export function ViewItemFontImage({
-  name,
-  filePath,
-}: {
-  name: string;
-  filePath: string;
-}) {
+export function ViewItemFontImage({ name, filePath }: ItemType<"fonts">[1]) {
   const [isFontLoaded, setIsFontLoaded] = useState(false);
 
   const loadFont = () => {
@@ -319,20 +288,21 @@ export function ViewItemFontImage({
 }
 
 interface RejectionsDialogProps {
+  itemNameType: ItemsNameType;
   openDialog: boolean;
   setOpenDialogAction: (open: boolean) => void;
-  pendingIssues: { id: string; name: string }[];
-
+  pendingItem: { id: string; name: string }[];
   handleRejectPendingItemsAction: (
-    issuesIds: [string, ...string[]],
+    itemsIds: string[],
     reason: string
   ) => Promise<void>;
 }
 
 export function RejectionsDialog({
+  itemNameType,
   openDialog,
   setOpenDialogAction,
-  pendingIssues,
+  pendingItem,
   handleRejectPendingItemsAction,
 }: RejectionsDialogProps) {
   const textareaRef = useRef<AutosizeTextAreaRef>(null);
@@ -344,10 +314,7 @@ export function RejectionsDialog({
     } else {
       setError(false);
       handleRejectPendingItemsAction(
-        [
-          pendingIssues[0].id,
-          ...pendingIssues.slice(1).map((issue) => issue.id),
-        ],
+        pendingItem.map((item) => item.id),
         textareaRef.current?.textArea.value!
       );
       setOpenDialogAction(false);
@@ -358,9 +325,10 @@ export function RejectionsDialog({
     <Credenza open={openDialog} onOpenChange={setOpenDialogAction}>
       <CredenzaContent className="sm:max-w-[600px]">
         <CredenzaHeader>
-          <CredenzaTitle>Reject Pending Issues</CredenzaTitle>
+          <CredenzaTitle>Reject Pending {itemNameType}</CredenzaTitle>
           <CredenzaDescription>
-            Reject the pending issue and provide a reason for the rejection.
+            Reject the pending {itemNameType.slice(0, -1)} and provide a reason
+            for the rejection.
           </CredenzaDescription>
         </CredenzaHeader>
 
@@ -381,9 +349,9 @@ export function RejectionsDialog({
           <ul className="mt-4">
             <li>Issues that will be rejected:</li>
             <div className="flex gap-4">
-              {pendingIssues.map((issue) => (
-                <li key={issue.id}>
-                  <p>{issue.name}</p>
+              {pendingItem.map((item) => (
+                <li key={item.id}>
+                  <p>{item.name}</p>
                 </li>
               ))}
             </div>

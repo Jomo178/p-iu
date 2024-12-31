@@ -2,17 +2,11 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import {
-  FontsViewPort,
-  FramesViewPort,
-  IssuesViewPort,
-  ItemsViewPortType,
-} from "@/types";
-import { EventType, Staff } from "@prisma/client";
+import { PrismaEventTypes, Staff } from "@prisma/client";
 import Balancer from "react-wrap-balancer";
 
-import { PendingIssuesWithRelation } from "@/types/prisma";
-import { itemsViewPortType } from "@/config/items-view";
+import { ItemListingView, ItemsNameType } from "@/types/items";
+import { generateItemsViewPort } from "@/config/items-view";
 import { cn, toUpperCase } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -26,30 +20,27 @@ import ItemsInformationSidebar from "./items-information-sidebar";
 import ViewItemCard from "./view-item-card";
 import { SkeletonViewGroup, ViewItemSkeleton } from "./view-item-skeleton";
 
-interface ViewItemsGroupPreviewProps {
-  type: `${EventType}`;
-  staff: Staff;
+interface ViewItemsGroupPreviewProps<T extends ItemsNameType> {
+  itemNameType: T;
+  currentStaff: Staff;
 }
 
-export default function ViewItemsGroupPreview({
-  type,
-  staff,
-}: ViewItemsGroupPreviewProps) {
+export default function ViewItemsGroupPreview<T extends ItemsNameType>({
+  itemNameType,
+  currentStaff,
+}: ViewItemsGroupPreviewProps<T>) {
   const { open } = useSidebar();
   const [loading, setLoading] = useState(false);
   const [openSidebarInformation, setOpenSidebarInformation] = useState(false);
-  const [itemsGroup, setItemsGroup] = useState<ItemsViewPortType>(
-    itemsViewPortType[type][0]
-  );
-  const [itemsGroupData, setItemsGroupData] = useState<ItemsViewPortType[]>(
-    itemsViewPortType[type]
+  const [itemsGroup, setItemsGroup] = useState<ItemListingView<T>[]>(
+    generateItemsViewPort(itemNameType)
   );
 
   useEffect(() => {
     const fetchItems = async () => {
       setLoading(true);
-      const updatedVGroupData = await Promise.all(
-        itemsGroupData.map(async (viewPort) => {
+      const updatedGroupData = await Promise.all(
+        itemsGroup.map(async (viewPort) => {
           const data = await viewPort.fetchFunction(
             viewPort.fetchCount,
             10,
@@ -67,7 +58,7 @@ export default function ViewItemsGroupPreview({
           };
         })
       );
-      setItemsGroupData(updatedVGroupData as any);
+      setItemsGroup(updatedGroupData);
       setLoading(false);
     };
 
@@ -76,11 +67,11 @@ export default function ViewItemsGroupPreview({
 
   return (
     <div className={cn(open ? "container" : "container md:pr-0")}>
-      <Tabs defaultValue={type} className="mt-5 space-y-6">
+      <Tabs defaultValue={itemNameType} className="mt-5 space-y-6">
         <div className="space-between flex items-center">
           <div className="space-between flex flex-col items-center gap-4 sm:flex-row">
             <TabsList className="w-full">
-              {Object.values(EventType).map((item) => (
+              {Object.values(PrismaEventTypes).map((item) => (
                 <Link
                   href={`/dashboard/view/${item}`}
                   prefetch={true}
@@ -95,48 +86,52 @@ export default function ViewItemsGroupPreview({
           </div>
         </div>
         <Separator className="my-4" />
-        <TabsContent value={type} className="border-none p-0 outline-none">
+        <TabsContent
+          value={itemNameType}
+          className="border-none p-0 outline-none"
+        >
           {loading &&
-            itemsGroupData.map((viewPort) => (
-              <SkeletonViewGroup key={viewPort.title} />
+            itemsGroup.map((itemViewPort) => (
+              <SkeletonViewGroup key={itemViewPort.title} />
             ))}
-          {itemsGroupData.every((viewPort) => viewPort.data.length === 0) ? (
+          {itemsGroup.every((itemViewPort) => itemViewPort.data.length === 0) &&
+          !loading ? (
             <EmptyState
-              title={`No ${toUpperCase(type)} found`}
-              description={"Get started by creating a new " + type}
+              title={`No ${toUpperCase(itemNameType)} found`}
+              description={"Get started by creating a new " + itemNameType}
               action={
                 <Link
-                  href={`/dashboard/add/${type}`}
+                  href={`/dashboard/add/${itemNameType}`}
                   className={buttonVariants({ variant: "outline" })}
                   prefetch={true}
                 >
-                  Create {toUpperCase(type)}
+                  Create {toUpperCase(itemNameType)}
                 </Link>
               }
             />
           ) : (
-            itemsGroupData.map((viewPort) => {
-              if (viewPort.data.length === 0) return null;
+            itemsGroup.map((itemViewPort) => {
+              if (itemViewPort.data.length === 0) return null;
               return (
-                <div key={viewPort.title}>
+                <div key={itemViewPort.title}>
                   <div className="flex items-center justify-between">
                     <div className="flex flex-col space-y-1">
                       <h2 className="text-2xl font-semibold tracking-tight">
-                        {viewPort.title}
+                        {itemViewPort.title}
                       </h2>
                       <Balancer className="text-sm text-muted-foreground">
-                        {viewPort.description}
+                        {itemViewPort.description}
                       </Balancer>
-                      {viewPort.noteDescription && (
+                      {itemViewPort.noteDescription && (
                         <Typography variant="code">
-                          {viewPort.noteDescription}
+                          {itemViewPort.noteDescription}
                         </Typography>
                       )}
                     </div>
                     <div className="flex space-x-1">
                       <Link
                         className={buttonVariants({ variant: "outline" })}
-                        href={viewPort.href}
+                        href={itemViewPort.href}
                         prefetch={true}
                       >
                         View all
@@ -152,42 +147,41 @@ export default function ViewItemsGroupPreview({
                       )}
                     >
                       <div className="flex space-x-4 pb-4">
-                        {viewPort.data.length === 0 &&
+                        {itemViewPort.data.length === 0 &&
                           Array.from({ length: 8 }).map((_, index) => (
                             <ViewItemSkeleton key={index} />
                           ))}
-                        {viewPort.data.map((issue) => {
+                        {itemViewPort.data.map((item) => {
                           return (
                             <ViewItemCard
-                              key={issue.id}
-                              staff={staff}
-                              issue={issue}
-                              itemsType={type}
-                              isSelected={itemsGroup.selectedItems
+                              key={item.id}
+                              currentStaff={currentStaff}
+                              item={item}
+                              itemNameType={itemNameType}
+                              isItemSelected={itemViewPort.selectedItems
                                 .map((item) => item.id)
-                                .includes(issue.id)}
-                              viewPortType={
-                                viewPort as IssuesViewPort | FramesViewPort
-                              }
+                                .includes(item.id)}
+                              viewPortType={itemViewPort as any}
                               setInformationSidebarAction={(open) => {
-                                if (
-                                  itemsGroup.selectedItems
-                                    .map((item) => item.id)
-                                    .includes(issue.id)
-                                ) {
-                                  setItemsGroup({
-                                    ...viewPort,
-                                    selectedItems: [],
+                                setItemsGroup((prev) => {
+                                  return prev.map((viewPort) => {
+                                    if (viewPort.title === itemViewPort.title) {
+                                      return {
+                                        ...viewPort,
+                                        selectedItems:
+                                          viewPort.selectedItems.find(
+                                            (value) => value.id == item.id
+                                          )
+                                            ? []
+                                            : [item],
+                                      };
+                                    } else {
+                                      viewPort.selectedItems = [];
+                                    }
+                                    setOpenSidebarInformation(open);
+                                    return viewPort;
                                   });
-                                  return setOpenSidebarInformation(!open);
-                                }
-
-                                setItemsGroup({
-                                  ...viewPort,
-                                  selectedItems: [issue as any],
                                 });
-
-                                setOpenSidebarInformation(open);
                               }}
                             />
                           );
@@ -203,9 +197,11 @@ export default function ViewItemsGroupPreview({
         </TabsContent>
       </Tabs>
       <ItemsInformationSidebar
-        issues={itemsGroup.selectedItems as PendingIssuesWithRelation[]}
-        issueType={itemsGroup.title}
-        itemType={type}
+        itemNameType={itemNameType}
+        items={itemsGroup.map((item) => item.selectedItems).flat()}
+        itemsViewPortId={
+          itemsGroup.find((value) => value.selectedItems.length > 0)?.id!
+        }
         openSidebar={openSidebarInformation}
         setOpenSidebarAction={setOpenSidebarInformation}
       />

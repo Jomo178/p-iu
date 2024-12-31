@@ -2,22 +2,18 @@
 
 import { useEffect, useState } from "react";
 import { getStaffIds } from "@/server/staff/_action";
-import {
-  FramesViewPort,
-  FramesViewType,
-  IssuesViewPort,
-  IssuesViewType,
-  ItemsViewPortType,
-  ViewPortType,
-} from "@/types";
-import { EventType, Staff } from "@prisma/client";
+import { Staff } from "@prisma/client";
 import { useQueryState } from "nuqs";
 import { useInView } from "react-intersection-observer";
 import Balancer from "react-wrap-balancer";
 import { toast } from "sonner";
 
-import { PendingIssuesWithRelation } from "@/types/prisma";
-import { itemsViewPortType } from "@/config/items-view";
+import {
+  ItemListingView,
+  ItemsNameType,
+  ItemStatusViewType,
+} from "@/types/items";
+import { generateItemsViewPort } from "@/config/items-view";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Icons } from "@/components/ui/icons";
@@ -36,22 +32,24 @@ import ItemsInformationSidebar from "./items-information-sidebar";
 import ViewItemCard from "./view-item-card";
 import { ViewItemSkeleton } from "./view-item-skeleton";
 
-interface ViewAllItemsProps {
-  viewType: ViewPortType;
-  staff: Staff;
+interface ViewAllItemsProps<T extends ItemsNameType> {
+  itemNameType: T;
+  itemsViewPortId: ItemStatusViewType<T>;
+  currentStaff: Staff;
 }
 
-export default function ViewAllItems({ viewType, staff }: ViewAllItemsProps) {
+export default function ViewAllItems<T extends ItemsNameType>({
+  itemNameType,
+  itemsViewPortId,
+  currentStaff,
+}: ViewAllItemsProps<T>) {
   const { open } = useSidebar();
-  const itemType = viewType.split("-")[1] as EventType;
-  let findType = itemsViewPortType[itemType].find(
-    (viewPort) => viewPort.id === viewType
-  );
-
-  if (!findType) return null;
-
   const [scrollTrigger, inView] = useInView({ initialInView: true });
-  const [viewTypeData, setViewTypeData] = useState<ItemsViewPortType>(findType);
+  const [viewPort, setViewPort] = useState<ItemListingView<T>>(
+    generateItemsViewPort(itemNameType).find(
+      (value) => value.id === itemsViewPortId
+    )!
+  );
   const [selectActive, setSelectActive] = useState(false);
   const [loading, setLoading] = useState(false);
   const [noData, setNoData] = useState(false);
@@ -66,9 +64,8 @@ export default function ViewAllItems({ viewType, staff }: ViewAllItemsProps) {
   const [staffInfo, setStaffInfo] = useState<
     { id: string; discordId: string }[]
   >([]);
-  const changeGrid = viewTypeData.selectedItems.length > 0;
-  const isAllSelected =
-    viewTypeData.selectedItems.length == viewTypeData.data.length;
+  const changeGrid = viewPort.selectedItems.length > 0;
+  const isAllSelected = viewPort.selectedItems.length == viewPort.data.length;
 
   const fetchData = async () => {
     if (loading) return;
@@ -79,8 +76,8 @@ export default function ViewAllItems({ viewType, staff }: ViewAllItemsProps) {
       setStaffInfo(staffs);
     }
 
-    const data = await viewTypeData.fetchFunction(
-      viewTypeData.fetchCount,
+    const data = await viewPort.fetchFunction(
+      viewPort.fetchCount,
       10,
       constructWhereConditions(filters, staffs == null ? staffInfo : staffs),
       constructOrderByConditions(sortBy, sortOrder)
@@ -89,14 +86,14 @@ export default function ViewAllItems({ viewType, staff }: ViewAllItemsProps) {
     if (data.length === 0) {
       setLoading(false);
       setNoData(true);
-      toast.info(`No more ${findType.title} found`);
+      toast.info(`No more ${viewPort.title} found`);
       return;
     }
 
-    setViewTypeData({
-      ...viewTypeData,
-      data: viewTypeData.data.concat(data) as any[],
-      fetchCount: viewTypeData.fetchCount + data.length,
+    setViewPort({
+      ...viewPort,
+      data: viewPort.data.concat(data),
+      fetchCount: viewPort.fetchCount + data.length,
     });
     setLoading(false);
   };
@@ -112,10 +109,10 @@ export default function ViewAllItems({ viewType, staff }: ViewAllItemsProps) {
       <div className="flex items-center justify-between">
         <div className="space-y-1">
           <h2 className="text-2xl font-semibold tracking-tight">
-            {viewTypeData.title}
+            {viewPort.title}
           </h2>
           <Balancer className="text-sm text-muted-foreground">
-            {viewTypeData.description}
+            {viewPort.description}
           </Balancer>
         </div>
         <Button
@@ -130,13 +127,13 @@ export default function ViewAllItems({ viewType, staff }: ViewAllItemsProps) {
       <Separator className="my-4" />
       <ItemsFilterMenu
         appliedFilterAction={() => {
-          setViewTypeData({ ...viewTypeData, data: [], fetchCount: 0 });
+          setViewPort({ ...viewPort, data: [], fetchCount: 0 });
         }}
       />
-      {noData && viewTypeData.data.length === 0 ? (
+      {noData && viewPort.data.length === 0 ? (
         <EmptyState
-          title={`No ${findType.title} found`}
-          description={`There are no ${findType.title} found.`}
+          title={`No ${viewPort.title} found`}
+          description={`There are no ${viewPort.title} found.`}
           className="col-span-full mt-4 !h-full !w-full"
         />
       ) : (
@@ -154,74 +151,74 @@ export default function ViewAllItems({ viewType, staff }: ViewAllItemsProps) {
             )}
           >
             {loading &&
-              viewTypeData.data.length === 0 &&
+              viewPort.data.length === 0 &&
               Array.from({ length: 8 }).map((_, index) => (
                 <ViewItemSkeleton className="my-3" key={index} />
               ))}
 
-            {viewTypeData.data.map((issue) => {
-              const selectIssue = () => {
-                setViewTypeData((prev) => {
+            {viewPort.data.map((item) => {
+              const selectItem = () => {
+                setViewPort((prev) => {
                   const isSelected = prev.selectedItems.some(
-                    (selectedIssue) => selectedIssue.id === issue.id
+                    (selectedIssue) => selectedIssue.id === item.id
                   );
                   if (!isSelected) {
                     return {
                       ...prev,
-                      selectedItems: [...prev.selectedItems, issue],
-                    } as any;
+                      selectedItems: [...prev.selectedItems, item],
+                    };
                   } else {
                     return {
                       ...prev,
                       selectedItems: prev.selectedItems.filter(
-                        (selectedIssue) => selectedIssue.id !== issue.id
+                        (selectedIssue) => selectedIssue.id !== item.id
                       ),
-                    } as any;
+                    };
                   }
                 });
               };
 
-              const isIssueSelected = viewTypeData.selectedItems.some(
-                (selectedIssue) => selectedIssue.id === issue.id
+              const isItemSelected = viewPort.selectedItems.some(
+                (selectedIssue) => selectedIssue.id === item.id
               );
 
               return (
-                <div key={issue.id}>
+                <div key={item.id}>
                   <ViewItemCard
                     className={cn(
-                      selectActive && !isIssueSelected
+                      selectActive && !isItemSelected
                         ? "animate-shake"
                         : "transition-all duration-200 ease-in-out"
                     )}
-                    staff={staff}
-                    issue={issue}
-                    itemsType={itemType}
-                    isSelected={isIssueSelected}
+                    currentStaff={currentStaff}
+                    item={item}
+                    itemNameType={itemNameType}
+                    isItemSelected={isItemSelected}
                     onClick={() => {
                       if (!selectActive) {
                         return;
                       }
-                      selectIssue();
+                      selectItem();
                     }}
-                    onDoubleClick={() => selectIssue()}
-                    setViewTypeDataAction={setViewTypeData}
-                    viewPortType={viewTypeData}
+                    onDoubleClick={() => selectItem()}
+                    setViewTypeDataAction={setViewPort}
+                    viewPortType={viewPort}
                     setInformationSidebarAction={() => {
                       if (
-                        viewTypeData.selectedItems.some(
-                          (selectedIssue) => selectedIssue.id === issue.id
+                        viewPort.selectedItems.some(
+                          (selectedIssue) => selectedIssue.id === item.id
                         )
                       ) {
-                        setViewTypeData({
-                          ...viewTypeData,
+                        setViewPort({
+                          ...viewPort,
                           selectedItems: [],
                         });
                         return setOpenSidebarInformation(true);
                       }
 
-                      setViewTypeData({
-                        ...viewTypeData,
-                        selectedItems: [issue as any],
+                      setViewPort({
+                        ...viewPort,
+                        selectedItems: [item],
                       });
 
                       setOpenSidebarInformation(true);
@@ -232,9 +229,9 @@ export default function ViewAllItems({ viewType, staff }: ViewAllItemsProps) {
             })}
 
             <ItemsInformationSidebar
-              issues={viewTypeData.selectedItems as PendingIssuesWithRelation[]}
-              itemType={viewType as any}
-              issueType={findType.title}
+              itemNameType={itemNameType}
+              items={viewPort.selectedItems}
+              itemsViewPortId={viewPort.id}
               openSidebar={openSidebarInformation}
               setOpenSidebarAction={setOpenSidebarInformation}
             />
@@ -243,7 +240,7 @@ export default function ViewAllItems({ viewType, staff }: ViewAllItemsProps) {
             ref={scrollTrigger}
             className={cn(
               "flex h-40 !w-full items-center text-center",
-              viewTypeData.fetchCount === 0 && "hidden"
+              viewPort.fetchCount === 0 && "hidden"
             )}
           >
             {loading ? (
@@ -259,11 +256,11 @@ export default function ViewAllItems({ viewType, staff }: ViewAllItemsProps) {
             )}
           </div>
           <DynamicButtonIsland
-            viewTypeData={viewTypeData}
-            setViewTypeDataAction={setViewTypeData}
+            itemNameType={itemNameType}
+            viewPort={viewPort}
+            setViewPortAction={setViewPort}
             setOpenSidebarAction={setOpenSidebarInformation}
-            staff={staff}
-            itemType={itemType}
+            currentStaff={currentStaff}
           />
         </>
       )}
