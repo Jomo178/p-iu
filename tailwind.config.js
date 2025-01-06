@@ -1,9 +1,10 @@
-import fluid, { extract, fontSize, screens } from "fluid-tailwind";
-import type { Config } from "tailwindcss";
+import fluid, { extract } from "fluid-tailwind";
+import { createPreset } from "fumadocs-ui/tailwind-plugin";
 
 const { fontFamily } = require("tailwindcss/defaultTheme");
 
-const config: Config = {
+/** @type {import('tailwindcss').Config} */
+const config = {
   darkMode: ["class"],
   content: {
     files: [
@@ -12,9 +13,13 @@ const config: Config = {
       "./app/**/*.{ts,tsx}",
       "./src/**/*.{ts,tsx}",
       "./container/**/*.{ts,tsx}",
+      "./mdx-components.tsx",
+      "./content/**/*.mdx",
+      "./node_modules/fumadocs-ui/dist/**/*.js",
     ],
     extract,
   },
+  presets: [createPreset()],
   theme: {
     container: {
       center: true,
@@ -59,11 +64,11 @@ const config: Config = {
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         chart: {
-          "1": "hsl(var(--chart-1))",
-          "2": "hsl(var(--chart-2))",
-          "3": "hsl(var(--chart-3))",
-          "4": "hsl(var(--chart-4))",
-          "5": "hsl(var(--chart-5))",
+          1: "hsl(var(--chart-1))",
+          2: "hsl(var(--chart-2))",
+          3: "hsl(var(--chart-3))",
+          4: "hsl(var(--chart-4))",
+          5: "hsl(var(--chart-5))",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",

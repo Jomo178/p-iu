@@ -28,6 +28,14 @@ export const dashboardActions: DashboradActionsType[] = [
     disabled: false,
   },
   {
+    href: "/dashboard/add/docs",
+    Icon: Icons.blog,
+    title: "New Documentation",
+    description:
+      "Create and add new documentation to your team's database effortlessly.",
+    disabled: false,
+  },
+  {
     href: "/dashboard/view/issues",
     Icon: Icons.previewButton,
     title: "Manage Issues",

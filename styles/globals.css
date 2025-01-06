@@ -1,6 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import "../node_modules/@mdxeditor/editor/dist/style.css";
 
 @layer base {
   :root {
@@ -105,3 +106,19 @@
   border-top-width: calc(1px * calc(1 - var(--tw-divide-y-reverse)));
   border-bottom-width: calc(1px * var(--tw-divide-y-reverse));
 }
+
+.container-wrapper {
+  @apply mx-auto w-full border-border/30 dark:border-border min-[1800px]:max-w-[1536px] min-[1800px]:border-x;
+}
+
+.container {
+  @apply mx-auto max-w-[1536px] px-4 xl:px-6 2xl:px-4;
+}
+
+/* MDX Editor height ._contentEditable_uazmk_379 {
+  min-height: 500px;
+}
+
+._placeholder_uazmk_1084 {
+  display: none;
+} */

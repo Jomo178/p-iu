@@ -4,7 +4,9 @@ import localFont from "next/font/local";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
 import "../styles/globals.css";
+import "@mdxeditor/editor/style.css";
 
+import { RootProvider } from "fumadocs-ui/provider";
 import { Toaster } from "sonner";
 
 import { cn } from "@/lib/utils";
@@ -102,7 +104,14 @@ export default function RootLayout({
       >
         <div className="flex min-h-screen flex-col">
           <main className="flex-1">
-            <TooltipProvider>{children}</TooltipProvider>
+            <RootProvider
+              search={{
+                enabled: true,
+              }}
+              theme={{ enabled: false }}
+            >
+              <TooltipProvider>{children}</TooltipProvider>
+            </RootProvider>
           </main>
           <Toaster
             richColors
