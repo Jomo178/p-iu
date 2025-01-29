@@ -257,6 +257,48 @@ export async function releaseEvent(eventId: string) {
       },
     });
 
+    const fonts = await tx.pendingFonts.findMany({
+      where: {
+        eventId,
+        approvedById: {
+          not: null,
+        },
+        approvedAt: {
+          not: null,
+        },
+      },
+      include: {
+        event: true,
+      },
+    });
+
+    const fontsData = fonts.map((font) => ({
+      name: font.name,
+      short: font.short,
+      price: font.price,
+      onMarket: font.onMarket,
+      isBig: font.isBig,
+      filePath: font.filePath,
+      createdAt: font.createdAt,
+      updatedAt: font.updatedAt,
+      eventId: font.eventId,
+      createdById: font.createdById,
+      approvedById: font.approvedById!,
+      approvedAt: font.approvedAt!,
+    }));
+
+    await tx.fonts.createMany({
+      data: fontsData,
+    });
+
+    await tx.pendingFonts.deleteMany({
+      where: {
+        id: {
+          in: fonts.map((font) => font.id),
+        },
+      },
+    });
+
     return {
       message: "Approved pending issues successfully transferred to issues.",
     };
