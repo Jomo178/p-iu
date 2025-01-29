@@ -1,4 +1,3 @@
-import { notFound } from "next/navigation";
 import ViewSidebar from "@/container/dashboard/view/sidebar-view";
 import ReactQueryProvider from "@/providers/react-query-client-provider";
 import { NuqsAdapter } from "nuqs/adapters/next/app";

@@ -183,7 +183,7 @@ function ReleaseEvent({
   setOpenDialogAction,
 }: ReleaseEventProps) {
   const [loading, setLoading] = useState(false);
-  console.log(event);
+
   return (
     <Credenza open={openDialog} onOpenChange={setOpenDialogAction}>
       <CredenzaContent className="md:max-w-md">
